@@ -1,0 +1,7 @@
+{
+  "name": "Operator: Matrix Dev Workspace",
+  "description": "Minimalist personal project organizer inspired by the Matrix terminal systems, featuring tasks, nested subtasks, observations, and keyboard-first command flow.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
