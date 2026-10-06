@@ -150,6 +150,19 @@ O aplicativo conta com suporte nativo e opcional ao [Supabase](https://supabase.
    ```
 5. Pronto! Agora você pode clicar em `[ENTRAR]` no app, criar uma conta e seus projetos serão sincronizados na nuvem em tempo real!
 
+### Como Ativar Login com Google (OAuth):
+
+1. No painel do **Supabase**, vá em **Authentication** > **Providers** > procure por **Google** e marque como habilitado.
+2. Copie o **Callback URL (for OAuth)** exibido ali (ex: `https://<seu-projeto>.supabase.co/auth/v1/callback`).
+3. Acesse o [Google Cloud Console](https://console.cloud.google.com/):
+   - Crie ou selecione um projeto.
+   - Configure a **OAuth consent screen** (tipo *External*).
+   - Vá em **Credentials** > **Create Credentials** > **OAuth client ID** > Tipo: **Web application**.
+   - Em **Authorized redirect URIs**, adicione a URL que você copiou do Supabase (`https://<seu-projeto>.supabase.co/auth/v1/callback`).
+   - Copie o **Client ID** e o **Client Secret** gerados.
+4. Volte ao Supabase no provider do Google, cole o **Client ID** e o **Client Secret** e clique em **Save**.
+5. No Supabase, vá em **Authentication** > **URL Configuration** e adicione a URL do seu site no Netlify (ex: `https://seu-app.netlify.app`) em **Redirect URLs**.
+
 ---
 
 ## 📁 Estrutura do Código
