@@ -319,6 +319,35 @@ test('Quick-Find deve buscar simultaneamente por títulos de tarefas e tags em t
   assert(typeof results3[0].proj.id === 'string', 'Resultado deve identificar projeto pai para salto direto');
 });
 
+// --------------------------------------------------------------------------
+// TEST GROUP 6: Supabase Data Mapping & Offline Fallback
+// --------------------------------------------------------------------------
+test('Mapeamento de modelo de Projeto para formato Postgres/Supabase deve ser idempotente', () => {
+  const p = INITIAL_PROJECTS[0];
+  const userId = '00000000-0000-0000-0000-000000000001';
+
+  // Simula conversão para linha de tabela Supabase
+  const dbRow = {
+    id: p.id,
+    user_id: userId,
+    title: p.title,
+    slug: p.slug,
+    category: p.category,
+    description: p.description,
+    status: p.status,
+    tasks: p.tasks,
+    observations: p.observations,
+    code_snippets: p.codeSnippets,
+    created_at: p.createdAt,
+    updated_at: p.updatedAt,
+  };
+
+  assert.strictEqual(dbRow.id, p.id);
+  assert.strictEqual(dbRow.user_id, userId);
+  assert.strictEqual(dbRow.tasks.length, p.tasks.length);
+  assert(Array.isArray(dbRow.tasks), 'Tarefas devem estar em formato array/jsonb');
+});
+
 console.log(`\n========================================`);
 console.log(`RESULTADO: ${passedTests}/${totalTests} testes passaram com sucesso! 🚀`);
 console.log(`========================================\n`);

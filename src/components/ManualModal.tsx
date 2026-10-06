@@ -42,6 +42,7 @@ const SHORTCUTS: ShortcutItem[] = [
 
 const CLI_COMMANDS = [
   { cmd: ':help ou man', desc: 'Abre o manual completo de comandos' },
+  { cmd: 'auth ou login', desc: 'Abre controle de acesso e sincronização na nuvem com Supabase' },
   { cmd: 'git checkout <nome>', desc: 'Muda para o projeto com nome correspondente' },
   { cmd: 'git init <nome>', desc: 'Inicializa um novo projeto com o título informado' },
   { cmd: 'git commit ou export', desc: 'Copia o projeto ativo como Markdown para o buffer' },

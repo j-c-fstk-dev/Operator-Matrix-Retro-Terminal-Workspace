@@ -91,3 +91,109 @@ Opere o sistema sem tirar as mãos do teclado:
 ```bash
 git clone <url-do-repositorio>
 cd operator-matrix-workspace
+```
+
+### 2. Instalar dependências
+```bash
+npm install
+```
+
+### 3. Iniciar o servidor de desenvolvimento
+```bash
+npm run dev
+```
+O aplicativo estará disponível em: `http://localhost:3000`
+
+### 4. Executar os testes automatizados
+```bash
+npm test
+```
+
+### 5. Compilar para produção
+```bash
+npm run build
+```
+Os arquivos prontos para deploy estático serão gerados no diretório `/dist`.
+
+---
+
+## 🌐 Deploy em Produção (Netlify, Vercel ou GitHub Pages)
+
+Como o Operator é uma aplicação **SPA estática (Single Page Application)**, o deploy pode ser feito de forma gratuita em qualquer serviço de hospedagem estática:
+
+### No Netlify:
+1. Conecte o repositório Git ou arraste a pasta `dist` gerada pelo comando `npm run build`.
+2. Configure as opções de Build:
+   - **Build Command**: `npm run build`
+   - **Publish Directory**: `dist`
+3. Se estiver usando o Supabase, adicione as variáveis em **Site configuration > Environment variables**:
+   - `VITE_SUPABASE_URL`: sua URL do projeto Supabase
+   - `VITE_SUPABASE_ANON_KEY`: sua chave pública `anon` do Supabase
+
+---
+
+## 🗄️ Configuração do Supabase (Autenticação & Banco de Dados na Nuvem)
+
+O aplicativo conta com suporte nativo e opcional ao [Supabase](https://supabase.com). Se as variáveis não estiverem configuradas, o app continuará funcionando perfeitamente em modo 100% Local (offline).
+
+### Passo a Passo para Ativar o Supabase:
+
+1. **Crie um projeto gratuito no [Supabase](https://supabase.com)**.
+2. Acesse **Project Settings > API** e copie:
+   - `Project URL`
+   - `anon public key`
+3. Abra o **SQL Editor** no painel do Supabase, cole o conteúdo do arquivo `supabase/schema.sql` deste repositório e clique em **RUN**. Ele criará a tabela `projects` com **Row Level Security (RLS)** ativado para garantir que cada usuário só acerte os próprios projetos.
+4. Adicione as variáveis no seu `.env` local ou no painel do Netlify:
+   ```env
+   VITE_SUPABASE_URL="https://seu-projeto.supabase.co"
+   VITE_SUPABASE_ANON_KEY="sua-chave-anon"
+   ```
+5. Pronto! Agora você pode clicar em `[ENTRAR]` no app, criar uma conta e seus projetos serão sincronizados na nuvem em tempo real!
+
+---
+
+## 📁 Estrutura do Código
+
+```
+├── supabase/
+│   └── schema.sql             # Script SQL para criação de tabelas e RLS no Supabase
+├── src/
+│   ├── components/
+│   │   ├── AuthModal.tsx          # Controle de acesso e autenticação Supabase
+│   │   ├── BackupModal.tsx        # Central de backup, download e upload JSON
+│   │   ├── CommandPalette.tsx     # Prompt de comandos CLI (Ctrl+K) & Quick-Find
+│   │   ├── ManualModal.tsx        # Manual completo de atalhos e comandos Unix (man)
+│   │   ├── MatrixRainCanvas.tsx   # Canvas de chuva digital Matrix em segundo plano
+│   │   ├── ProjectWorkspace.tsx   # Painel principal do projeto com tarefas e abas
+│   │   ├── SettingsModal.tsx      # Modal de preferências de áudio, scanlines e reset
+│   │   └── Sidebar.tsx            # Barra lateral retrô com projetos e controles
+│   ├── lib/
+│   │   └── supabase.ts            # Cliente seguro e tipado do Supabase
+│   ├── services/
+│   │   └── supabaseService.ts     # Serviço de sincronização e mapeamento do banco
+│   ├── data/
+│   │   └── initialData.ts         # Dados de exemplo pré-carregados
+│   ├── utils/
+│   │   ├── audio.ts               # Sintetizador Web Audio para feedback sonoro
+│   │   └── tagColors.ts           # Gerador determinístico de cores de terminal para #tags
+│   ├── types.ts                   # Definições de tipos TypeScript
+│   ├── App.tsx                    # Componente raiz, gerenciamento de estado e eventos globais
+│   └── main.tsx                   # Ponto de entrada da aplicação
+├── tests/
+│   └── suite.test.ts              # Suíte de testes automatizados (unitários e integração)
+├── index.html                     # Entrypoint HTML com meta tags e visual retrô
+└── package.json                   # Dependências e scripts
+```
+
+---
+
+## 🔒 Privacidade & Segurança
+
+- **100% Offline e Privado**: Nenhum dado pessoal ou de tarefa é enviado para servidores externos.
+- **Seus Dados Pertencem a Você**: Baixe seu backup em `.json` a qualquer momento para garantir a custódia das suas informações.
+
+---
+
+## 📄 Licença
+
+Distribuído sob a licença [Apache 2.0](LICENSE).

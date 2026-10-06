@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Project, WorkspaceSettings, Task } from '../types';
-import { Search, FolderPlus, Terminal, Volume2, VolumeX, Eye, FileDown, FileUp, Copy, Check, BookOpen, ArrowRight, CheckSquare, Square, Tag as TagIcon, Sparkles } from 'lucide-react';
+import { Search, FolderPlus, Terminal, Volume2, VolumeX, Eye, FileDown, FileUp, Copy, Check, BookOpen, ArrowRight, CheckSquare, Square, Tag as TagIcon, Sparkles, Cloud } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { getTerminalTagStyle } from '../utils/tagColors';
 
@@ -26,6 +26,7 @@ interface CommandPaletteProps {
   onImportClick: () => void;
   onCopyMarkdown: () => void;
   onOpenManual: () => void;
+  onOpenAuth?: () => void;
   onShowToast: (msg: string) => void;
 }
 
@@ -44,6 +45,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onImportClick,
   onCopyMarkdown,
   onOpenManual,
+  onOpenAuth,
   onShowToast,
 }) => {
   const [query, setQuery] = useState('');
@@ -80,6 +82,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   // Recognize Git & Linux commands
   const isHelpCommand = lower === 'man' || lower === 'help' || lower === ':help' || lower === '?';
+  const isAuthCommand = lower === 'login' || lower === 'auth' || lower === 'supabase' || lower === 'nuvem' || lower === 'entrar' || lower === 'sair';
   const isGitCommit = lower === 'git commit' || lower === 'export' || lower === 'md';
   const isGitStatus = lower === 'git status' || lower === 'status';
   const isGitCheckout = lower.startsWith('git checkout ') || lower.startsWith('switch ');
@@ -157,6 +160,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (isHelpCommand) {
       onClose();
       onOpenManual();
+      return;
+    }
+
+    if (isAuthCommand && onOpenAuth) {
+      onClose();
+      onOpenAuth();
       return;
     }
 
@@ -459,6 +468,17 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 >
                   <FileUp size={13} />
                   <span>Importar JSON</span>
+                </button>
+                <span className="text-[#14351a]">·</span>
+                <button
+                  onClick={() => {
+                    onOpenAuth?.();
+                    onClose();
+                  }}
+                  className="flex items-center gap-1.5 text-xs text-[#22c55e] hover:underline transition-colors"
+                >
+                  <Cloud size={13} />
+                  <span>Login / Supabase</span>
                 </button>
               </div>
             </div>

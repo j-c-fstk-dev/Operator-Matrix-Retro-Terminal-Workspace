@@ -13,7 +13,11 @@ import { CommandPalette } from './components/CommandPalette';
 import { SettingsModal } from './components/SettingsModal';
 import { ManualModal } from './components/ManualModal';
 import { BackupModal } from './components/BackupModal';
+import { AuthModal } from './components/AuthModal';
 import { sound } from './utils/audio';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { supabaseService } from './services/supabaseService';
+import { User } from '@supabase/supabase-js';
 
 const STORAGE_PROJECTS_KEY = 'operator_matrix_projects_v1';
 const STORAGE_SETTINGS_KEY = 'operator_matrix_settings_v1';
@@ -47,6 +51,8 @@ export default function App() {
     return DEFAULT_SETTINGS;
   });
 
+  const [user, setUser] = useState<User | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
@@ -61,6 +67,74 @@ export default function App() {
   useEffect(() => {
     sound.setEnabled(settings.soundEnabled);
   }, [settings.soundEnabled]);
+
+  // Load cloud projects for user or seed cloud from local if empty
+  const loadCloudProjects = async (userId: string) => {
+    try {
+      const cloudProjects = await supabaseService.fetchUserProjects(userId);
+      if (cloudProjects.length > 0) {
+        setProjects(cloudProjects);
+        setActiveProjectId((prev) => {
+          return cloudProjects.some((p) => p.id === prev) ? prev : cloudProjects[0].id;
+        });
+        localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(cloudProjects));
+        showToast(`[NUVEM] ${cloudProjects.length} projetos sincronizados via Supabase!`);
+      } else {
+        // Cloud is currently empty: migrate existing local projects to the user's cloud account!
+        const localData = localStorage.getItem(STORAGE_PROJECTS_KEY);
+        if (localData) {
+          const parsed = JSON.parse(localData);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            await supabaseService.upsertAllProjects(userId, parsed);
+            showToast(`[NUVEM] ${parsed.length} projetos locais sincronizados para sua conta!`);
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error('[Supabase] Erro ao sincronizar projetos:', err);
+    }
+  };
+
+  // Listen to Supabase auth session
+  useEffect(() => {
+    if (!supabase || !isSupabaseConfigured) return;
+
+    supabase.auth.getSession().then(({ data }) => {
+      const currentUser = data.session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) {
+        loadCloudProjects(currentUser.id);
+      }
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser) {
+          loadCloudProjects(currentUser.id);
+        }
+      }
+    );
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSyncLocalToCloud = async () => {
+    if (!user) {
+      showToast('Faça login primeiro para sincronizar com a nuvem.');
+      return;
+    }
+    try {
+      await supabaseService.upsertAllProjects(user.id, projects);
+      showToast(`Sucesso: ${projects.length} projetos enviados para o Supabase!`);
+    } catch (err: any) {
+      showToast(`Falha ao sincronizar: ${err.message || 'Erro'}`);
+      throw err;
+    }
+  };
 
   // Persist projects to localStorage
   useEffect(() => {
@@ -172,6 +246,11 @@ export default function App() {
     setProjects((prev) =>
       prev.map((p) => (p.id === updated.id ? updated : p))
     );
+    if (user) {
+      supabaseService.upsertProject(user.id, updated).catch((err) => {
+        console.error('[Supabase] Falha ao atualizar projeto:', err);
+      });
+    }
   };
 
   const handleCreateNewProject = (customTitle?: string) => {
@@ -204,6 +283,11 @@ export default function App() {
 
     setProjects((prev) => [newProject, ...prev]);
     setActiveProjectId(newId);
+    if (user) {
+      supabaseService.upsertProject(user.id, newProject).catch((err) => {
+        console.error('[Supabase] Falha ao criar projeto na nuvem:', err);
+      });
+    }
     sound.playCommand();
     showToast(`Projeto "${newProject.title}" inicializado (git init).`);
   };
@@ -217,6 +301,11 @@ export default function App() {
     setProjects(filtered);
     if (activeProjectId === id) {
       setActiveProjectId(filtered[0].id);
+    }
+    if (user) {
+      supabaseService.deleteProject(user.id, id).catch((err) => {
+        console.error('[Supabase] Falha ao deletar projeto na nuvem:', err);
+      });
     }
     showToast('Projeto removido.');
   };
@@ -404,6 +493,12 @@ export default function App() {
         localStorage.setItem(STORAGE_SETTINGS_KEY, JSON.stringify({ ...settings, ...importedSettings }));
       }
 
+      if (user) {
+        supabaseService.upsertAllProjects(user.id, finalProjects).catch((err) => {
+          console.error('[Supabase] Falha ao sincronizar projetos importados:', err);
+        });
+      }
+
       const totalTasksCount = finalProjects.reduce((acc, p) => acc + p.tasks.length, 0);
       showToast(`[RESTAURAÇÃO CONCLUÍDA] ${finalProjects.length} projetos e ${totalTasksCount} tarefas carregados!`);
     } catch (err) {
@@ -478,6 +573,8 @@ export default function App() {
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           onOpenManual={() => setIsManualOpen(true)}
           onOpenBackup={() => setIsBackupModalOpen(true)}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
+          user={user}
           isMobileOpen={isMobileSidebarOpen}
           onCloseMobile={() => setIsMobileSidebarOpen(false)}
         />
@@ -490,6 +587,8 @@ export default function App() {
           onCopyMarkdown={handleCopyMarkdown}
           onOpenManual={() => setIsManualOpen(true)}
           onOpenBackup={() => setIsBackupModalOpen(true)}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
+          user={user}
           highlightedTaskId={highlightedTaskId}
         />
       </div>
@@ -519,6 +618,7 @@ export default function App() {
         onImportClick={() => setIsBackupModalOpen(true)}
         onCopyMarkdown={handleCopyMarkdown}
         onOpenManual={() => setIsManualOpen(true)}
+        onOpenAuth={() => setIsAuthModalOpen(true)}
         onShowToast={showToast}
       />
 
@@ -548,6 +648,16 @@ export default function App() {
         settings={settings}
         onImportProjects={handleImportProjects}
         onShowToast={showToast}
+      />
+
+      {/* Retro Matrix Auth Modal (Supabase Cloud) */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        user={user}
+        onSyncLocalToCloud={handleSyncLocalToCloud}
+        onShowToast={showToast}
+        localProjectsCount={projects.length}
       />
 
       {/* Feedback Toast Notification */}

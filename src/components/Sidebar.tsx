@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Project, WorkspaceSettings } from '../types';
-import { Plus, Search, Folder, CheckSquare, Terminal, Eye, Volume2, VolumeX, Trash2, SlidersHorizontal, BookOpen, Database } from 'lucide-react';
+import { Plus, Search, Folder, CheckSquare, Terminal, Eye, Volume2, VolumeX, Trash2, SlidersHorizontal, BookOpen, Database, Cloud, User as UserIcon } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { User } from '@supabase/supabase-js';
 
 interface SidebarProps {
   projects: Project[];
@@ -16,6 +17,8 @@ interface SidebarProps {
   onOpenCommandPalette: () => void;
   onOpenManual?: () => void;
   onOpenBackup?: () => void;
+  onOpenAuth?: () => void;
+  user?: User | null;
   isMobileOpen: boolean;
   onCloseMobile: () => void;
 }
@@ -33,6 +36,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenCommandPalette,
   onOpenManual,
   onOpenBackup,
+  onOpenAuth,
+  user,
   isMobileOpen,
   onCloseMobile,
 }) => {
@@ -90,6 +95,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>TERMINAL DE PROJETOS</span>
             <span className="text-[#15803d] font-mono text-[10px]">// DEV</span>
           </div>
+
+          {/* Auth / Cloud Status Indicator */}
+          <button
+            onClick={() => {
+              onOpenAuth?.();
+              sound.playClick(650);
+            }}
+            className="mt-3 w-full flex items-center justify-between px-2.5 py-1.5 bg-[#020502] border border-[#14351a] hover:border-[#22c55e] text-[10px] font-mono transition-colors group cursor-pointer"
+            title={user ? `Conectado como ${user.email} (Supabase Cloud)` : 'Clique para fazer login ou criar conta no Supabase'}
+          >
+            <div className="flex items-center gap-1.5 truncate">
+              <span className={`w-1.5 h-1.5 rounded-full ${user ? 'bg-[#22c55e] shadow-[0_0_6px_#22c55e]' : 'bg-[#15803d]'}`} />
+              <span className="truncate text-[#86efac] group-hover:text-white">
+                {user ? user.email : 'MODO LOCAL (OFFLINE)'}
+              </span>
+            </div>
+            <span className="text-[#22c55e] shrink-0 font-bold ml-1">
+              {user ? '[NUVEM]' : '[ENTRAR]'}
+            </span>
+          </button>
         </div>
 
         {/* Quick Search & Command Bar Trigger */}

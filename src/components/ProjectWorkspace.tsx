@@ -22,10 +22,12 @@ import {
   Tag,
   X,
   BookOpen,
-  Database
+  Database,
+  Cloud
 } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { getTerminalTagStyle } from '../utils/tagColors';
+import { User } from '@supabase/supabase-js';
 
 interface ProjectWorkspaceProps {
   project: Project;
@@ -34,6 +36,8 @@ interface ProjectWorkspaceProps {
   onCopyMarkdown: () => void;
   onOpenManual: () => void;
   onOpenBackup: () => void;
+  onOpenAuth?: () => void;
+  user?: User | null;
   highlightedTaskId?: string | null;
 }
 
@@ -44,6 +48,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   onCopyMarkdown,
   onOpenManual,
   onOpenBackup,
+  onOpenAuth,
+  user,
   highlightedTaskId,
 }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'tasks' | 'notes' | 'code'>('all');
@@ -465,6 +471,22 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => {
+              onOpenAuth?.();
+              sound.playClick(750);
+            }}
+            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono transition-colors border ${
+              user
+                ? 'bg-[#081a0b] border-[#22c55e] text-[#22c55e]'
+                : 'bg-[#07170a] border-[#14351a] hover:border-[#22c55e] text-[#86efac]'
+            }`}
+            title={user ? `Sincronização em nuvem ativa (${user.email})` : 'Conectar com Supabase'}
+          >
+            <Cloud size={12} className={user ? 'text-[#22c55e]' : 'text-[#15803d]'} />
+            <span className="hidden md:inline">{user ? 'Nuvem OK' : 'Login / Nuvem'}</span>
+          </button>
+
           <button
             onClick={() => {
               onOpenBackup();
