@@ -23,11 +23,14 @@ import {
   X,
   BookOpen,
   Database,
-  Cloud
+  Cloud,
+  HardDrive
 } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { getTerminalTagStyle } from '../utils/tagColors';
 import { User } from '@supabase/supabase-js';
+import { PWAInstallButton } from './PWAInstallButton';
+import { ProjectAttachments } from './ProjectAttachments';
 
 interface ProjectWorkspaceProps {
   project: Project;
@@ -38,6 +41,7 @@ interface ProjectWorkspaceProps {
   onOpenBackup: () => void;
   onOpenAuth?: () => void;
   user?: User | null;
+  onShowToast?: (msg: string) => void;
   highlightedTaskId?: string | null;
 }
 
@@ -50,9 +54,10 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   onOpenBackup,
   onOpenAuth,
   user,
+  onShowToast,
   highlightedTaskId,
 }) => {
-  const [activeTab, setActiveTab] = useState<'all' | 'tasks' | 'notes' | 'code'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'tasks' | 'notes' | 'code' | 'files'>('all');
   const [taskFilter, setTaskFilter] = useState<'all' | 'pending' | 'done'>('all');
   const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
@@ -409,6 +414,11 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         sound.playClick(650);
         return;
       }
+      if (e.key === '5') {
+        setActiveTab('files');
+        sound.playClick(650);
+        return;
+      }
 
       // Task list navigation (Vim j/k)
       if (e.key === 'j' || e.key === 'ArrowDown') {
@@ -486,6 +496,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             <Cloud size={12} className={user ? 'text-[#22c55e]' : 'text-[#15803d]'} />
             <span className="hidden md:inline">{user ? 'Nuvem OK' : 'Login / Nuvem'}</span>
           </button>
+
+          <PWAInstallButton variant="header" />
 
           <button
             onClick={() => {
@@ -701,6 +713,17 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             >
               <Code size={12} />
               <span>SNIPPETS ({project.codeSnippets.length})</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('files')}
+              className={`px-3 py-1 text-xs font-mono transition-colors flex items-center gap-1.5 ${
+                activeTab === 'files'
+                  ? 'bg-[#0f2c15] text-[#22c55e] border border-[#22c55e]'
+                  : 'text-[#166534] hover:text-[#86efac] border border-transparent'
+              }`}
+            >
+              <HardDrive size={12} />
+              <span>ARQUIVOS ({(project.attachments || []).length})</span>
             </button>
           </div>
         </section>
@@ -1358,6 +1381,30 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             )}
           </section>
         )}
+
+        {/* 4. ATTACHMENTS & MEDIA SECTION (FILES // ASSETS) */}
+        {(activeTab === 'all' || activeTab === 'files') && (
+          <section className="space-y-3">
+            <div className="flex items-center justify-between border-b border-[#14351a] pb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[#22c55e] font-mono text-sm">#04</span>
+                <h2 className="text-sm font-mono font-bold tracking-wider text-[#22c55e]">
+                  ARQUIVOS, MÍDIAS E ANEXOS (STORAGE)
+                </h2>
+              </div>
+              <span className="text-[10px] text-[#15803d] font-mono">
+                {(project.attachments || []).length} ARQUIVO(S) VINCULADO(S)
+              </span>
+            </div>
+
+            <ProjectAttachments
+              project={project}
+              onUpdateProject={onUpdateProject}
+              user={user}
+              onShowToast={onShowToast || (() => {})}
+            />
+          </section>
+        )}
       </div>
 
       {/* Persistent Linux/Git Cheatsheet Status Bar */}
@@ -1381,7 +1428,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             <kbd className="text-[#86efac]">X</kbd> marcar/desmarcar
           </span>
           <span className="hidden md:inline">
-            <kbd className="text-[#86efac]">1-4</kbd> alternar abas
+            <kbd className="text-[#86efac]">1-5</kbd> alternar abas
           </span>
           <span className="hidden lg:inline">
             <kbd className="text-[#86efac]">Ctrl+K</kbd> terminal CLI

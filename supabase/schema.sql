@@ -17,9 +17,13 @@ create table if not exists public.projects (
   tasks jsonb default '[]'::jsonb,
   observations jsonb default '[]'::jsonb,
   code_snippets jsonb default '[]'::jsonb,
+  attachments jsonb default '[]'::jsonb,
   created_at bigint default (extract(epoch from now()) * 1000)::bigint,
   updated_at bigint default (extract(epoch from now()) * 1000)::bigint
 );
+
+-- Migração para tabelas já existentes: garante que a coluna attachments existe
+alter table public.projects add column if not exists attachments jsonb default '[]'::jsonb;
 
 -- 2. Habilitação de Row Level Security (RLS) para proteção estrita de dados
 alter table public.projects enable row level security;

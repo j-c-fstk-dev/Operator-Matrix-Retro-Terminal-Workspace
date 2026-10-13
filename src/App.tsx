@@ -14,6 +14,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { ManualModal } from './components/ManualModal';
 import { BackupModal } from './components/BackupModal';
 import { AuthModal } from './components/AuthModal';
+import { OfflineIndicator } from './components/OfflineIndicator';
 import { sound } from './utils/audio';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { supabaseService } from './services/supabaseService';
@@ -457,6 +458,20 @@ export default function App() {
               updatedAt: c.updatedAt || Date.now(),
             }))
           : [],
+        attachments: Array.isArray(p.attachments)
+          ? p.attachments.map((a, aIdx) => ({
+              id: a.id || `att-${Date.now()}-${aIdx}`,
+              name: a.name || 'arquivo',
+              type: a.type || 'other',
+              mimeType: a.mimeType || 'application/octet-stream',
+              size: Number(a.size) || 0,
+              url: a.url || '',
+              storagePath: a.storagePath,
+              createdAt: a.createdAt || Date.now(),
+              description: a.description,
+              textContent: a.textContent,
+            }))
+          : [],
         createdAt: p.createdAt || Date.now(),
         updatedAt: Date.now(),
       }));
@@ -589,6 +604,7 @@ export default function App() {
           onOpenBackup={() => setIsBackupModalOpen(true)}
           onOpenAuth={() => setIsAuthModalOpen(true)}
           user={user}
+          onShowToast={showToast}
           highlightedTaskId={highlightedTaskId}
         />
       </div>
@@ -659,6 +675,9 @@ export default function App() {
         onShowToast={showToast}
         localProjectsCount={projects.length}
       />
+
+      {/* Offline Connectivity Indicator */}
+      <OfflineIndicator />
 
       {/* Feedback Toast Notification */}
       {toastMessage && (

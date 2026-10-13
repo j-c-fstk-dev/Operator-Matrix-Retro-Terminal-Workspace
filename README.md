@@ -62,9 +62,22 @@ Opere o sistema sem tirar as mãos do teclado:
   - Abra a aplicação em qualquer outro computador ou celular (ex: após subir no Netlify).
   - Faça upload do arquivo `.json` escolhendo **Substituir Tudo** ou **Mesclar com Atuais**.
   - Gravação síncrona imediata no `localStorage`.
-- **Transferência via Texto (Clipboard)**: copie todo o JSON como texto para colar em conversas ou enviar por e-mail sem precisar manipular arquivos.
+### 6. 📱 PWA Instalável nos Dispositivos (Offline & Standalone)
+- **Instalação Nativa**: instale no Android, iOS (iPhone/iPad), Windows, macOS e Linux com 1 clique direto pelo botão `[Instalar App]` ou pelo menu do navegador.
+- **Janela Standalone**: roda sem barra de URL, tela cheia, com ícone próprio na tela de início/desktop.
+- **Service Worker com Auto-Update**: novas versões implantadas no Netlify atualizam o app em segundo plano automaticamente sem travar.
+- **Totalmente Funcional Offline**: assets, fontes e scripts precacheados funcionam sem internet.
 
-### 6. 📄 Exportação Completa para Markdown
+### 7. 📁 Anexos, Mídias & Arquivos de Código (Storage)
+- **Upload Híbrido Multiformato**: arraste e solte (Drag & Drop) imagens, vídeos, PDFs, arquivos de código (`.ts`, `.py`, `.json`, etc.) e documentos de texto diretamente no projeto.
+- **Visualizadores Embutidos**:
+  - **Imagens**: miniaturas com lightbox para visualização em alta resolução.
+  - **Vídeos**: player integrado estilo terminal.
+  - **Documentos PDF**: leitor e download direto em 1 clique.
+  - **Código & Texto**: inspetor com pré-visualização, formatação monoespaçada e botão de cópia instantânea para o clipboard.
+- **Integração com Supabase Storage (1GB Gratuito)**: quando logado, os arquivos são salvos na nuvem no bucket `project-attachments`; em modo offline, continuam acessíveis no cache local.
+
+### 8. 📄 Exportação Completa para Markdown
 - Com um clique no botão **`Exportar MD`** (ou tecle `M`), todo o escopo do projeto ativo é compilado em formato Markdown limpo e copiado para sua área de transferência, pronto para virar um `README.md` ou documentação no GitHub.
 
 ---
@@ -162,6 +175,14 @@ O aplicativo conta com suporte nativo e opcional ao [Supabase](https://supabase.
    - Copie o **Client ID** e o **Client Secret** gerados.
 4. Volte ao Supabase no provider do Google, cole o **Client ID** e o **Client Secret** e clique em **Save**.
 5. No Supabase, vá em **Authentication** > **URL Configuration** e adicione a URL do seu site no Netlify (ex: `https://seu-app.netlify.app`) em **Redirect URLs**.
+
+### Como Ativar o Upload de Mídias (Supabase Storage):
+
+1. No painel do **Supabase**, clique em **Storage** no menu lateral esquerdo.
+2. Clique em **New bucket**.
+3. Defina o nome como: `project-attachments`.
+4. Marque a opção **Public bucket** (para que as imagens e vídeos abram instantaneamente no app).
+5. Clique em **Save**. Pronto! O upload de arquivos já está 100% ativo!
 
 ---
 

@@ -1,7 +1,8 @@
 import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
 
-const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL || '').trim();
-const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY || '').trim();
+const env = (typeof import.meta !== 'undefined' && (import.meta as any).env) || (typeof process !== 'undefined' ? process.env : {}) || {};
+const supabaseUrl = (env.VITE_SUPABASE_URL || '').trim();
+const supabaseAnonKey = (env.VITE_SUPABASE_ANON_KEY || '').trim();
 
 // Check if credentials are valid and not placeholders
 export const isSupabaseConfigured = Boolean(

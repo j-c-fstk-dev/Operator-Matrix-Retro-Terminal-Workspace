@@ -1,7 +1,10 @@
 import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
 import { INITIAL_PROJECTS, DEFAULT_SETTINGS } from '../src/data/initialData';
 import { getTerminalTagStyle } from '../src/utils/tagColors';
 import { Project, WorkspaceSettings } from '../src/types';
+import { detectAttachmentType, formatBytes } from '../src/services/storageService';
 
 console.log('⚡ [INICIANDO BATERIA DE TESTES DO OPERATOR WORKSPACE] ⚡\n');
 
@@ -346,6 +349,47 @@ test('Mapeamento de modelo de Projeto para formato Postgres/Supabase deve ser id
   assert.strictEqual(dbRow.user_id, userId);
   assert.strictEqual(dbRow.tasks.length, p.tasks.length);
   assert(Array.isArray(dbRow.tasks), 'Tarefas devem estar em formato array/jsonb');
+});
+
+// --------------------------------------------------------------------------
+// TEST GROUP 7: PWA Assets & Compliance
+// --------------------------------------------------------------------------
+test('PWA: Ícones essenciais e arquivos de instalação devem existir no diretório public', () => {
+  const publicDir = path.resolve('public');
+
+  const requiredIcons = [
+    'pwa-192x192.png',
+    'pwa-512x512.png',
+    'pwa-maskable-512x512.png',
+    'apple-touch-icon.png',
+    'icon.svg',
+    'favicon.ico',
+  ];
+
+  requiredIcons.forEach((file) => {
+    const filePath = path.join(publicDir, file);
+    assert(fs.existsSync(filePath), `Arquivo obrigatório ${file} deve existir em /public`);
+    const stat = fs.statSync(filePath);
+    assert(stat.size > 0, `Arquivo ${file} não pode estar vazio`);
+  });
+});
+
+// --------------------------------------------------------------------------
+// TEST GROUP 8: Project Attachments & Media Detection
+// --------------------------------------------------------------------------
+test('Storage: Detecção de tipo de anexo (imagem, vídeo, pdf, código) deve ser precisa', () => {
+  assert.strictEqual(detectAttachmentType({ name: 'diagrama.png', type: 'image/png' }), 'image');
+  assert.strictEqual(detectAttachmentType({ name: 'demo.mp4', type: 'video/mp4' }), 'video');
+  assert.strictEqual(detectAttachmentType({ name: 'manual.pdf', type: 'application/pdf' }), 'pdf');
+  assert.strictEqual(detectAttachmentType({ name: 'server.ts' }), 'code');
+  assert.strictEqual(detectAttachmentType({ name: 'main.py' }), 'code');
+  assert.strictEqual(detectAttachmentType({ name: 'config.json' }), 'code');
+  assert.strictEqual(detectAttachmentType({ name: 'notes.txt', type: 'text/plain' }), 'text');
+  assert.strictEqual(detectAttachmentType({ name: 'backup.zip' }), 'archive');
+
+  assert.strictEqual(formatBytes(0), '0 B');
+  assert.strictEqual(formatBytes(1024), '1 KB');
+  assert.strictEqual(formatBytes(1024 * 1024 * 2.5), '2.5 MB');
 });
 
 console.log(`\n========================================`);

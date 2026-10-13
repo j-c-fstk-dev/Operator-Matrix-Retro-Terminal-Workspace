@@ -3,6 +3,7 @@ import { Project, WorkspaceSettings } from '../types';
 import { Plus, Search, Folder, CheckSquare, Terminal, Eye, Volume2, VolumeX, Trash2, SlidersHorizontal, BookOpen, Database, Cloud, User as UserIcon } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { User } from '@supabase/supabase-js';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface SidebarProps {
   projects: Project[];
@@ -290,6 +291,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="tabular-nums text-[#22c55e] font-semibold">
               {doneTasks}/{totalTasks} ({totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0}%)
             </span>
+          </div>
+
+          {/* PWA Install Action */}
+          <div className="pt-2 border-t border-[#0d2212]">
+            <PWAInstallButton variant="sidebar" />
           </div>
 
           {/* Quick Control Toggles */}

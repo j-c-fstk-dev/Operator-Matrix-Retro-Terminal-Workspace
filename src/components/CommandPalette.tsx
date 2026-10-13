@@ -83,6 +83,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   // Recognize Git & Linux commands
   const isHelpCommand = lower === 'man' || lower === 'help' || lower === ':help' || lower === '?';
   const isAuthCommand = lower === 'login' || lower === 'auth' || lower === 'supabase' || lower === 'nuvem' || lower === 'entrar' || lower === 'sair';
+  const isPwaCommand = lower === 'pwa' || lower === 'instalar' || lower === 'install';
   const isGitCommit = lower === 'git commit' || lower === 'export' || lower === 'md';
   const isGitStatus = lower === 'git status' || lower === 'status';
   const isGitCheckout = lower.startsWith('git checkout ') || lower.startsWith('switch ');
@@ -166,6 +167,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (isAuthCommand && onOpenAuth) {
       onClose();
       onOpenAuth();
+      return;
+    }
+
+    if (isPwaCommand) {
+      onClose();
+      onShowToast('Disparando modal de instalação do app...');
+      const installBtn = document.querySelector('button[title*="Instalar"]') as HTMLButtonElement | null;
+      if (installBtn) installBtn.click();
       return;
     }
 

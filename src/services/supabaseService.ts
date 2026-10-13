@@ -12,6 +12,7 @@ interface DbProjectRow {
   tasks: any;
   observations: any;
   code_snippets: any;
+  attachments?: any;
   created_at: number;
   updated_at: number;
 }
@@ -27,6 +28,7 @@ function mapRowToProject(row: DbProjectRow): Project {
     tasks: Array.isArray(row.tasks) ? row.tasks : [],
     observations: Array.isArray(row.observations) ? row.observations : [],
     codeSnippets: Array.isArray(row.code_snippets) ? row.code_snippets : [],
+    attachments: Array.isArray(row.attachments) ? row.attachments : [],
     createdAt: Number(row.created_at) || Date.now(),
     updatedAt: Number(row.updated_at) || Date.now(),
   };
@@ -44,6 +46,7 @@ function mapProjectToRow(userId: string, project: Project): DbProjectRow {
     tasks: project.tasks || [],
     observations: project.observations || [],
     code_snippets: project.codeSnippets || [],
+    attachments: project.attachments || [],
     created_at: project.createdAt || Date.now(),
     updated_at: project.updatedAt || Date.now(),
   };

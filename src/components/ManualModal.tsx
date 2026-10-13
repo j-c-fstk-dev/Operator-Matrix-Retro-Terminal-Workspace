@@ -48,6 +48,7 @@ const CLI_COMMANDS = [
   { cmd: 'git commit ou export', desc: 'Copia o projeto ativo como Markdown para o buffer' },
   { cmd: 'git status', desc: 'Mostra o resumo de tarefas concluídas e pendentes' },
   { cmd: '+ <texto> ou task: <texto>', desc: 'Insere uma tarefa rápida com suporte a #tags' },
+  { cmd: 'pwa ou instalar', desc: 'Instala o Operator como app standalone no celular ou PC' },
   { cmd: 'clear ou limpa', desc: 'Limpa filtros de busca e tags aplicados' },
 ];
 
