@@ -40,6 +40,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
+  const [syncingLocal, setSyncingLocal] = useState(false);
 
   // Modal states
   const [viewingImage, setViewingImage] = useState<ProjectAttachment | null>(null);
@@ -50,6 +51,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const attachments = project.attachments || [];
+  const localAttachmentsCount = attachments.filter((a) => !a.url.startsWith('http')).length;
 
   // Filter attachments
   const filteredAttachments = attachments.filter((att) => {
@@ -63,6 +65,42 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
 
   const totalBytes = attachments.reduce((sum, a) => sum + (a.size || 0), 0);
 
+  const handleSyncLocalFilesToCloud = async () => {
+    if (!user) {
+      onShowToast('Faça login primeiro para sincronizar com o Supabase.');
+      return;
+    }
+    setSyncingLocal(true);
+    sound.playCommand();
+    let updatedCount = 0;
+
+    const nextAttachments = await Promise.all(
+      attachments.map(async (att) => {
+        if (att.url.startsWith('data:')) {
+          const synced = await storageService.syncLocalAttachmentToCloud(att, project.id, user.id);
+          if (synced.url.startsWith('http')) {
+            updatedCount++;
+          }
+          return synced;
+        }
+        return att;
+      })
+    );
+
+    if (updatedCount > 0) {
+      onUpdateProject({
+        ...project,
+        attachments: nextAttachments,
+        updatedAt: Date.now(),
+      });
+      sound.playClick(900);
+      onShowToast(`[SUCESSO] ${updatedCount} anexo(s) enviado(s) para o Supabase!`);
+    } else {
+      onShowToast('Aviso: Verifique se o bucket "project-attachments" foi criado no Supabase.');
+    }
+    setSyncingLocal(false);
+  };
+
   const handleProcessFiles = async (fileList: FileList | File[]) => {
     const files = Array.from(fileList);
     if (files.length === 0) return;
@@ -71,6 +109,8 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
     sound.playCommand();
 
     const uploadedList: ProjectAttachment[] = [];
+    let cloudCount = 0;
+    let localCount = 0;
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -79,6 +119,11 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       try {
         const attachment = await storageService.uploadFile(file, project.id, user?.id);
         uploadedList.push(attachment);
+        if (attachment.url.startsWith('http')) {
+          cloudCount++;
+        } else {
+          localCount++;
+        }
       } catch (err: any) {
         console.error('Erro no upload de', file.name, err);
         onShowToast(`Erro ao carregar ${file.name}`);
@@ -93,7 +138,11 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       };
       onUpdateProject(updated);
       sound.playClick(900);
-      onShowToast(`[STORAGE] ${uploadedList.length} arquivo(s) anexado(s) com sucesso!`);
+      if (cloudCount > 0 && localCount === 0) {
+        onShowToast(`[NUVEM] ${cloudCount} arquivo(s) salvos no Supabase (sincronizados com o celular)!`);
+      } else if (localCount > 0) {
+        onShowToast(`[LOCAL] ${localCount} arquivo(s) salvos neste aparelho. (Crie o bucket "project-attachments" para a nuvem).`);
+      }
     }
 
     setUploading(false);
@@ -194,6 +243,32 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Local Attachments Warning & One-Click Cloud Sync */}
+      {localAttachmentsCount > 0 && (
+        <div className="p-3 bg-[#130b03] border border-amber-600/70 text-xs font-mono flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-[0_0_12px_rgba(217,119,6,0.15)]">
+          <div className="space-y-0.5">
+            <div className="text-amber-400 font-bold flex items-center gap-1.5">
+              <span>AVISO // {localAttachmentsCount} ANEXO(S) SALVO(S) APENAS NESTE APARELHO</span>
+            </div>
+            <p className="text-[11px] text-amber-200/80">
+              {user
+                ? 'Estes arquivos foram salvos localmente no desktop (offline ou bucket pendente). Clique no botão para sincronizar com o Supabase e vê-los no celular!'
+                : 'Você está navegando sem login. Os arquivos salvos só aparecem neste navegador. Faça login no topo para sincronizar entre celular e PC!'}
+            </p>
+          </div>
+          {user && (
+            <button
+              onClick={handleSyncLocalFilesToCloud}
+              disabled={syncingLocal}
+              className="px-3 py-1.5 bg-[#251304] hover:bg-[#3a1d06] border border-amber-500 text-amber-300 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 transition-colors"
+            >
+              <UploadCloud size={13} />
+              <span>{syncingLocal ? 'ENVIANDO...' : 'SINCRONIZAR COM A NUVEM'}</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Drag & Drop Upload Zone */}
       <div
@@ -363,8 +438,20 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                   </div>
 
                   <div className="flex items-center justify-between text-[10px] text-[#15803d]">
-                    <span>{new Date(att.createdAt).toLocaleDateString()}</span>
-                    <span>{att.type.toUpperCase()}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span>{new Date(att.createdAt).toLocaleDateString()}</span>
+                      <span>·</span>
+                      <span>{att.type.toUpperCase()}</span>
+                    </div>
+                    {att.storagePath || att.url.startsWith('http') ? (
+                      <span className="text-[#22c55e] font-bold" title="Armazenado na nuvem (Supabase Storage)">
+                        [● NUVEM]
+                      </span>
+                    ) : (
+                      <span className="text-amber-400 font-bold" title="Salvo apenas na memória local deste aparelho">
+                        [○ LOCAL]
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>

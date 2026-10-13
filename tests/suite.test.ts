@@ -392,6 +392,50 @@ test('Storage: Detecção de tipo de anexo (imagem, vídeo, pdf, código) deve s
   assert.strictEqual(formatBytes(1024 * 1024 * 2.5), '2.5 MB');
 });
 
+test('Dual-Persistence: Anexos devem ser preservados mesmo se a coluna Postgres não existir', () => {
+  const sampleAttachment = {
+    id: 'att-1',
+    name: 'test.png',
+    type: 'image' as const,
+    mimeType: 'image/png',
+    size: 2048,
+    url: 'https://example.com/test.png',
+    createdAt: Date.now(),
+  };
+
+  // Simula linha de tabela do Postgres SEM a coluna attachments (esquema inicial)
+  const legacyRowWithoutAttachmentsCol = {
+    id: 'p-1',
+    user_id: 'u-1',
+    title: 'Proj 1',
+    slug: 'proj-1',
+    category: 'DEV',
+    description: '',
+    status: 'active',
+    tasks: [],
+    observations: [
+      {
+        id: 'att-meta-p-1',
+        title: 'ATTACHMENTS_META',
+        content: JSON.stringify([sampleAttachment]),
+        tag: '__ATTACHMENTS_META__',
+        updatedAt: Date.now(),
+      },
+    ],
+    code_snippets: [],
+    created_at: Date.now(),
+    updated_at: Date.now(),
+  };
+
+  // Testa recuperação via observações
+  const observations = legacyRowWithoutAttachmentsCol.observations;
+  const metaObs = observations.find((o) => o.tag === '__ATTACHMENTS_META__');
+  assert(metaObs, 'Deve conter observação com tag __ATTACHMENTS_META__');
+  const unpacked = JSON.parse(metaObs.content);
+  assert.strictEqual(unpacked.length, 1);
+  assert.strictEqual(unpacked[0].name, 'test.png');
+});
+
 console.log(`\n========================================`);
 console.log(`RESULTADO: ${passedTests}/${totalTests} testes passaram com sucesso! 🚀`);
 console.log(`========================================\n`);

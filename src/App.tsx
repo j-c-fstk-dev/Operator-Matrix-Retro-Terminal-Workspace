@@ -250,6 +250,7 @@ export default function App() {
     if (user) {
       supabaseService.upsertProject(user.id, updated).catch((err) => {
         console.error('[Supabase] Falha ao atualizar projeto:', err);
+        showToast('[Supabase] Aviso: falha na sincronização na nuvem (' + (err.message || 'Erro') + ')');
       });
     }
   };

@@ -17,7 +17,25 @@ interface DbProjectRow {
   updated_at: number;
 }
 
-function mapRowToProject(row: DbProjectRow): Project {
+function mapRowToProject(row: any): Project {
+  // Check attachments from column, or unpack from backup metadata in observations
+  let attachments: any[] = Array.isArray(row.attachments) ? row.attachments : [];
+  const rawObservations = Array.isArray(row.observations) ? row.observations : [];
+
+  if (attachments.length === 0 && rawObservations.length > 0) {
+    const metaIndex = rawObservations.findIndex((o: any) => o.tag === '__ATTACHMENTS_META__');
+    if (metaIndex !== -1) {
+      try {
+        attachments = JSON.parse(rawObservations[metaIndex].content);
+      } catch (e) {
+        console.warn('Erro ao decodificar __ATTACHMENTS_META__:', e);
+      }
+    }
+  }
+
+  // Filter out internal metadata from user-visible observations
+  const cleanObservations = rawObservations.filter((o: any) => o.tag !== '__ATTACHMENTS_META__');
+
   return {
     id: row.id,
     title: row.title,
@@ -26,16 +44,31 @@ function mapRowToProject(row: DbProjectRow): Project {
     description: row.description || '',
     status: (row.status as Project['status']) || 'active',
     tasks: Array.isArray(row.tasks) ? row.tasks : [],
-    observations: Array.isArray(row.observations) ? row.observations : [],
+    observations: cleanObservations,
     codeSnippets: Array.isArray(row.code_snippets) ? row.code_snippets : [],
-    attachments: Array.isArray(row.attachments) ? row.attachments : [],
+    attachments,
     createdAt: Number(row.created_at) || Date.now(),
     updatedAt: Number(row.updated_at) || Date.now(),
   };
 }
 
-function mapProjectToRow(userId: string, project: Project): DbProjectRow {
-  return {
+function mapProjectToRow(userId: string, project: Project, includeAttachmentsCol: boolean = true): any {
+  const cleanObservations = (project.observations || []).filter((o) => o.tag !== '__ATTACHMENTS_META__');
+  const observationsWithBackup = [...cleanObservations];
+
+  // If there are attachments, always embed a backup in observations so that even if the SQL
+  // schema doesn't have the attachments column, all attachments sync across devices!
+  if (project.attachments && project.attachments.length > 0) {
+    observationsWithBackup.push({
+      id: `att-meta-${project.id}`,
+      title: 'ATTACHMENTS_META',
+      content: JSON.stringify(project.attachments),
+      tag: '__ATTACHMENTS_META__',
+      updatedAt: Date.now(),
+    });
+  }
+
+  const row: any = {
     id: project.id,
     user_id: userId,
     title: project.title,
@@ -44,12 +77,17 @@ function mapProjectToRow(userId: string, project: Project): DbProjectRow {
     description: project.description || '',
     status: project.status || 'active',
     tasks: project.tasks || [],
-    observations: project.observations || [],
+    observations: observationsWithBackup,
     code_snippets: project.codeSnippets || [],
-    attachments: project.attachments || [],
     created_at: project.createdAt || Date.now(),
     updated_at: project.updatedAt || Date.now(),
   };
+
+  if (includeAttachmentsCol) {
+    row.attachments = project.attachments || [];
+  }
+
+  return row;
 }
 
 export const supabaseService = {
@@ -74,10 +112,17 @@ export const supabaseService = {
   async upsertProject(userId: string, project: Project): Promise<void> {
     if (!supabase || !isSupabaseConfigured) return;
 
-    const row = mapProjectToRow(userId, project);
-    const { error } = await supabase
-      .from('projects')
-      .upsert(row, { onConflict: 'id' });
+    // First attempt: try with attachments column
+    let row = mapProjectToRow(userId, project, true);
+    let { error } = await supabase.from('projects').upsert(row, { onConflict: 'id' });
+
+    // If Postgres failed because the column "attachments" doesn't exist yet, retry without that column!
+    if (error && (error.message.includes('attachments') || (error as any).code === '42703')) {
+      console.warn('[Supabase] Coluna attachments ausente na tabela projects. Sincronizando via observations...');
+      const fallbackRow = mapProjectToRow(userId, project, false);
+      const retry = await supabase.from('projects').upsert(fallbackRow, { onConflict: 'id' });
+      error = retry.error;
+    }
 
     if (error) {
       console.error('[Supabase] Erro ao salvar projeto:', error.message);
@@ -88,10 +133,15 @@ export const supabaseService = {
   async upsertAllProjects(userId: string, projects: Project[]): Promise<void> {
     if (!supabase || !isSupabaseConfigured || projects.length === 0) return;
 
-    const rows = projects.map((p) => mapProjectToRow(userId, p));
-    const { error } = await supabase
-      .from('projects')
-      .upsert(rows, { onConflict: 'id' });
+    let rows = projects.map((p) => mapProjectToRow(userId, p, true));
+    let { error } = await supabase.from('projects').upsert(rows, { onConflict: 'id' });
+
+    if (error && (error.message.includes('attachments') || (error as any).code === '42703')) {
+      console.warn('[Supabase] Coluna attachments ausente. Sincronizando via observations...');
+      const fallbackRows = projects.map((p) => mapProjectToRow(userId, p, false));
+      const retry = await supabase.from('projects').upsert(fallbackRows, { onConflict: 'id' });
+      error = retry.error;
+    }
 
     if (error) {
       console.error('[Supabase] Erro ao sincronizar projetos:', error.message);

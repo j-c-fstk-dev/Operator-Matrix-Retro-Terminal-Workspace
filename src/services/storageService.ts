@@ -131,6 +131,53 @@ export const storageService = {
     };
   },
 
+  async syncLocalAttachmentToCloud(
+    attachment: ProjectAttachment,
+    projectId: string,
+    userId: string
+  ): Promise<ProjectAttachment> {
+    if (!attachment.url.startsWith('data:') || !supabase || !isSupabaseConfigured) {
+      return attachment;
+    }
+
+    try {
+      const arr = attachment.url.split(',');
+      const mime = arr[0].match(/:(.*?);/)?.[1] || attachment.mimeType || 'application/octet-stream';
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      const blob = new Blob([u8arr], { type: mime });
+
+      const cleanName = sanitizeFileName(attachment.name);
+      const storagePath = `${userId}/${projectId}/${Date.now()}_${cleanName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(BUCKET_NAME)
+        .upload(storagePath, blob, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: mime,
+        });
+
+      if (!uploadError) {
+        const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath);
+        return {
+          ...attachment,
+          url: data.publicUrl,
+          storagePath,
+        };
+      } else {
+        console.warn('[Supabase Storage] sync error:', uploadError.message);
+      }
+    } catch (err) {
+      console.error('[Supabase Storage] sync exception:', err);
+    }
+    return attachment;
+  },
+
   async deleteFile(attachment: ProjectAttachment): Promise<void> {
     if (attachment.storagePath && supabase && isSupabaseConfigured) {
       try {
