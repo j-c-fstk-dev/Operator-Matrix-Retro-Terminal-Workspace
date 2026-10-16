@@ -129,9 +129,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div className="flex items-center gap-2">
                   <input
                     type="range"
-                    min="0.02"
-                    max="0.25"
-                    step="0.01"
+                    min="0.05"
+                    max="1"
+                    step="0.05"
                     value={settings.rainOpacity}
                     onChange={(e) =>
                       onUpdateSettings({ rainOpacity: parseFloat(e.target.value) })

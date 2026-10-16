@@ -474,7 +474,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   }, [selectedTaskId, visibleTasks, onOpenManual]);
 
   return (
-    <main className="flex-1 flex flex-col h-full bg-[color:var(--t-030704)] text-[color:var(--t-86efac)] overflow-hidden">
+    <main className="flex-1 flex flex-col h-full bg-transparent text-[color:var(--t-86efac)] overflow-hidden">
       {/* Top Breadcrumb & Actions Bar */}
       <header className="px-4 py-3 bg-[color:var(--t-050e06)] border-b border-[color:var(--t-14351a)] flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-2 overflow-hidden">

@@ -74,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-72 md:w-80 bg-[color:var(--t-040a05)] border-r border-[color:var(--t-14351a)] flex flex-col shrink-0 transition-transform duration-300 ${
+        className={`fixed md:static inset-y-0 left-0 z-40 w-72 md:w-80 bg-[color:var(--t-040a05)] md:bg-[color:color-mix(in_srgb,var(--t-040a05)_55%,transparent)] border-r border-[color:var(--t-14351a)] flex flex-col shrink-0 transition-transform duration-300 ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >

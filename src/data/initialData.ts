@@ -2,11 +2,12 @@ import { Project, WorkspaceSettings } from '../types';
 
 export const DEFAULT_SETTINGS: WorkspaceSettings = {
   rainEnabled: true,
-  rainOpacity: 0.08,
+  rainOpacity: 0.4,
   scanlines: true,
   soundEnabled: true,
   glowEffect: true,
   accentTheme: 'matrix',
+  rainScale: 2,
 };
 
 export const INITIAL_PROJECTS: Project[] = [
