@@ -101,7 +101,7 @@ Opere o sistema sem tirar as mãos do teclado:
 ### 8. 📱 PWA Instalável (Offline & Standalone)
 - **Instalação Nativa**: instale no Android, Windows, macOS e Linux pelo botão `[Instalar App]` ou pelo menu do navegador. Quando o navegador não oferece a instalação automática, o botão mostra o passo a passo certo para cada navegador (Chrome, Edge, Samsung Internet, Firefox e Safari no iPhone/iPad) e avisa quando o link foi aberto dentro de apps como Instagram ou Facebook, que não instalam PWA.
 - **Janela Standalone**: roda sem barra de URL, com ícone próprio na tela de início/desktop.
-- **Service Worker com Auto-Update**: novas versões publicadas são aplicadas em segundo plano automaticamente.
+- **Atualização automática**: ao abrir o app e sempre que ele volta para a tela, o app procura uma versão nova e recarrega sozinho, sem precisar fechar e reabrir. A versão em execução (commit · data) aparece no rodapé do Manual e das Preferências.
 - **Funciona Offline**: assets, fontes e scripts ficam em cache. Um indicador âmbar `MODO OFFLINE` aparece quando a conexão cai, e o app continua operando no cache local.
 
 ### 9. 📄 Exportação para Markdown

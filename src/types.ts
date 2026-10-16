@@ -66,6 +66,8 @@ export interface Project {
 export interface WorkspaceSettings {
   rainEnabled: boolean;
   rainOpacity: number;
+  /** Versão da escala de opacidade da chuva (2 = chuva visível atrás dos painéis). */
+  rainScale?: number;
   scanlines: boolean;
   soundEnabled: boolean;
   glowEffect: boolean;

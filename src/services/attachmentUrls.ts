@@ -10,38 +10,71 @@ const REFRESH_MARGIN_MS = 5 * 60 * 1000; // renova 5 min antes de expirar
 
 const cache = new Map<string, { url: string; expiresAt: number }>();
 
-async function signPaths(paths: string[]): Promise<void> {
-  if (!supabase || !isSupabaseConfigured || paths.length === 0) return;
+/** Traduz erros do Supabase Storage em instruções para o usuário. */
+export function storageErrorHint(message: string): string {
+  if (/bucket not found|nosuchbucket/i.test(message)) {
+    return 'Bucket "project-attachments" não encontrado ou sem permissão de leitura. Rode supabase/storage.sql no SQL Editor do Supabase e recarregue o app.';
+  }
+  if (/row-level security|unauthorized|not authorized|permission|403/i.test(message)) {
+    return 'Sem permissão no Supabase Storage. Rode supabase/storage.sql para criar as políticas de acesso.';
+  }
+  return message;
+}
+
+/** Gera um link assinado na hora (ex.: botão Baixar). Lança erro com mensagem amigável. */
+export async function createSignedUrlNow(path: string, downloadName?: string): Promise<string> {
+  if (!supabase || !isSupabaseConfigured) throw new Error('Supabase não configurado.');
+  const { data, error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .createSignedUrl(path, 60, downloadName ? { download: downloadName } : undefined);
+  if (error || !data?.signedUrl) throw new Error(storageErrorHint(error?.message || 'Falha ao gerar link.'));
+  return data.signedUrl;
+}
+
+async function signPaths(paths: string[]): Promise<string | null> {
+  if (!supabase || !isSupabaseConfigured || paths.length === 0) return null;
   const now = Date.now();
   const missing = paths.filter((p) => (cache.get(p)?.expiresAt ?? 0) - REFRESH_MARGIN_MS <= now);
-  if (missing.length === 0) return;
+  if (missing.length === 0) return null;
   const { data, error } = await supabase.storage.from(BUCKET_NAME).createSignedUrls(missing, SIGNED_URL_TTL_S);
   if (error || !data) {
     console.warn('[Storage] Falha ao gerar URLs assinadas:', error?.message);
-    return;
+    return error?.message || 'Falha ao gerar URLs assinadas.';
   }
-  for (const item of data) {
-    if (item.path && item.signedUrl && !item.error) {
-      cache.set(item.path, { url: item.signedUrl, expiresAt: now + SIGNED_URL_TTL_S * 1000 });
+  let itemError: string | null = null;
+  data.forEach((item, i) => {
+    // A API devolve os itens na mesma ordem dos caminhos pedidos.
+    const path = item.path || missing[i];
+    if (item.signedUrl && !item.error) {
+      cache.set(path, { url: item.signedUrl, expiresAt: now + SIGNED_URL_TTL_S * 1000 });
+    } else if (item.error) {
+      itemError = item.error;
     }
-  }
+  });
+  return itemError;
 }
 
 /**
  * Retorna a URL utilizável de cada anexo (por id): URL assinada para arquivos
  * no Storage, ou a própria `url` (data: local ou URL pública antiga) como reserva.
  */
-export function useAttachmentUrls(attachments: ProjectAttachment[], userId?: string | null): Record<string, string> {
+export function useAttachmentUrls(
+  attachments: ProjectAttachment[],
+  userId?: string | null
+): { urls: Record<string, string>; error: string | null } {
   const paths = attachments.map((a) => a.storagePath).filter((p): p is string => Boolean(p));
   const pathsKey = paths.join('|');
   const [version, setVersion] = useState(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId || paths.length === 0) return;
     let cancelled = false;
     const run = () =>
-      signPaths(paths).then(() => {
-        if (!cancelled) setVersion((v) => v + 1);
+      signPaths(paths).then((err) => {
+        if (cancelled) return;
+        setError(err ? storageErrorHint(err) : null);
+        setVersion((v) => v + 1);
       });
     run();
     const timer = setInterval(run, (SIGNED_URL_TTL_S * 1000) - REFRESH_MARGIN_MS);
@@ -57,5 +90,5 @@ export function useAttachmentUrls(attachments: ProjectAttachment[], userId?: str
   for (const att of attachments) {
     urls[att.id] = (att.storagePath && cache.get(att.storagePath)?.url) || att.url;
   }
-  return urls;
+  return { urls, error };
 }

@@ -46,7 +46,15 @@ export default function App() {
   const [settings, setSettings] = useState<WorkspaceSettings>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_SETTINGS_KEY);
-      if (saved) return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Escala antiga (2%–25%): a chuva ficava escondida atrás dos painéis; adota o novo padrão.
+        if (parsed.rainScale !== 2) {
+          parsed.rainOpacity = DEFAULT_SETTINGS.rainOpacity;
+          parsed.rainScale = 2;
+        }
+        return { ...DEFAULT_SETTINGS, ...parsed };
+      }
     } catch {
       // fallback
     }
