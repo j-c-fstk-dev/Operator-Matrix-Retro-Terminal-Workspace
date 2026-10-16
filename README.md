@@ -32,13 +32,17 @@ Quando você quiser usar o mesmo workspace no PC e no celular, basta **entrar co
 
 ### 3. ☁️ Conta & Sincronização na Nuvem (Supabase) — opcional
 - **Login com E-mail/Senha ou Google (OAuth)** pelo botão `[ENTRAR]` ou pelo comando `login` no prompt (`Ctrl+K`).
-- **Migração automática no primeiro login**: se a sua conta ainda não tem projetos na nuvem, os projetos locais deste aparelho são enviados para ela.
-- **Carregamento da nuvem nos próximos logins**: se a conta já tem projetos, eles substituem a cópia local do aparelho (a nuvem é a fonte da verdade).
-- **Salvamento contínuo**: cada criação, edição ou exclusão de projeto é enviada ao Supabase na hora. Se a sincronização falhar, um aviso aparece e os dados continuam salvos localmente.
-- **Envio manual**: o botão `ENVIAR PROJETOS PARA SUPABASE` (no modal da conta) força o envio de todos os projetos locais.
+- **Merge sem perda de dados**: ao entrar, os projetos locais e os da nuvem são mesclados projeto a projeto, e vence a versão editada por último. No primeiro login, os projetos locais sobem para a conta; os projetos de exemplo intocados não são enviados para uma conta que já tem dados.
+- **Fila offline persistente**: cada criação, edição ou exclusão entra numa fila salva no aparelho. Sem internet, as alterações esperam e são enviadas sozinhas quando a conexão volta, mesmo depois de fechar o app.
+- **Envio agrupado**: a digitação é agrupada e enviada 1,5s depois da última tecla (no máximo a cada 10s), em vez de uma requisição por tecla.
+- **Retentativa automática**: se o Supabase falhar, o botão do topo mostra `Sync falhou (N)`, os dados continuam salvos localmente e o app tenta de novo com espera crescente.
+- **Atualização entre aparelhos**: ao voltar para a aba ou reconectar, o app busca as mudanças feitas nos outros aparelhos. Exclusões também são propagadas.
+- **Troca de conta segura**: se outra pessoa entrar no mesmo aparelho, os dados locais da conta anterior não são enviados para a nova conta.
+- **Status visível**: o botão do topo mostra `Nuvem OK`, `Sincronizando...`, `Pendente (N)` ou `Sync falhou (N)`.
+- **Envio manual**: o botão `ENVIAR PROJETOS PARA SUPABASE` (no modal da conta) força o envio de todos os projetos.
 - **Isolamento por usuário**: a tabela `projects` usa Row Level Security, então cada usuário só lê e altera os próprios projetos.
 
-> ℹ️ A sincronização não é em tempo real entre aparelhos abertos ao mesmo tempo: o outro dispositivo vê as mudanças ao recarregar a página ou entrar novamente. Se dois aparelhos editarem o mesmo projeto, vale a última gravação.
+> ℹ️ O merge é por projeto: se dois aparelhos editarem o **mesmo projeto** antes de sincronizar, vale a edição mais recente daquele projeto inteiro.
 
 ### 4. 📎 Anexos, Mídias & Arquivos de Código (Aba Arquivos)
 - **Upload Multiformato**: arraste e solte (Drag & Drop) ou selecione imagens, vídeos, PDFs, arquivos de código (`.ts`, `.py`, `.json`, `.sql`, `Dockerfile`, etc.), textos e arquivos compactados.
@@ -273,6 +277,10 @@ Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_
 │   │   ├── themes.ts              # Temas de cor e conversão OKLCH
 │   │   ├── basePalette.ts         # Tons base do tema Matrix (gerado)
 │   │   └── palette.css            # Variáveis CSS --t-<hex> padrão (gerado)
+│   ├── sync/
+│   │   ├── merge.ts               # Merge local x nuvem sem perda de dados (função pura)
+│   │   ├── syncState.ts           # Fila offline e metadados de sincronização
+│   │   └── useCloudSync.ts        # Envio agrupado, retentativas e atualização entre aparelhos
 │   ├── services/
 │   │   ├── supabaseService.ts     # CRUD e mapeamento dos projetos no Postgres
 │   │   └── storageService.ts      # Upload/remoção de anexos no Storage com fallback local
@@ -296,6 +304,7 @@ Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_
 ## 🔒 Privacidade & Segurança
 
 - **Modo Local (sem login)**: nenhum dado de projeto ou arquivo sai do seu navegador.
+- **Aviso de armazenamento cheio**: se o `localStorage` do navegador lotar, o app avisa em vez de falhar em silêncio.
 - **Modo Nuvem (com login)**: projetos ficam no seu projeto Supabase, protegidos por Row Level Security (cada usuário só acessa as próprias linhas).
 - **Atenção com anexos**: o bucket `project-attachments` é público. Qualquer pessoa que tenha a URL de um arquivo consegue abri-lo, então evite enviar documentos sensíveis.
 - **Seus Dados Pertencem a Você**: baixe seu backup em `.json` a qualquer momento para garantir a custódia das suas informações.

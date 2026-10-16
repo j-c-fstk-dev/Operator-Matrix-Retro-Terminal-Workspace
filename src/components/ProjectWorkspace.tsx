@@ -30,6 +30,15 @@ import { sound } from '../utils/audio';
 import { getTerminalTagStyle } from '../utils/tagColors';
 import { User } from '@supabase/supabase-js';
 import { PWAInstallButton } from './PWAInstallButton';
+import { SyncStatus } from '../sync/useCloudSync';
+
+const SYNC_LABELS: Record<SyncStatus, (n: number) => string> = {
+  local: () => 'Login / Nuvem',
+  synced: () => 'Nuvem OK',
+  syncing: () => 'Sincronizando...',
+  pending: (n) => `Pendente (${n})`,
+  error: (n) => `Sync falhou (${n})`,
+};
 import { ProjectAttachments } from './ProjectAttachments';
 
 interface ProjectWorkspaceProps {
@@ -43,6 +52,8 @@ interface ProjectWorkspaceProps {
   user?: User | null;
   onShowToast?: (msg: string) => void;
   highlightedTaskId?: string | null;
+  syncStatus?: SyncStatus;
+  pendingSyncCount?: number;
 }
 
 export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
@@ -56,6 +67,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   user,
   onShowToast,
   highlightedTaskId,
+  syncStatus = 'local',
+  pendingSyncCount = 0,
 }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'tasks' | 'notes' | 'code' | 'files'>('all');
   const [taskFilter, setTaskFilter] = useState<'all' | 'pending' | 'done'>('all');
@@ -487,14 +500,31 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               sound.playClick(750);
             }}
             className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono transition-colors border ${
-              user
+              syncStatus === 'error'
+                ? 'bg-[#120803] border-amber-600/90 text-amber-400'
+                : user
                 ? 'bg-[color:var(--t-081a0b)] border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)]'
                 : 'bg-[color:var(--t-07170a)] border-[color:var(--t-14351a)] hover:border-[color:var(--t-22c55e)] text-[color:var(--t-86efac)]'
             }`}
-            title={user ? `Sincronização em nuvem ativa (${user.email})` : 'Conectar com Supabase'}
+            title={
+              !user
+                ? 'Conectar com Supabase'
+                : syncStatus === 'error'
+                  ? `Falha ao sincronizar; ${pendingSyncCount} alteração(ões) salvas localmente aguardando nova tentativa (${user.email})`
+                  : `Sincronização em nuvem ativa (${user.email})`
+            }
           >
-            <Cloud size={12} className={user ? 'text-[color:var(--t-22c55e)]' : 'text-[color:var(--t-15803d)]'} />
-            <span className="hidden md:inline">{user ? 'Nuvem OK' : 'Login / Nuvem'}</span>
+            <Cloud
+              size={12}
+              className={
+                syncStatus === 'error'
+                  ? 'text-amber-400'
+                  : user
+                    ? `text-[color:var(--t-22c55e)] ${syncStatus === 'syncing' ? 'animate-pulse' : ''}`
+                    : 'text-[color:var(--t-15803d)]'
+              }
+            />
+            <span className="hidden md:inline">{SYNC_LABELS[syncStatus](pendingSyncCount)}</span>
           </button>
 
           <PWAInstallButton variant="header" />

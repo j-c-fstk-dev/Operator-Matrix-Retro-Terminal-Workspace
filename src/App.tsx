@@ -18,7 +18,7 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { sound } from './utils/audio';
 import { applyAccentTheme, resolveAccentTheme } from './theme/themes';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
-import { supabaseService } from './services/supabaseService';
+import { useCloudSync } from './sync/useCloudSync';
 import { User } from '@supabase/supabase-js';
 
 const STORAGE_PROJECTS_KEY = 'operator_matrix_projects_v1';
@@ -64,6 +64,17 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const hiddenImportRef = useRef<HTMLInputElement>(null);
+  const storageWarnedRef = useRef(false);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 2400);
+  };
+
+  // Sincronização com a nuvem: fila offline, envio agrupado e merge sem sobrescrever.
+  const cloudSync = useCloudSync({ user, projects, setProjects, showToast });
 
   const accentTheme = resolveAccentTheme(settings.accentTheme);
   useEffect(() => {
@@ -75,33 +86,6 @@ export default function App() {
     sound.setEnabled(settings.soundEnabled);
   }, [settings.soundEnabled]);
 
-  // Load cloud projects for user or seed cloud from local if empty
-  const loadCloudProjects = async (userId: string) => {
-    try {
-      const cloudProjects = await supabaseService.fetchUserProjects(userId);
-      if (cloudProjects.length > 0) {
-        setProjects(cloudProjects);
-        setActiveProjectId((prev) => {
-          return cloudProjects.some((p) => p.id === prev) ? prev : cloudProjects[0].id;
-        });
-        localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(cloudProjects));
-        showToast(`[NUVEM] ${cloudProjects.length} projetos sincronizados via Supabase!`);
-      } else {
-        // Cloud is currently empty: migrate existing local projects to the user's cloud account!
-        const localData = localStorage.getItem(STORAGE_PROJECTS_KEY);
-        if (localData) {
-          const parsed = JSON.parse(localData);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            await supabaseService.upsertAllProjects(userId, parsed);
-            showToast(`[NUVEM] ${parsed.length} projetos locais sincronizados para sua conta!`);
-          }
-        }
-      }
-    } catch (err: any) {
-      console.error('[Supabase] Erro ao sincronizar projetos:', err);
-    }
-  };
-
   // Listen to Supabase auth session
   useEffect(() => {
     if (!supabase || !isSupabaseConfigured) return;
@@ -109,18 +93,12 @@ export default function App() {
     supabase.auth.getSession().then(({ data }) => {
       const currentUser = data.session?.user ?? null;
       setUser(currentUser);
-      if (currentUser) {
-        loadCloudProjects(currentUser.id);
-      }
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
-        if (currentUser) {
-          loadCloudProjects(currentUser.id);
-        }
       }
     );
 
@@ -135,7 +113,7 @@ export default function App() {
       return;
     }
     try {
-      await supabaseService.upsertAllProjects(user.id, projects);
+      await cloudSync.syncAllNow();
       showToast(`Sucesso: ${projects.length} projetos enviados para o Supabase!`);
     } catch (err: any) {
       showToast(`Falha ao sincronizar: ${err.message || 'Erro'}`);
@@ -147,8 +125,13 @@ export default function App() {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(projects));
+      storageWarnedRef.current = false;
     } catch (e) {
       console.error('Falha ao salvar projetos no localStorage', e);
+      if (!storageWarnedRef.current) {
+        storageWarnedRef.current = true;
+        showToast('[ALERTA] Armazenamento local cheio: as últimas alterações não foram salvas neste aparelho. Remova anexos grandes ou faça login para usar a nuvem.');
+      }
     }
   }, [projects]);
 
@@ -238,13 +221,6 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [projects, settings]);
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 2400);
-  };
-
   // Active Project resolution
   const activeProject =
     projects.find((p) => p.id === activeProjectId) || projects[0] || INITIAL_PROJECTS[0];
@@ -253,12 +229,7 @@ export default function App() {
     setProjects((prev) =>
       prev.map((p) => (p.id === updated.id ? updated : p))
     );
-    if (user) {
-      supabaseService.upsertProject(user.id, updated).catch((err) => {
-        console.error('[Supabase] Falha ao atualizar projeto:', err);
-        showToast('[Supabase] Aviso: falha na sincronização na nuvem (' + (err.message || 'Erro') + ')');
-      });
-    }
+    cloudSync.queueUpsert(updated.id);
   };
 
   const handleCreateNewProject = (customTitle?: string) => {
@@ -291,11 +262,7 @@ export default function App() {
 
     setProjects((prev) => [newProject, ...prev]);
     setActiveProjectId(newId);
-    if (user) {
-      supabaseService.upsertProject(user.id, newProject).catch((err) => {
-        console.error('[Supabase] Falha ao criar projeto na nuvem:', err);
-      });
-    }
+    cloudSync.queueUpsert(newId);
     sound.playCommand();
     showToast(`Projeto "${newProject.title}" inicializado (git init).`);
   };
@@ -310,11 +277,7 @@ export default function App() {
     if (activeProjectId === id) {
       setActiveProjectId(filtered[0].id);
     }
-    if (user) {
-      supabaseService.deleteProject(user.id, id).catch((err) => {
-        console.error('[Supabase] Falha ao deletar projeto na nuvem:', err);
-      });
-    }
+    cloudSync.queueDelete(id);
     showToast('Projeto removido.');
   };
 
@@ -515,11 +478,12 @@ export default function App() {
         localStorage.setItem(STORAGE_SETTINGS_KEY, JSON.stringify({ ...settings, ...importedSettings }));
       }
 
-      if (user) {
-        supabaseService.upsertAllProjects(user.id, finalProjects).catch((err) => {
-          console.error('[Supabase] Falha ao sincronizar projetos importados:', err);
-        });
+      // No modo "Substituir Tudo", projetos que sumiram também são removidos da nuvem.
+      if (!merge) {
+        const keptIds = new Set(finalProjects.map((p) => p.id));
+        cloudSync.queueDeletes(projects.filter((p) => !keptIds.has(p.id)).map((p) => p.id));
       }
+      cloudSync.queueUpserts(validated.map((p) => p.id));
 
       const totalTasksCount = finalProjects.reduce((acc, p) => acc + p.tasks.length, 0);
       showToast(`[RESTAURAÇÃO CONCLUÍDA] ${finalProjects.length} projetos e ${totalTasksCount} tarefas carregados!`);
@@ -614,6 +578,8 @@ export default function App() {
           user={user}
           onShowToast={showToast}
           highlightedTaskId={highlightedTaskId}
+          syncStatus={cloudSync.status}
+          pendingSyncCount={cloudSync.pendingCount}
         />
       </div>
 

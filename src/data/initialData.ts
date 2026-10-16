@@ -318,3 +318,34 @@ interface RequestVoteReply {
     ],
   },
 ];
+
+// Assinatura do conteúdo ignorando timestamps (que são recalculados a cada carregamento).
+function contentSignature(p: Project): string {
+  return JSON.stringify({
+    title: p.title,
+    slug: p.slug,
+    category: p.category,
+    description: p.description,
+    status: p.status,
+    tasks: (p.tasks || []).map((t) => ({
+      id: t.id,
+      text: t.text,
+      done: t.done,
+      priority: t.priority,
+      tags: t.tags,
+      notes: t.notes,
+      subtasks: (t.subtasks || []).map((s) => ({ id: s.id, text: s.text, done: s.done })),
+    })),
+    observations: (p.observations || []).map((o) => ({ id: o.id, title: o.title, content: o.content, tag: o.tag })),
+    codeSnippets: (p.codeSnippets || []).map((c) => ({ id: c.id, title: c.title, language: c.language, code: c.code })),
+    attachments: (p.attachments || []).length,
+  });
+}
+
+const SEED_SIGNATURES = new Map(INITIAL_PROJECTS.map((p) => [p.id, contentSignature(p)]));
+
+/** true se o projeto é um dos exemplos iniciais e nunca foi editado. */
+export function isPristineSeedProject(p: Project): boolean {
+  const seed = SEED_SIGNATURES.get(p.id);
+  return seed !== undefined && seed === contentSignature(p);
+}
