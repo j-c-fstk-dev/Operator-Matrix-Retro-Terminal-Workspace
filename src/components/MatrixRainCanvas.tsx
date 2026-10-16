@@ -1,13 +1,16 @@
 import React, { useEffect, useRef } from 'react';
+import { AccentThemeId, themeColor } from '../theme/themes';
 
 interface MatrixRainCanvasProps {
   opacity?: number;
   enabled?: boolean;
+  accentTheme?: AccentThemeId;
 }
 
 export const MatrixRainCanvas: React.FC<MatrixRainCanvasProps> = ({
   opacity = 0.08,
   enabled = true,
+  accentTheme = 'matrix',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -19,6 +22,10 @@ export const MatrixRainCanvas: React.FC<MatrixRainCanvasProps> = ({
 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+
+    const headColor = themeColor('bbf7d0', accentTheme);
+    const bodyColor = themeColor('16a34a', accentTheme);
+    const fadeColor = themeColor('030704', accentTheme) + '2e'; // ~18% de opacidade
 
     let animationFrameId: number;
     let width = (canvas.width = window.innerWidth);
@@ -63,7 +70,7 @@ export const MatrixRainCanvas: React.FC<MatrixRainCanvasProps> = ({
       lastDrawTime = currentTime - (delta % interval);
 
       // Translucent black fade to create rain trails
-      ctx.fillStyle = 'rgba(3, 7, 4, 0.18)';
+      ctx.fillStyle = fadeColor;
       ctx.fillRect(0, 0, width, height);
 
       ctx.font = `${fontSize}px "JetBrains Mono", monospace`;
@@ -75,9 +82,9 @@ export const MatrixRainCanvas: React.FC<MatrixRainCanvasProps> = ({
 
         // Leading character is brighter white-green
         if (Math.random() > 0.85) {
-          ctx.fillStyle = '#bbf7d0'; // Light head glow
+          ctx.fillStyle = headColor; // Light head glow
         } else {
-          ctx.fillStyle = '#16a34a'; // Classic phosphor green
+          ctx.fillStyle = bodyColor; // Classic phosphor green
         }
 
         ctx.fillText(text, x, y);
@@ -96,7 +103,7 @@ export const MatrixRainCanvas: React.FC<MatrixRainCanvasProps> = ({
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
     };
-  }, [enabled]);
+  }, [enabled, accentTheme]);
 
   if (!enabled) return null;
 

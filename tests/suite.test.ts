@@ -1,10 +1,15 @@
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { INITIAL_PROJECTS, DEFAULT_SETTINGS } from '../src/data/initialData';
+import { INITIAL_PROJECTS, DEFAULT_SETTINGS, isPristineSeedProject } from '../src/data/initialData';
+import { mergeProjects } from '../src/sync/merge';
+import { enqueue, acknowledge, Outbox } from '../src/sync/syncState';
 import { getTerminalTagStyle } from '../src/utils/tagColors';
 import { Project, WorkspaceSettings } from '../src/types';
 import { detectAttachmentType, formatBytes } from '../src/services/storageService';
+import { detectBrowserKind } from '../src/pwa/installPrompt';
+import { ACCENT_THEMES, themeColor, resolveAccentTheme } from '../src/theme/themes';
+import { BASE_PALETTE } from '../src/theme/basePalette';
 
 console.log('⚡ [INICIANDO BATERIA DE TESTES DO OPERATOR WORKSPACE] ⚡\n');
 
@@ -434,6 +439,127 @@ test('Dual-Persistence: Anexos devem ser preservados mesmo se a coluna Postgres 
   const unpacked = JSON.parse(metaObs.content);
   assert.strictEqual(unpacked.length, 1);
   assert.strictEqual(unpacked[0].name, 'test.png');
+});
+
+test('PWA: Detecção de navegador deve escolher o guia de instalação certo', () => {
+  const cases: Array<[string, string]> = [
+    ['Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36', 'chromium'],
+    ['Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1', 'ios-safari'],
+    ['Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/129.0 Mobile/15E148 Safari/604.1', 'ios-other'],
+    ['Mozilla/5.0 (Linux; Android 14; SM-S911B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/121.0 Mobile Safari/537.36', 'samsung'],
+    ['Mozilla/5.0 (Android 14; Mobile; rv:131.0) Gecko/131.0 Firefox/131.0', 'firefox-android'],
+    ['Mozilla/5.0 (Linux; Android 14; Pixel 7 Build/AP2A; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0 Mobile Safari/537.36 Instagram 350.0', 'in-app'],
+    ['Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBAV/480.0]', 'in-app'],
+    ['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36', 'chromium'],
+  ];
+  for (const [ua, expected] of cases) {
+    assert.strictEqual(detectBrowserKind(ua), expected, `UA: ${ua}`);
+  }
+});
+
+test('Temas: tema Matrix preserva as cores originais e os demais geram cores válidas', () => {
+  for (const hex of BASE_PALETTE) {
+    assert.strictEqual(themeColor(hex, 'matrix'), `#${hex}`);
+    for (const t of ACCENT_THEMES) {
+      assert.match(themeColor(hex, t.id), /^#[0-9a-f]{6}$/, `${t.id} / ${hex}`);
+    }
+  }
+  // Mono deve virar escala de cinza (R, G e B quase iguais)
+  const mono = themeColor('22c55e', 'mono').slice(1);
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(mono.slice(i, i + 2), 16));
+  assert(Math.max(r, g, b) - Math.min(r, g, b) <= 3, `mono não é cinza: ${mono}`);
+  // Vermelho deve ter o canal R dominante
+  const red = themeColor('22c55e', 'red').slice(1);
+  assert(parseInt(red.slice(0, 2), 16) > parseInt(red.slice(2, 4), 16), `vermelho inválido: ${red}`);
+  // Valor desconhecido cai no padrão
+  assert.strictEqual(resolveAccentTheme('nao-existe'), 'matrix');
+  assert.strictEqual(resolveAccentTheme(undefined), 'matrix');
+});
+
+// --------------------------------------------------------------------------
+// SYNC: merge sem sobrescrever, fila offline
+// --------------------------------------------------------------------------
+const mkProject = (id: string, updatedAt: number, title = id): Project => ({
+  id, title, slug: id, category: 'DEV', description: '', status: 'active',
+  tasks: [], observations: [], codeSnippets: [], attachments: [], createdAt: 1, updatedAt,
+});
+const baseMerge = { meta: { ownerId: 'u1', syncedIds: [] as string[] }, outbox: {} as Outbox, userId: 'u1', isPristineSeed: isPristineSeedProject };
+
+test('Sync: edição local mais recente (feita offline) vence e é reenviada', () => {
+  const r = mergeProjects({ ...baseMerge, local: [mkProject('a', 200, 'local')], cloud: [mkProject('a', 100, 'nuvem')], meta: { ownerId: 'u1', syncedIds: ['a'] } });
+  assert.strictEqual(r.projects[0].title, 'local');
+  assert.deepStrictEqual(r.toUpload, ['a']);
+});
+
+test('Sync: versão mais recente da nuvem vence e entra projeto novo de outro aparelho', () => {
+  const r = mergeProjects({ ...baseMerge, local: [mkProject('a', 100, 'local')], cloud: [mkProject('a', 200, 'nuvem'), mkProject('b', 150)], meta: { ownerId: 'u1', syncedIds: ['a'] } });
+  assert.strictEqual(r.projects.find((p) => p.id === 'a')!.title, 'nuvem');
+  assert(r.projects.some((p) => p.id === 'b'));
+  assert.deepStrictEqual(r.toUpload, []);
+});
+
+test('Sync: exclusão feita offline é aplicada na nuvem e não ressuscita', () => {
+  const r = mergeProjects({ ...baseMerge, local: [mkProject('b', 1)], cloud: [mkProject('a', 100), mkProject('b', 1)], outbox: { a: { op: 'delete', at: 5 } } });
+  assert(!r.projects.some((p) => p.id === 'a'));
+  assert.deepStrictEqual(r.toDeleteRemote, ['a']);
+  assert(!r.meta.syncedIds.includes('a'));
+});
+
+test('Sync: projeto excluído em outro aparelho some localmente, salvo se tiver edição pendente', () => {
+  const meta = { ownerId: 'u1', syncedIds: ['x', 'y'] };
+  const r = mergeProjects({ ...baseMerge, meta, local: [mkProject('x', 1), mkProject('y', 2)], cloud: [], outbox: { y: { op: 'upsert', at: 9 } } });
+  assert(!r.projects.some((p) => p.id === 'x'), 'x foi excluído em outro aparelho');
+  assert(r.projects.some((p) => p.id === 'y'), 'y tem edição local pendente');
+  assert.deepStrictEqual(r.toUpload, ['y']);
+});
+
+test('Sync: projeto criado offline e nunca enviado sobe para a nuvem', () => {
+  const r = mergeProjects({ ...baseMerge, local: [mkProject('novo', 5)], cloud: [mkProject('a', 1)] });
+  assert(r.projects.some((p) => p.id === 'novo'));
+  assert.deepStrictEqual(r.toUpload, ['novo']);
+});
+
+test('Sync: exemplos intocados não poluem conta com dados, mas sobem para conta vazia', () => {
+  const seeds = JSON.parse(JSON.stringify(INITIAL_PROJECTS)) as Project[];
+  assert(seeds.every(isPristineSeedProject), 'exemplos devem ser detectados como intocados');
+  const fresh = { ...baseMerge, meta: { ownerId: null, syncedIds: [] } };
+  const comDados = mergeProjects({ ...fresh, local: seeds, cloud: [mkProject('real', 1)] });
+  assert.deepStrictEqual(comDados.projects.map((p) => p.id), ['real']);
+  const vazia = mergeProjects({ ...fresh, local: seeds, cloud: [] });
+  assert.strictEqual(vazia.toUpload.length, seeds.length);
+  // Exemplo editado deixa de ser intocado
+  const editado = { ...seeds[0], title: 'Meu projeto' };
+  assert(!isPristineSeedProject(editado));
+});
+
+test('Sync: exemplo intocado com data recalculada não sobrescreve edição real na nuvem', () => {
+  const seed = { ...(JSON.parse(JSON.stringify(INITIAL_PROJECTS[0])) as Project), updatedAt: 9_999_999_999_999 };
+  const editadoNaNuvem = { ...seed, title: 'Editado em outro aparelho', updatedAt: 1000 };
+  const r = mergeProjects({ ...baseMerge, local: [seed], cloud: [editadoNaNuvem] });
+  assert.strictEqual(r.projects[0].title, 'Editado em outro aparelho');
+  assert.deepStrictEqual(r.toUpload, []);
+});
+
+test('Sync: dados locais de outra conta nunca vão para a conta nova', () => {
+  const r = mergeProjects({ ...baseMerge, userId: 'u2', meta: { ownerId: 'u1', syncedIds: ['a'] }, local: [mkProject('a', 999)], cloud: [mkProject('b', 1)] });
+  assert(r.foreignDataDiscarded);
+  assert.deepStrictEqual(r.projects.map((p) => p.id), ['b']);
+  assert.deepStrictEqual(r.toUpload, []);
+  assert.strictEqual(r.meta.ownerId, 'u2');
+});
+
+test('Sync: fila guarda só a última operação e não descarta edição feita durante o envio', () => {
+  let q: Outbox = {};
+  q = enqueue(q, 'a', 'upsert', 100);
+  q = enqueue(q, 'a', 'upsert', 100); // mesmo milissegundo: `at` ainda cresce
+  assert.strictEqual(q.a.at, 101);
+  const enviado = { ...q };
+  q = enqueue(q, 'a', 'upsert', 200); // editado enquanto enviava
+  q = enqueue(q, 'b', 'delete', 150);
+  const depois = acknowledge(q, enviado);
+  assert.strictEqual(depois.a.at, 200, 'edição nova continua na fila');
+  assert.strictEqual(depois.b.op, 'delete');
+  assert.deepStrictEqual(acknowledge(depois, depois), {});
 });
 
 console.log(`\n========================================`);

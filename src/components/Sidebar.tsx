@@ -74,27 +74,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed md:static inset-y-0 left-0 z-40 w-72 md:w-80 bg-[#040a05] border-r border-[#14351a] flex flex-col shrink-0 transition-transform duration-300 ${
+        className={`fixed md:static inset-y-0 left-0 z-40 w-72 md:w-80 bg-[color:var(--t-040a05)] border-r border-[color:var(--t-14351a)] flex flex-col shrink-0 transition-transform duration-300 ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         {/* Terminal Header */}
-        <div className="p-4 border-b border-[#14351a] bg-[#061107]">
+        <div className="p-4 border-b border-[color:var(--t-14351a)] bg-[color:var(--t-061107)]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 bg-[#22c55e] inline-block shadow-[0_0_8px_#22c55e]"></span>
-              <span className="font-mono font-bold text-sm tracking-wider text-[#22c55e] matrix-glow">
+              <span className="w-2.5 h-2.5 bg-[color:var(--t-22c55e)] inline-block shadow-[0_0_8px_var(--t-22c55e)]"></span>
+              <span className="font-mono font-bold text-sm tracking-wider text-[color:var(--t-22c55e)] matrix-glow">
                 OPERATOR // SYS
               </span>
             </div>
-            <span className="text-[10px] text-[#15803d] font-mono tracking-widest">
+            <span className="text-[10px] text-[color:var(--t-15803d)] font-mono tracking-widest">
               V.01.NODE
             </span>
           </div>
 
-          <div className="mt-2 text-[11px] text-[#4ade80]/80 font-mono flex items-center justify-between">
+          <div className="mt-2 text-[11px] text-[color:var(--t-4ade80)]/80 font-mono flex items-center justify-between">
             <span>TERMINAL DE PROJETOS</span>
-            <span className="text-[#15803d] font-mono text-[10px]">// DEV</span>
+            <span className="text-[color:var(--t-15803d)] font-mono text-[10px]">// DEV</span>
           </div>
 
           {/* Auth / Cloud Status Indicator */}
@@ -103,36 +103,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onOpenAuth?.();
               sound.playClick(650);
             }}
-            className="mt-3 w-full flex items-center justify-between px-2.5 py-1.5 bg-[#020502] border border-[#14351a] hover:border-[#22c55e] text-[10px] font-mono transition-colors group cursor-pointer"
+            className="mt-3 w-full flex items-center justify-between px-2.5 py-1.5 bg-[color:var(--t-020502)] border border-[color:var(--t-14351a)] hover:border-[color:var(--t-22c55e)] text-[10px] font-mono transition-colors group cursor-pointer"
             title={user ? `Conectado como ${user.email} (Supabase Cloud)` : 'Clique para fazer login ou criar conta no Supabase'}
           >
             <div className="flex items-center gap-1.5 truncate">
-              <span className={`w-1.5 h-1.5 rounded-full ${user ? 'bg-[#22c55e] shadow-[0_0_6px_#22c55e]' : 'bg-[#15803d]'}`} />
-              <span className="truncate text-[#86efac] group-hover:text-white">
+              <span className={`w-1.5 h-1.5 rounded-full ${user ? 'bg-[color:var(--t-22c55e)] shadow-[0_0_6px_var(--t-22c55e)]' : 'bg-[color:var(--t-15803d)]'}`} />
+              <span className="truncate text-[color:var(--t-86efac)] group-hover:text-white">
                 {user ? user.email : 'MODO LOCAL (OFFLINE)'}
               </span>
             </div>
-            <span className="text-[#22c55e] shrink-0 font-bold ml-1">
+            <span className="text-[color:var(--t-22c55e)] shrink-0 font-bold ml-1">
               {user ? '[NUVEM]' : '[ENTRAR]'}
             </span>
           </button>
         </div>
 
         {/* Quick Search & Command Bar Trigger */}
-        <div className="p-3 border-b border-[#0e2413] space-y-2">
+        <div className="p-3 border-b border-[color:var(--t-0e2413)] space-y-2">
           <div className="relative flex items-center">
-            <Search className="absolute left-2.5 top-2.5 text-[#15803d]" size={13} />
+            <Search className="absolute left-2.5 top-2.5 text-[color:var(--t-15803d)]" size={13} />
             <input
               type="text"
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
               placeholder="Filtrar projetos..."
-              className="w-full bg-[#030704] border border-[#14351a] pl-8 pr-7 py-1.5 text-xs text-[#22c55e] placeholder-[#15803d] font-mono focus:outline-hidden focus:border-[#22c55e]"
+              className="w-full bg-[color:var(--t-030704)] border border-[color:var(--t-14351a)] pl-8 pr-7 py-1.5 text-xs text-[color:var(--t-22c55e)] placeholder-[color:var(--t-15803d)] font-mono focus:outline-hidden focus:border-[color:var(--t-22c55e)]"
             />
             {filterQuery ? (
               <button
                 onClick={() => setFilterQuery('')}
-                className="absolute right-2 top-2 text-[10px] text-[#15803d] hover:text-[#4ade80]"
+                className="absolute right-2 top-2 text-[10px] text-[color:var(--t-15803d)] hover:text-[color:var(--t-4ade80)]"
               >
                 ×
               </button>
@@ -147,18 +147,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
               sound.playClick(600);
               onOpenCommandPalette();
             }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-mono bg-[#071309] hover:bg-[#0c2210] border border-[#14351a] hover:border-[#1e5828] text-[#86efac] transition-colors"
+            className="w-full flex items-center justify-between px-2.5 py-1.5 text-[11px] font-mono bg-[color:var(--t-071309)] hover:bg-[color:var(--t-0c2210)] border border-[color:var(--t-14351a)] hover:border-[color:var(--t-1e5828)] text-[color:var(--t-86efac)] transition-colors"
           >
             <div className="flex items-center gap-1.5">
-              <Terminal size={12} className="text-[#22c55e]" />
+              <Terminal size={12} className="text-[color:var(--t-22c55e)]" />
               <span>Prompt de Comandos</span>
             </div>
-            <span className="text-[10px] text-[#15803d]">Ctrl+K</span>
+            <span className="text-[10px] text-[color:var(--t-15803d)]">Ctrl+K</span>
           </button>
         </div>
 
         {/* Status Filters */}
-        <div className="px-3 pt-2.5 pb-1 flex items-center gap-1 border-b border-[#0e2413]">
+        <div className="px-3 pt-2.5 pb-1 flex items-center gap-1 border-b border-[color:var(--t-0e2413)]">
           {(['all', 'active', 'completed'] as const).map((filter) => (
             <button
               key={filter}
@@ -168,8 +168,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }}
               className={`flex-1 py-1 text-[10px] font-mono uppercase tracking-wider transition-colors ${
                 statusFilter === filter
-                  ? 'bg-[#0f2e15] text-[#22c55e] border-b border-[#22c55e]'
-                  : 'text-[#166534] hover:text-[#4ade80]'
+                  ? 'bg-[color:var(--t-0f2e15)] text-[color:var(--t-22c55e)] border-b border-[color:var(--t-22c55e)]'
+                  : 'text-[color:var(--t-166534)] hover:text-[color:var(--t-4ade80)]'
               }`}
             >
               {filter === 'all' ? 'Todos' : filter === 'active' ? 'Ativos' : 'Concluídos'}
@@ -179,14 +179,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Project List */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          <div className="flex items-center justify-between px-2 py-1 text-[10px] font-mono text-[#15803d] uppercase tracking-wider">
+          <div className="flex items-center justify-between px-2 py-1 text-[10px] font-mono text-[color:var(--t-15803d)] uppercase tracking-wider">
             <span>Diretório ({filteredProjects.length})</span>
             <button
               onClick={() => {
                 sound.playClick(800);
                 onNewProject();
               }}
-              className="text-[#22c55e] hover:text-[#86efac] flex items-center gap-0.5"
+              className="text-[color:var(--t-22c55e)] hover:text-[color:var(--t-86efac)] flex items-center gap-0.5"
             >
               <Plus size={11} />
               <span>Novo</span>
@@ -194,7 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {filteredProjects.length === 0 ? (
-            <div className="p-4 text-center text-xs font-mono text-[#15803d] border border-dashed border-[#14351a] my-2">
+            <div className="p-4 text-center text-xs font-mono text-[color:var(--t-15803d)] border border-dashed border-[color:var(--t-14351a)] my-2">
               Nenhum projeto encontrado.
             </div>
           ) : (
@@ -214,22 +214,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   }}
                   className={`group relative p-2.5 cursor-pointer font-mono border transition-all ${
                     isSelected
-                      ? 'bg-[#091a0c] border-[#22c55e] shadow-[0_0_12px_rgba(34,197,94,0.12)]'
-                      : 'bg-[#030704] border-[#102914] hover:border-[#1b4b23] hover:bg-[#061208]'
+                      ? 'bg-[color:var(--t-091a0c)] border-[color:var(--t-22c55e)] shadow-[0_0_12px_color-mix(in_srgb,var(--t-22c55e)_12%,transparent)]'
+                      : 'bg-[color:var(--t-030704)] border-[color:var(--t-102914)] hover:border-[color:var(--t-1b4b23)] hover:bg-[color:var(--t-061208)]'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-1">
                     <div className="flex items-center gap-1.5 overflow-hidden">
                       <span
                         className={`text-xs ${
-                          isSelected ? 'text-[#22c55e]' : 'text-[#15803d] group-hover:text-[#4ade80]'
+                          isSelected ? 'text-[color:var(--t-22c55e)]' : 'text-[color:var(--t-15803d)] group-hover:text-[color:var(--t-4ade80)]'
                         }`}
                       >
                         {isSelected ? '▶' : '▷'}
                       </span>
                       <h4
                         className={`text-xs font-medium truncate ${
-                          isSelected ? 'text-[#22c55e] font-semibold' : 'text-[#86efac]'
+                          isSelected ? 'text-[color:var(--t-22c55e)] font-semibold' : 'text-[color:var(--t-86efac)]'
                         }`}
                       >
                         {p.title}
@@ -245,7 +245,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             sound.playClick(400);
                           }
                         }}
-                        className="opacity-0 group-hover:opacity-100 text-[#15803d] hover:text-red-400 p-0.5 transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 text-[color:var(--t-15803d)] hover:text-red-400 p-0.5 transition-opacity"
                         title="Excluir projeto"
                       >
                         <Trash2 size={11} />
@@ -254,7 +254,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
 
                   {/* Metadata and Mini Progress */}
-                  <div className="mt-2 flex items-center justify-between text-[10px] text-[#166534]">
+                  <div className="mt-2 flex items-center justify-between text-[10px] text-[color:var(--t-166534)]">
                     <span className="truncate max-w-[120px]">{p.category}</span>
                     <span className="tabular-nums">
                       {done}/{total} done ({percent}%)
@@ -262,10 +262,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
 
                   {/* Mini Progress Bar */}
-                  <div className="mt-1.5 w-full bg-[#051107] h-1 overflow-hidden">
+                  <div className="mt-1.5 w-full bg-[color:var(--t-051107)] h-1 overflow-hidden">
                     <div
                       className={`h-full transition-all duration-300 ${
-                        percent === 100 ? 'bg-[#22c55e]' : 'bg-[#15803d]'
+                        percent === 100 ? 'bg-[color:var(--t-22c55e)]' : 'bg-[color:var(--t-15803d)]'
                       }`}
                       style={{ width: `${percent}%` }}
                     />
@@ -277,36 +277,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Global System Stats */}
-        <div className="p-3 border-t border-[#14351a] bg-[#030704] text-[10px] font-mono space-y-2">
-          <div className="flex items-center justify-between text-[#15803d]">
+        <div className="p-3 border-t border-[color:var(--t-14351a)] bg-[color:var(--t-030704)] text-[10px] font-mono space-y-2">
+          <div className="flex items-center justify-between text-[color:var(--t-15803d)]">
             <span>STATUS DO SISTEMA</span>
-            <span className="text-[#22c55e] flex items-center gap-1">
-              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#22c55e]"></span>
+            <span className="text-[color:var(--t-22c55e)] flex items-center gap-1">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--t-22c55e)]"></span>
               NOMINAL
             </span>
           </div>
 
-          <div className="flex items-center justify-between text-[#86efac]/70">
+          <div className="flex items-center justify-between text-[color:var(--t-86efac)]/70">
             <span>TAREFAS GLOBAIS</span>
-            <span className="tabular-nums text-[#22c55e] font-semibold">
+            <span className="tabular-nums text-[color:var(--t-22c55e)] font-semibold">
               {doneTasks}/{totalTasks} ({totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0}%)
             </span>
           </div>
 
           {/* PWA Install Action */}
-          <div className="pt-2 border-t border-[#0d2212]">
+          <div className="pt-2 border-t border-[color:var(--t-0d2212)]">
             <PWAInstallButton variant="sidebar" />
           </div>
 
           {/* Quick Control Toggles */}
-          <div className="pt-2 border-t border-[#0d2212] flex items-center justify-between text-[#15803d]">
+          <div className="pt-2 border-t border-[color:var(--t-0d2212)] flex items-center justify-between text-[color:var(--t-15803d)]">
             <button
               onClick={() => {
                 onToggleRain();
                 sound.playClick(600);
               }}
-              className={`flex items-center gap-1 hover:text-[#4ade80] transition-colors ${
-                settings.rainEnabled ? 'text-[#22c55e]' : ''
+              className={`flex items-center gap-1 hover:text-[color:var(--t-4ade80)] transition-colors ${
+                settings.rainEnabled ? 'text-[color:var(--t-22c55e)]' : ''
               }`}
               title="Ativar/Desativar chuva digital"
             >
@@ -319,8 +319,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onToggleSound();
                 sound.playClick(700);
               }}
-              className={`flex items-center gap-1 hover:text-[#4ade80] transition-colors ${
-                settings.soundEnabled ? 'text-[#22c55e]' : ''
+              className={`flex items-center gap-1 hover:text-[color:var(--t-4ade80)] transition-colors ${
+                settings.soundEnabled ? 'text-[color:var(--t-22c55e)]' : ''
               }`}
               title="Som terminal"
             >
@@ -333,7 +333,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onOpenBackup?.();
                 sound.playClick(600);
               }}
-              className="flex items-center gap-1 text-[#22c55e] hover:text-white transition-colors"
+              className="flex items-center gap-1 text-[color:var(--t-22c55e)] hover:text-white transition-colors"
               title="Central de Backup JSON e Migração de Dispositivo"
             >
               <Database size={12} />
@@ -345,7 +345,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onOpenManual?.();
                 sound.playClick(600);
               }}
-              className="flex items-center gap-1 hover:text-[#4ade80] transition-colors"
+              className="flex items-center gap-1 hover:text-[color:var(--t-4ade80)] transition-colors"
               title="Manual do Sistema e Teclas de Atalho [?]"
             >
               <BookOpen size={12} />
@@ -357,7 +357,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onOpenSettings();
                 sound.playClick(600);
               }}
-              className="flex items-center gap-1 hover:text-[#4ade80] transition-colors"
+              className="flex items-center gap-1 hover:text-[color:var(--t-4ade80)] transition-colors"
               title="Configurações e Backup"
             >
               <SlidersHorizontal size={12} />

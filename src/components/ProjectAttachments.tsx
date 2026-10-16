@@ -189,7 +189,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
   const renderIcon = (type: AttachmentType) => {
     switch (type) {
       case 'image':
-        return <ImageIcon size={15} className="text-[#22c55e]" />;
+        return <ImageIcon size={15} className="text-[color:var(--t-22c55e)]" />;
       case 'video':
         return <Video size={15} className="text-[#38bdf8]" />;
       case 'pdf':
@@ -197,22 +197,22 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       case 'code':
         return <FileCode size={15} className="text-[#facc15]" />;
       case 'text':
-        return <FileText size={15} className="text-[#86efac]" />;
+        return <FileText size={15} className="text-[color:var(--t-86efac)]" />;
       default:
-        return <FileIcon size={15} className="text-[#a3e635]" />;
+        return <FileIcon size={15} className="text-[color:var(--t-a3e635)]" />;
     }
   };
 
   return (
     <div className="space-y-4">
       {/* Attachments Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-[#040d06] border border-[#14351a]">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-[color:var(--t-040d06)] border border-[color:var(--t-14351a)]">
         <div className="flex items-center gap-2">
-          <HardDrive size={15} className="text-[#22c55e]" />
-          <span className="font-bold text-xs text-[#22c55e] tracking-wider">
+          <HardDrive size={15} className="text-[color:var(--t-22c55e)]" />
+          <span className="font-bold text-xs text-[color:var(--t-22c55e)] tracking-wider">
             ANEXOS & MÍDIAS DO PROJETO
           </span>
-          <span className="text-[10px] text-[#16a34a] bg-[#071f0d] border border-[#166534] px-1.5 py-0.5">
+          <span className="text-[10px] text-[color:var(--t-16a34a)] bg-[color:var(--t-071f0d)] border border-[color:var(--t-166534)] px-1.5 py-0.5">
             {attachments.length} ARQUIVO(S) · {formatBytes(totalBytes)}
           </span>
         </div>
@@ -234,8 +234,8 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
               }}
               className={`px-2 py-0.5 transition-colors cursor-pointer border ${
                 filterType === f.id
-                  ? 'bg-[#0e2f16] border-[#22c55e] text-[#22c55e] font-bold'
-                  : 'bg-[#030804] border-[#14351a] text-[#15803d] hover:text-[#86efac]'
+                  ? 'bg-[color:var(--t-0e2f16)] border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] font-bold'
+                  : 'bg-[color:var(--t-030804)] border-[color:var(--t-14351a)] text-[color:var(--t-15803d)] hover:text-[color:var(--t-86efac)]'
               }`}
             >
               [{f.label}]
@@ -281,8 +281,8 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
         onClick={() => fileInputRef.current?.click()}
         className={`p-6 border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-2.5 text-center ${
           isDragging
-            ? 'border-[#22c55e] bg-[#092b12]/80 shadow-[0_0_20px_rgba(34,197,94,0.3)]'
-            : 'border-[#1b5e2b] bg-[#030904]/70 hover:border-[#22c55e] hover:bg-[#061709]'
+            ? 'border-[color:var(--t-22c55e)] bg-[color:var(--t-092b12)]/80 shadow-[0_0_20px_color-mix(in_srgb,var(--t-22c55e)_30%,transparent)]'
+            : 'border-[color:var(--t-1b5e2b)] bg-[color:var(--t-030904)]/70 hover:border-[color:var(--t-22c55e)] hover:bg-[color:var(--t-061709)]'
         }`}
       >
         <input
@@ -296,30 +296,30 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
           className="hidden"
         />
 
-        <div className="w-10 h-10 rounded-full bg-[#071f0d] border border-[#22c55e] flex items-center justify-center text-[#22c55e] shadow-[0_0_12px_rgba(34,197,94,0.2)]">
+        <div className="w-10 h-10 rounded-full bg-[color:var(--t-071f0d)] border border-[color:var(--t-22c55e)] flex items-center justify-center text-[color:var(--t-22c55e)] shadow-[0_0_12px_color-mix(in_srgb,var(--t-22c55e)_20%,transparent)]">
           <UploadCloud size={20} className={uploading ? 'animate-bounce' : ''} />
         </div>
 
         <div>
-          <div className="text-xs font-bold text-[#86efac]">
+          <div className="text-xs font-bold text-[color:var(--t-86efac)]">
             {uploading
               ? uploadProgress || 'Processando arquivos...'
               : 'Clique ou arraste imagens, vídeos, PDFs ou códigos aqui'}
           </div>
-          <div className="text-[10px] text-[#15803d] mt-1">
+          <div className="text-[10px] text-[color:var(--t-15803d)] mt-1">
             Formatos suportados: PNG, JPG, GIF, WebP, MP4, WebM, PDF, TXT, JS, TS, PY, JSON, etc.
           </div>
         </div>
 
-        <span className="text-[10px] text-[#22c55e] border border-[#166534] px-2 py-0.5 bg-[#020502]">
+        <span className="text-[10px] text-[color:var(--t-22c55e)] border border-[color:var(--t-166534)] px-2 py-0.5 bg-[color:var(--t-020502)]">
           [ + SELECIONAR ARQUIVOS ]
         </span>
       </div>
 
       {/* Files Grid / List */}
       {filteredAttachments.length === 0 ? (
-        <div className="p-8 text-center border border-[#14351a] bg-[#020603] text-[#15803d] space-y-1">
-          <p className="font-mono text-xs text-[#166534]">
+        <div className="p-8 text-center border border-[color:var(--t-14351a)] bg-[color:var(--t-020603)] text-[color:var(--t-15803d)] space-y-1">
+          <p className="font-mono text-xs text-[color:var(--t-166534)]">
             [ NENHUM ARQUIVO ENCONTRADO NESTE FILTRO ]
           </p>
           <p className="text-[10px]">
@@ -331,7 +331,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
           {filteredAttachments.map((att) => (
             <div
               key={att.id}
-              className="bg-[#030804] border border-[#14351a] hover:border-[#22c55e] transition-all flex flex-col justify-between overflow-hidden group shadow-[0_0_8px_rgba(0,0,0,0.5)]"
+              className="bg-[color:var(--t-030804)] border border-[color:var(--t-14351a)] hover:border-[color:var(--t-22c55e)] transition-all flex flex-col justify-between overflow-hidden group shadow-[0_0_8px_rgba(0,0,0,0.5)]"
             >
               {/* Card Header & Preview */}
               <div>
@@ -339,7 +339,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                 {att.type === 'image' && (
                   <div
                     onClick={() => setViewingImage(att)}
-                    className="relative w-full h-36 bg-black border-b border-[#14351a] overflow-hidden cursor-pointer group/img"
+                    className="relative w-full h-36 bg-black border-b border-[color:var(--t-14351a)] overflow-hidden cursor-pointer group/img"
                   >
                     <img
                       src={att.url}
@@ -348,7 +348,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
-                      <span className="px-2 py-1 bg-black/80 border border-[#22c55e] text-[10px] text-[#22c55e] flex items-center gap-1">
+                      <span className="px-2 py-1 bg-black/80 border border-[color:var(--t-22c55e)] text-[10px] text-[color:var(--t-22c55e)] flex items-center gap-1">
                         <Maximize2 size={11} /> AMPLIAR
                       </span>
                     </div>
@@ -356,7 +356,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                 )}
 
                 {att.type === 'video' && (
-                  <div className="w-full bg-black border-b border-[#14351a]">
+                  <div className="w-full bg-black border-b border-[color:var(--t-14351a)]">
                     <video
                       src={att.url}
                       controls
@@ -388,19 +388,19 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                 )}
 
                 {(att.type === 'code' || att.type === 'text') && (
-                  <div className="p-3 bg-[#030604] border-b border-[#14351a] font-mono">
-                    <div className="flex items-center justify-between pb-1.5 text-[10px] text-[#15803d]">
+                  <div className="p-3 bg-[color:var(--t-030604)] border-b border-[color:var(--t-14351a)] font-mono">
+                    <div className="flex items-center justify-between pb-1.5 text-[10px] text-[color:var(--t-15803d)]">
                       <span className="flex items-center gap-1 font-bold text-[#facc15]">
                         <FileCode size={12} /> CÓDIGO FONTE
                       </span>
                       <button
                         onClick={() => setViewingCode(att)}
-                        className="text-[#22c55e] hover:underline"
+                        className="text-[color:var(--t-22c55e)] hover:underline"
                       >
                         [INSPECIONAR]
                       </button>
                     </div>
-                    <div className="p-2 bg-[#010402] border border-[#0d2212] text-[10px] text-[#86efac]/80 max-h-20 overflow-hidden font-mono leading-tight whitespace-pre-wrap">
+                    <div className="p-2 bg-[color:var(--t-010402)] border border-[color:var(--t-0d2212)] text-[10px] text-[color:var(--t-86efac)]/80 max-h-20 overflow-hidden font-mono leading-tight whitespace-pre-wrap">
                       {att.textContent
                         ? att.textContent.slice(0, 180) + (att.textContent.length > 180 ? '...' : '')
                         : '// Arquivo anexado'}
@@ -426,25 +426,25 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                     <div className="flex items-center gap-1.5 min-w-0">
                       {renderIcon(att.type)}
                       <span
-                        className="font-bold text-xs text-[#86efac] truncate"
+                        className="font-bold text-xs text-[color:var(--t-86efac)] truncate"
                         title={att.name}
                       >
                         {att.name}
                       </span>
                     </div>
-                    <span className="text-[10px] text-[#15803d] shrink-0 font-mono">
+                    <span className="text-[10px] text-[color:var(--t-15803d)] shrink-0 font-mono">
                       {formatBytes(att.size)}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-[10px] text-[#15803d]">
+                  <div className="flex items-center justify-between text-[10px] text-[color:var(--t-15803d)]">
                     <div className="flex items-center gap-1.5">
                       <span>{new Date(att.createdAt).toLocaleDateString()}</span>
                       <span>·</span>
                       <span>{att.type.toUpperCase()}</span>
                     </div>
                     {att.storagePath || att.url.startsWith('http') ? (
-                      <span className="text-[#22c55e] font-bold" title="Armazenado na nuvem (Supabase Storage)">
+                      <span className="text-[color:var(--t-22c55e)] font-bold" title="Armazenado na nuvem (Supabase Storage)">
                         [● NUVEM]
                       </span>
                     ) : (
@@ -457,14 +457,14 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
               </div>
 
               {/* Card Footer Actions */}
-              <div className="px-3 py-2 bg-[#020502] border-t border-[#14351a] flex items-center justify-between text-[10px]">
+              <div className="px-3 py-2 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-2">
                   <a
                     href={att.url}
                     download={att.name}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-[#22c55e] hover:text-white transition-colors"
+                    className="flex items-center gap-1 text-[color:var(--t-22c55e)] hover:text-white transition-colors"
                     title="Baixar arquivo"
                   >
                     <Download size={11} />
@@ -474,10 +474,10 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                   {att.textContent && (
                     <button
                       onClick={() => handleCopyCode(att.textContent, att.id)}
-                      className="flex items-center gap-1 text-[#86efac] hover:text-white transition-colors"
+                      className="flex items-center gap-1 text-[color:var(--t-86efac)] hover:text-white transition-colors"
                       title="Copiar texto"
                     >
-                      {copiedId === att.id ? <Check size={11} className="text-[#22c55e]" /> : <Copy size={11} />}
+                      {copiedId === att.id ? <Check size={11} className="text-[color:var(--t-22c55e)]" /> : <Copy size={11} />}
                       <span>{copiedId === att.id ? 'COPIADO' : 'COPIAR'}</span>
                     </button>
                   )}
@@ -493,7 +493,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                     </button>
                     <button
                       onClick={() => setDeleteConfirmId(null)}
-                      className="text-[#15803d] hover:text-white"
+                      className="text-[color:var(--t-15803d)] hover:text-white"
                     >
                       [CANCELAR]
                     </button>
@@ -504,7 +504,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                       setDeleteConfirmId(att.id);
                       sound.playClick(400);
                     }}
-                    className="text-[#15803d] hover:text-red-400 transition-colors"
+                    className="text-[color:var(--t-15803d)] hover:text-red-400 transition-colors"
                     title="Excluir anexo"
                   >
                     <Trash2 size={12} />
@@ -523,11 +523,11 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
           onClick={() => setViewingImage(null)}
         >
           <div
-            className="max-w-4xl max-h-[90vh] bg-[#040a05] border border-[#22c55e] shadow-[0_0_35px_rgba(34,197,94,0.3)] flex flex-col overflow-hidden"
+            className="max-w-4xl max-h-[90vh] bg-[color:var(--t-040a05)] border border-[color:var(--t-22c55e)] shadow-[0_0_35px_color-mix(in_srgb,var(--t-22c55e)_30%,transparent)] flex flex-col overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-4 py-2.5 bg-[#08180c] border-b border-[#14351a]">
-              <span className="text-xs font-bold text-[#22c55e] truncate font-mono">
+            <div className="flex items-center justify-between px-4 py-2.5 bg-[color:var(--t-08180c)] border-b border-[color:var(--t-14351a)]">
+              <span className="text-xs font-bold text-[color:var(--t-22c55e)] truncate font-mono">
                 IMAGEM: {viewingImage.name} ({formatBytes(viewingImage.size)})
               </span>
               <div className="flex items-center gap-3">
@@ -536,13 +536,13 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                   download={viewingImage.name}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-[#22c55e] hover:underline font-mono flex items-center gap-1"
+                  className="text-xs text-[color:var(--t-22c55e)] hover:underline font-mono flex items-center gap-1"
                 >
                   <Download size={12} /> BAIXAR
                 </a>
                 <button
                   onClick={() => setViewingImage(null)}
-                  className="text-[#15803d] hover:text-[#22c55e]"
+                  className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)]"
                 >
                   <X size={16} />
                 </button>
@@ -566,38 +566,38 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
           onClick={() => setViewingCode(null)}
         >
           <div
-            className="w-full max-w-3xl max-h-[85vh] bg-[#030804] border border-[#22c55e] shadow-[0_0_35px_rgba(34,197,94,0.3)] flex flex-col overflow-hidden font-mono text-xs"
+            className="w-full max-w-3xl max-h-[85vh] bg-[color:var(--t-030804)] border border-[color:var(--t-22c55e)] shadow-[0_0_35px_color-mix(in_srgb,var(--t-22c55e)_30%,transparent)] flex flex-col overflow-hidden font-mono text-xs"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between px-4 py-2.5 bg-[#08180c] border-b border-[#14351a]">
+            <div className="flex items-center justify-between px-4 py-2.5 bg-[color:var(--t-08180c)] border-b border-[color:var(--t-14351a)]">
               <div className="flex items-center gap-2">
                 <FileCode size={14} className="text-[#facc15]" />
-                <span className="font-bold text-[#22c55e]">{viewingCode.name}</span>
-                <span className="text-[10px] text-[#15803d]">({formatBytes(viewingCode.size)})</span>
+                <span className="font-bold text-[color:var(--t-22c55e)]">{viewingCode.name}</span>
+                <span className="text-[10px] text-[color:var(--t-15803d)]">({formatBytes(viewingCode.size)})</span>
               </div>
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => handleCopyCode(viewingCode.textContent, viewingCode.id)}
-                  className="text-xs text-[#22c55e] hover:underline flex items-center gap-1 cursor-pointer"
+                  className="text-xs text-[color:var(--t-22c55e)] hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <Copy size={12} /> COPIAR CÓDIGO
                 </button>
                 <button
                   onClick={() => setViewingCode(null)}
-                  className="text-[#15803d] hover:text-[#22c55e]"
+                  className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)]"
                 >
                   <X size={16} />
                 </button>
               </div>
             </div>
-            <div className="p-4 overflow-y-auto bg-[#010402] text-[#86efac] text-xs font-mono leading-relaxed whitespace-pre-wrap select-text">
+            <div className="p-4 overflow-y-auto bg-[color:var(--t-010402)] text-[color:var(--t-86efac)] text-xs font-mono leading-relaxed whitespace-pre-wrap select-text">
               {viewingCode.textContent || '// Conteúdo indisponível para pré-visualização direta'}
             </div>
-            <div className="px-4 py-2 bg-[#020502] border-t border-[#14351a] flex items-center justify-between text-[10px] text-[#15803d]">
+            <div className="px-4 py-2 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-15803d)]">
               <span>TERMINAL CODE INSPECTOR</span>
               <button
                 onClick={() => setViewingCode(null)}
-                className="text-[#22c55e] hover:underline"
+                className="text-[color:var(--t-22c55e)] hover:underline"
               >
                 [FECHAR]
               </button>
