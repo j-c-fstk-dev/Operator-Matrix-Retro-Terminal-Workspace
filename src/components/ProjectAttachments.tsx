@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Project, ProjectAttachment, AttachmentType } from '../types';
-import { storageService, formatBytes } from '../services/storageService';
-import { useAttachmentUrls } from '../services/attachmentUrls';
+import { storageService, formatBytes, getLastCloudError } from '../services/storageService';
+import { useAttachmentUrls, createSignedUrlNow, storageErrorHint } from '../services/attachmentUrls';
 import { sound } from '../utils/audio';
 import { User } from '@supabase/supabase-js';
 import {
@@ -52,7 +52,22 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const attachments = project.attachments || [];
-  const fileUrls = useAttachmentUrls(attachments, user?.id);
+  const { urls: fileUrls, error: signError } = useAttachmentUrls(attachments, user?.id);
+
+  // Baixa gerando um link assinado na hora (funciona com bucket privado e mostra o motivo se falhar).
+  const handleDownload = async (e: React.MouseEvent, att: ProjectAttachment) => {
+    if (!att.storagePath || !user) return; // arquivo local: o link data: já baixa direto
+    e.preventDefault();
+    try {
+      const url = await createSignedUrlNow(att.storagePath, att.name);
+      const a = document.createElement('a');
+      a.href = url;
+      a.rel = 'noopener';
+      a.click();
+    } catch (err: any) {
+      onShowToast(`[ARQUIVO] ${err?.message || 'Falha ao baixar.'}`);
+    }
+  };
   const localAttachmentsCount = attachments.filter((a) => !a.url.startsWith('http')).length;
 
   // Filter attachments
@@ -98,7 +113,8 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       sound.playClick(900);
       onShowToast(`[SUCESSO] ${updatedCount} anexo(s) enviado(s) para o Supabase!`);
     } else {
-      onShowToast('Aviso: Verifique se o bucket "project-attachments" foi criado no Supabase.');
+      const reason = getLastCloudError();
+      onShowToast(`[ARQUIVO] Nenhum anexo enviado. ${reason ? storageErrorHint(reason) : 'Verifique a conexão e o Supabase Storage.'}`);
     }
     setSyncingLocal(false);
   };
@@ -143,7 +159,10 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       if (cloudCount > 0 && localCount === 0) {
         onShowToast(`[NUVEM] ${cloudCount} arquivo(s) salvos no Supabase (sincronizados com o celular)!`);
       } else if (localCount > 0) {
-        onShowToast(`[LOCAL] ${localCount} arquivo(s) salvos neste aparelho. (Crie o bucket "project-attachments" para a nuvem).`);
+        const reason = user ? getLastCloudError() : null;
+        onShowToast(
+          `[LOCAL] ${localCount} arquivo(s) salvos só neste aparelho.${reason ? ' ' + storageErrorHint(reason) : user ? '' : ' Faça login para enviar à nuvem.'}`
+        );
       }
     }
 
@@ -245,6 +264,13 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Falha ao gerar links dos arquivos na nuvem */}
+      {signError && (
+        <div className="mb-3 p-3 bg-[#120803] border border-amber-600/90 text-amber-400 text-[11px] leading-relaxed" role="alert">
+          <strong>Não foi possível abrir os arquivos da nuvem.</strong> {signError}
+        </div>
+      )}
 
       {/* Local Attachments Warning & One-Click Cloud Sync */}
       {localAttachmentsCount > 0 && (
@@ -463,6 +489,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                 <div className="flex items-center gap-2">
                   <a
                     href={fileUrls[att.id]}
+                    onClick={(e) => handleDownload(e, att)}
                     download={att.name}
                     target="_blank"
                     rel="noopener noreferrer"

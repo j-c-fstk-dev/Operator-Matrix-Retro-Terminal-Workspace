@@ -10,6 +10,10 @@ export const MAX_LOCAL_FILE_BYTES = 2 * 1024 * 1024;
 
 export class AttachmentTooLargeError extends Error {}
 
+let lastCloudError: string | null = null;
+/** Último erro do Storage ao enviar arquivos (para explicar por que caiu no modo local). */
+export const getLastCloudError = () => lastCloudError;
+
 /** Valida o tamanho antes de enviar; lança erro com mensagem pronta para o usuário. */
 export function assertFileSize(size: number, cloud: boolean): void {
   if (size > MAX_CLOUD_FILE_BYTES) {
@@ -118,6 +122,7 @@ export const storageService = {
           });
 
         if (!uploadError) {
+          lastCloudError = null;
           const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath);
           return {
             id: attachmentId,
@@ -131,9 +136,11 @@ export const storageService = {
             textContent,
           };
         } else {
+          lastCloudError = uploadError.message;
           console.warn('[Supabase Storage] Fallback to local DataURL:', uploadError.message);
         }
       } catch (err: any) {
+        lastCloudError = err?.message || 'erro de rede';
         console.warn('[Supabase Storage] Upload error, falling back to local:', err?.message);
       }
     }
@@ -190,6 +197,7 @@ export const storageService = {
         });
 
       if (!uploadError) {
+        lastCloudError = null;
         const { data } = supabase.storage.from(BUCKET_NAME).getPublicUrl(storagePath);
         return {
           ...attachment,
@@ -197,9 +205,11 @@ export const storageService = {
           storagePath,
         };
       } else {
+        lastCloudError = uploadError.message;
         console.warn('[Supabase Storage] sync error:', uploadError.message);
       }
     } catch (err) {
+      lastCloudError = (err as Error)?.message || 'erro de rede';
       console.error('[Supabase Storage] sync exception:', err);
     }
     return attachment;

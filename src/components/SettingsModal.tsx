@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { WorkspaceSettings, Project } from '../types';
 import { X, Volume2, VolumeX, Eye, Download, Upload, RotateCcw, Monitor } from 'lucide-react';
 import { sound } from '../utils/audio';
-import { SOURCE_CODE_URL, LICENSE_NAME } from '../lib/appInfo';
+import { SOURCE_CODE_URL, LICENSE_NAME, APP_VERSION } from '../lib/appInfo';
 import { ACCENT_THEMES, resolveAccentTheme, themeColor } from '../theme/themes';
 
 interface SettingsModalProps {
@@ -275,6 +275,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           >
             CÓDIGO-FONTE ({LICENSE_NAME})
           </a>
+          <span className="opacity-70" title="Versão em execução (commit · data do build)">v{APP_VERSION}</span>
           <button
             onClick={onClose}
             className="text-[color:var(--t-22c55e)] hover:underline"

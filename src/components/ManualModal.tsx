@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { SOURCE_CODE_URL, LICENSE_NAME } from '../lib/appInfo';
+import { SOURCE_CODE_URL, LICENSE_NAME, APP_VERSION } from '../lib/appInfo';
 import { X, Terminal, BookOpen, Command, Copy, Check, ExternalLink, Keyboard } from 'lucide-react';
 import { sound } from '../utils/audio';
 
@@ -230,6 +230,7 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
             >
               CÓDIGO-FONTE ({LICENSE_NAME})
             </a>
+            <span className="opacity-70" title="Versão em execução (commit · data do build)">v{APP_VERSION}</span>
           </div>
           <button
             onClick={onClose}

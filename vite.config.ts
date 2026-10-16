@@ -4,13 +4,21 @@ import path from 'path';
 import {defineConfig} from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Versão exibida no app: commit do deploy (Netlify define COMMIT_REF) + data do build.
+const APP_VERSION = `${(process.env.COMMIT_REF || 'dev').slice(0, 7)} · ${new Date().toISOString().slice(0, 10)}`;
+
 export default defineConfig(() => {
   return {
+    define: {
+      __APP_VERSION__: JSON.stringify(APP_VERSION),
+    },
     plugins: [
       react(),
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        // O registro é feito em src/pwa/registerUpdates.ts (com busca de atualização).
+        injectRegister: false,
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'icon.svg'],
         manifest: {
           id: '/',
@@ -46,6 +54,9 @@ export default defineConfig(() => {
           ],
         },
         workbox: {
+          // A versão nova assume as abas abertas na hora; o registerUpdates recarrega a página.
+          skipWaiting: true,
+          clientsClaim: true,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
           runtimeCaching: [
             {
