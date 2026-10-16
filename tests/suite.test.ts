@@ -6,7 +6,7 @@ import { mergeProjects } from '../src/sync/merge';
 import { enqueue, acknowledge, Outbox } from '../src/sync/syncState';
 import { getTerminalTagStyle } from '../src/utils/tagColors';
 import { Project, WorkspaceSettings } from '../src/types';
-import { detectAttachmentType, formatBytes } from '../src/services/storageService';
+import { detectAttachmentType, formatBytes, assertFileSize, MAX_CLOUD_FILE_BYTES, MAX_LOCAL_FILE_BYTES } from '../src/services/storageService';
 import { detectBrowserKind } from '../src/pwa/installPrompt';
 import { ACCENT_THEMES, themeColor, resolveAccentTheme } from '../src/theme/themes';
 import { BASE_PALETTE } from '../src/theme/basePalette';
@@ -560,6 +560,14 @@ test('Sync: fila guarda só a última operação e não descarta edição feita 
   assert.strictEqual(depois.a.at, 200, 'edição nova continua na fila');
   assert.strictEqual(depois.b.op, 'delete');
   assert.deepStrictEqual(acknowledge(depois, depois), {});
+});
+
+test('Storage: limites de tamanho (50 MB na nuvem, 2 MB só no aparelho)', () => {
+  assert.doesNotThrow(() => assertFileSize(MAX_CLOUD_FILE_BYTES, true));
+  assert.throws(() => assertFileSize(MAX_CLOUD_FILE_BYTES + 1, true), /limite é 50 MB/);
+  assert.doesNotThrow(() => assertFileSize(MAX_LOCAL_FILE_BYTES, false));
+  assert.throws(() => assertFileSize(MAX_LOCAL_FILE_BYTES + 1, false), /Faça login/);
+  assert.doesNotThrow(() => assertFileSize(10 * 1024 * 1024, true), 'arquivo de 10 MB pode ir para a nuvem');
 });
 
 console.log(`\n========================================`);

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Project, ProjectAttachment, AttachmentType } from '../types';
 import { storageService, formatBytes } from '../services/storageService';
+import { useAttachmentUrls } from '../services/attachmentUrls';
 import { sound } from '../utils/audio';
 import { User } from '@supabase/supabase-js';
 import {
@@ -51,6 +52,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const attachments = project.attachments || [];
+  const fileUrls = useAttachmentUrls(attachments, user?.id);
   const localAttachmentsCount = attachments.filter((a) => !a.url.startsWith('http')).length;
 
   // Filter attachments
@@ -126,7 +128,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
         }
       } catch (err: any) {
         console.error('Erro no upload de', file.name, err);
-        onShowToast(`Erro ao carregar ${file.name}`);
+        onShowToast(`Erro ao carregar ${file.name}: ${err?.message || 'falha desconhecida'}`);
       }
     }
 
@@ -342,7 +344,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                     className="relative w-full h-36 bg-black border-b border-[color:var(--t-14351a)] overflow-hidden cursor-pointer group/img"
                   >
                     <img
-                      src={att.url}
+                      src={fileUrls[att.id]}
                       alt={att.name}
                       className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300 opacity-90 group-hover/img:opacity-100"
                       loading="lazy"
@@ -358,7 +360,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                 {att.type === 'video' && (
                   <div className="w-full bg-black border-b border-[color:var(--t-14351a)]">
                     <video
-                      src={att.url}
+                      src={fileUrls[att.id]}
                       controls
                       className="w-full max-h-36 object-contain bg-black"
                     />
@@ -377,7 +379,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                       </div>
                     </div>
                     <a
-                      href={att.url}
+                      href={fileUrls[att.id]}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-2 py-1 bg-[#1a0808] hover:bg-[#2e0e0e] border border-red-700 text-red-300 text-[10px] flex items-center gap-1"
@@ -460,7 +462,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
               <div className="px-3 py-2 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px]">
                 <div className="flex items-center gap-2">
                   <a
-                    href={att.url}
+                    href={fileUrls[att.id]}
                     download={att.name}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -532,7 +534,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
               </span>
               <div className="flex items-center gap-3">
                 <a
-                  href={viewingImage.url}
+                  href={fileUrls[viewingImage.id] || viewingImage.url}
                   download={viewingImage.name}
                   target="_blank"
                   rel="noopener noreferrer"
@@ -550,7 +552,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
             </div>
             <div className="p-2 overflow-auto flex items-center justify-center bg-black">
               <img
-                src={viewingImage.url}
+                src={fileUrls[viewingImage.id] || viewingImage.url}
                 alt={viewingImage.name}
                 className="max-w-full max-h-[75vh] object-contain"
               />
