@@ -12,7 +12,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   className = '',
   variant = 'header',
 }) => {
-  const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
+  const { isInstallable, isInstalled, isIOS, browserKind, install } = usePWAInstall();
   const [showGuideModal, setShowGuideModal] = useState(false);
 
   // If app is already running standalone as an installed PWA, render a clean badge or hide
@@ -108,17 +108,24 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
                 </p>
               </div>
 
+              {browserKind === 'in-app' && (
+                <div className="bg-[#120803] border border-amber-600/90 text-amber-400 p-3 text-[11px] leading-relaxed">
+                  <strong>Navegador interno detectado.</strong> Apps como Instagram, Facebook e TikTok abrem links num navegador próprio que não instala PWA.
+                  Toque no menu <strong>(⋮ ou ···)</strong> e escolha <strong>"Abrir no Chrome"</strong> ou <strong>"Abrir no navegador"</strong>{isIOS ? ' (no iPhone, abra no Safari)' : ''} e tente de novo.
+                </div>
+              )}
+
               {isIOS ? (
                 /* iOS Safari instructions */
                 <div className="space-y-3 bg-[#020703] border border-[#14351a] p-3.5">
                   <div className="text-[#22c55e] font-bold text-xs uppercase tracking-wider">
-                    Como instalar no iPhone / iPad (Safari):
+                    Como instalar no iPhone / iPad{browserKind === 'ios-other' ? ' (Safari ou Chrome no iOS 16.4+)' : ' (Safari)'}:
                   </div>
                   <div className="space-y-2.5 text-[11px] text-[#86efac]">
                     <div className="flex items-start gap-2.5">
                       <span className="px-1.5 py-0.5 bg-[#0b2712] border border-[#22c55e] text-[#22c55e] font-bold shrink-0">1</span>
                       <p>
-                        Toque no botão <strong className="text-white">Compartilhar</strong> (ícone <Share2 size={12} className="inline mx-1 text-[#22c55e]" /> na barra inferior do Safari).
+                        Toque no botão <strong className="text-white">Compartilhar</strong> (ícone <Share2 size={12} className="inline mx-1 text-[#22c55e]" /> na barra do navegador).
                       </p>
                     </div>
                     <div className="flex items-start gap-2.5">
@@ -139,15 +146,30 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
                 /* Android / Desktop Chrome / Edge instructions */
                 <div className="space-y-3 bg-[#020703] border border-[#14351a] p-3.5">
                   <div className="text-[#22c55e] font-bold text-xs uppercase tracking-wider">
-                    No Android, Chrome ou Edge:
+                    {browserKind === 'samsung' ? 'No Samsung Internet:' : browserKind === 'firefox-android' ? 'No Firefox para Android:' : 'No Android, Chrome ou Edge:'}
                   </div>
                   <div className="space-y-2 text-[11px] text-[#86efac]">
-                    <p>
-                      1. Se o navegador exibir o pop-up nativo de instalação, clique em <strong className="text-white">Instalar</strong>.
-                    </p>
-                    <p>
-                      2. Ou clique no menu de três pontos <strong className="text-white">(⋮)</strong> do navegador e selecione <strong className="text-white">"Instalar aplicativo"</strong> ou <strong className="text-white">"Adicionar à tela inicial"</strong>.
-                    </p>
+                    {browserKind === 'samsung' ? (
+                      <p>
+                        Toque no menu <strong className="text-white">(≡)</strong> e escolha <strong className="text-white">"Adicionar página a"</strong> &gt; <strong className="text-white">"Tela de início"</strong>.
+                      </p>
+                    ) : browserKind === 'firefox-android' ? (
+                      <p>
+                        Toque no menu <strong className="text-white">(⋮)</strong> e escolha <strong className="text-white">"Instalar"</strong>. Para a melhor experiência, prefira o Chrome.
+                      </p>
+                    ) : (
+                      <>
+                        <p>
+                          1. Toque no menu de três pontos <strong className="text-white">(⋮)</strong> e escolha <strong className="text-white">"Instalar app"</strong>.
+                        </p>
+                        <p>
+                          2. Se só aparecer <strong className="text-white">"Adicionar à tela inicial"</strong>, escolha essa opção e depois <strong className="text-white">"Instalar"</strong> (não "Criar atalho"). O atalho abre no navegador e não vira app.
+                        </p>
+                        <p>
+                          3. No computador, use o ícone de instalar na barra de endereço.
+                        </p>
+                      </>
+                    )}
                   </div>
 
                   {isInstallable && (

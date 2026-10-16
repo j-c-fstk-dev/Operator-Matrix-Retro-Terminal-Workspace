@@ -16,6 +16,7 @@ export default defineConfig(() => {
           id: '/',
           name: 'Operator // Matrix Dev Workspace',
           short_name: 'Operator',
+          lang: 'pt-BR',
           description: 'Espaço de trabalho pessoal e organizador de projetos com estética retro Matrix terminal, tarefas, notas e persistência local-first.',
           theme_color: '#030704',
           background_color: '#030704',

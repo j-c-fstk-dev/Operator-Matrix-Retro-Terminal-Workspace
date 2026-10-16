@@ -5,6 +5,7 @@ import { INITIAL_PROJECTS, DEFAULT_SETTINGS } from '../src/data/initialData';
 import { getTerminalTagStyle } from '../src/utils/tagColors';
 import { Project, WorkspaceSettings } from '../src/types';
 import { detectAttachmentType, formatBytes } from '../src/services/storageService';
+import { detectBrowserKind } from '../src/pwa/installPrompt';
 
 console.log('⚡ [INICIANDO BATERIA DE TESTES DO OPERATOR WORKSPACE] ⚡\n');
 
@@ -434,6 +435,22 @@ test('Dual-Persistence: Anexos devem ser preservados mesmo se a coluna Postgres 
   const unpacked = JSON.parse(metaObs.content);
   assert.strictEqual(unpacked.length, 1);
   assert.strictEqual(unpacked[0].name, 'test.png');
+});
+
+test('PWA: Detecção de navegador deve escolher o guia de instalação certo', () => {
+  const cases: Array<[string, string]> = [
+    ['Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36', 'chromium'],
+    ['Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1', 'ios-safari'],
+    ['Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/129.0 Mobile/15E148 Safari/604.1', 'ios-other'],
+    ['Mozilla/5.0 (Linux; Android 14; SM-S911B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/121.0 Mobile Safari/537.36', 'samsung'],
+    ['Mozilla/5.0 (Android 14; Mobile; rv:131.0) Gecko/131.0 Firefox/131.0', 'firefox-android'],
+    ['Mozilla/5.0 (Linux; Android 14; Pixel 7 Build/AP2A; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/129.0 Mobile Safari/537.36 Instagram 350.0', 'in-app'],
+    ['Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBAV/480.0]', 'in-app'],
+    ['Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Safari/537.36', 'chromium'],
+  ];
+  for (const [ua, expected] of cases) {
+    assert.strictEqual(detectBrowserKind(ua), expected, `UA: ${ua}`);
+  }
 });
 
 console.log(`\n========================================`);

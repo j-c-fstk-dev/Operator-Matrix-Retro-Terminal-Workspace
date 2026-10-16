@@ -1,3 +1,5 @@
+// Deve ser o primeiro import: captura o evento de instalação do PWA antes do React montar.
+import './pwa/installPrompt';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
