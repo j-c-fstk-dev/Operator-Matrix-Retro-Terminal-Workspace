@@ -136,24 +136,24 @@ export const BackupModal: React.FC<BackupModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-black/85 backdrop-blur-xs font-mono text-xs text-[#86efac]"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-black/85 backdrop-blur-xs font-mono text-xs text-[color:var(--t-86efac)]"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl max-h-[90vh] bg-[#030704] border border-[#22c55e] shadow-[0_0_35px_rgba(0,255,102,0.25)] flex flex-col overflow-hidden"
+        className="w-full max-w-2xl max-h-[90vh] bg-[color:var(--t-030704)] border border-[color:var(--t-22c55e)] shadow-[0_0_35px_color-mix(in_srgb,var(--t-00ff66)_25%,transparent)] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-2.5 bg-[#061508] border-b border-[#14351a] shrink-0">
+        <div className="flex items-center justify-between px-4 py-2.5 bg-[color:var(--t-061508)] border-b border-[color:var(--t-14351a)] shrink-0">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 bg-[#22c55e] shadow-[0_0_8px_#22c55e]"></span>
-            <span className="font-bold text-[#22c55e] tracking-wider text-xs">
+            <span className="w-2.5 h-2.5 bg-[color:var(--t-22c55e)] shadow-[0_0_8px_var(--t-22c55e)]"></span>
+            <span className="font-bold text-[color:var(--t-22c55e)] tracking-wider text-xs">
               SISTEMA // BACKUP & MIGRAÇÃO ENTRE DISPOSITIVOS (.JSON)
             </span>
           </div>
           <button
             onClick={onClose}
-            className="text-[#15803d] hover:text-[#22c55e] p-1"
+            className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] p-1"
           >
             <X size={15} />
           </button>
@@ -162,52 +162,52 @@ export const BackupModal: React.FC<BackupModalProps> = ({
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-5">
           {/* Summary Dashboard of Current Workspace */}
-          <div className="bg-[#051107] border border-[#14351a] p-3.5 space-y-2">
-            <div className="flex items-center justify-between border-b border-[#0d2612] pb-1.5 text-[11px] text-[#22c55e] font-bold uppercase tracking-wider">
+          <div className="bg-[color:var(--t-051107)] border border-[color:var(--t-14351a)] p-3.5 space-y-2">
+            <div className="flex items-center justify-between border-b border-[color:var(--t-0d2612)] pb-1.5 text-[11px] text-[color:var(--t-22c55e)] font-bold uppercase tracking-wider">
               <span className="flex items-center gap-1.5">
                 <Database size={13} />
                 <span>Estado Atual do seu Workspace</span>
               </span>
-              <span className="text-[10px] text-[#15803d]">TAMANHO: ~{approximateSizeKb} KB</span>
+              <span className="text-[10px] text-[color:var(--t-15803d)]">TAMANHO: ~{approximateSizeKb} KB</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px]">
-              <div className="bg-[#020502] p-2 border border-[#0d2212]">
-                <div className="text-[10px] text-[#15803d]">PROJETOS</div>
-                <div className="text-base font-bold text-[#22c55e]">{totalProjects}</div>
+              <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
+                <div className="text-[10px] text-[color:var(--t-15803d)]">PROJETOS</div>
+                <div className="text-base font-bold text-[color:var(--t-22c55e)]">{totalProjects}</div>
               </div>
-              <div className="bg-[#020502] p-2 border border-[#0d2212]">
-                <div className="text-[10px] text-[#15803d]">TAREFAS SALVAS</div>
-                <div className="text-base font-bold text-[#22c55e]">
-                  {totalTasks} <span className="text-[10px] font-normal text-[#15803d]">({totalDoneTasks} prontas)</span>
+              <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
+                <div className="text-[10px] text-[color:var(--t-15803d)]">TAREFAS SALVAS</div>
+                <div className="text-base font-bold text-[color:var(--t-22c55e)]">
+                  {totalTasks} <span className="text-[10px] font-normal text-[color:var(--t-15803d)]">({totalDoneTasks} prontas)</span>
                 </div>
               </div>
-              <div className="bg-[#020502] p-2 border border-[#0d2212]">
-                <div className="text-[10px] text-[#15803d]">TAGS DISTINTAS</div>
-                <div className="text-base font-bold text-[#22c55e]">{allTags.length}</div>
+              <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
+                <div className="text-[10px] text-[color:var(--t-15803d)]">TAGS DISTINTAS</div>
+                <div className="text-base font-bold text-[color:var(--t-22c55e)]">{allTags.length}</div>
               </div>
-              <div className="bg-[#020502] p-2 border border-[#0d2212]">
-                <div className="text-[10px] text-[#15803d]">NOTAS & SNIPPETS</div>
-                <div className="text-base font-bold text-[#22c55e]">{totalObservations + totalSnippets}</div>
+              <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
+                <div className="text-[10px] text-[color:var(--t-15803d)]">NOTAS & SNIPPETS</div>
+                <div className="text-base font-bold text-[color:var(--t-22c55e)]">{totalObservations + totalSnippets}</div>
               </div>
             </div>
           </div>
 
           {/* Section 1: DOWNLOAD / EXPORT */}
           <div className="space-y-2">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-[#22c55e] uppercase tracking-wider border-b border-[#14351a] pb-1">
+            <div className="flex items-center gap-1.5 text-xs font-bold text-[color:var(--t-22c55e)] uppercase tracking-wider border-b border-[color:var(--t-14351a)] pb-1">
               <Download size={13} />
               <span>1. Baixar Arquivo JSON (Salvar Backup)</span>
             </div>
 
-            <p className="text-[11px] text-[#86efac]/80 leading-relaxed">
-              Gera um arquivo <code className="text-[#22c55e]">.json</code> completo com todos os projetos, subtarefas, tags coloridas, notas e snippets. Você pode guardar esse arquivo no seu Google Drive, pen-drive ou enviá-lo para si mesmo.
+            <p className="text-[11px] text-[color:var(--t-86efac)]/80 leading-relaxed">
+              Gera um arquivo <code className="text-[color:var(--t-22c55e)]">.json</code> completo com todos os projetos, subtarefas, tags coloridas, notas e snippets. Você pode guardar esse arquivo no seu Google Drive, pen-drive ou enviá-lo para si mesmo.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
               <button
                 onClick={handleDownloadFile}
-                className="flex-1 py-2.5 px-4 bg-[#0e2c14] hover:bg-[#14421d] border border-[#22c55e] text-xs font-bold text-[#22c55e] hover:text-white flex items-center justify-center gap-2 shadow-[0_0_10px_rgba(34,197,94,0.2)] transition-all cursor-pointer"
+                className="flex-1 py-2.5 px-4 bg-[color:var(--t-0e2c14)] hover:bg-[color:var(--t-14421d)] border border-[color:var(--t-22c55e)] text-xs font-bold text-[color:var(--t-22c55e)] hover:text-white flex items-center justify-center gap-2 shadow-[0_0_10px_color-mix(in_srgb,var(--t-22c55e)_20%,transparent)] transition-all cursor-pointer"
               >
                 <Download size={14} />
                 <span>BAIXAR ARQUIVO DE BACKUP (.JSON)</span>
@@ -215,10 +215,10 @@ export const BackupModal: React.FC<BackupModalProps> = ({
 
               <button
                 onClick={handleCopyClipboard}
-                className="py-2.5 px-3 bg-[#051107] hover:bg-[#091f0e] border border-[#14351a] hover:border-[#22c55e] text-xs text-[#86efac] flex items-center justify-center gap-1.5 transition-colors shrink-0 cursor-pointer"
+                className="py-2.5 px-3 bg-[color:var(--t-051107)] hover:bg-[color:var(--t-091f0e)] border border-[color:var(--t-14351a)] hover:border-[color:var(--t-22c55e)] text-xs text-[color:var(--t-86efac)] flex items-center justify-center gap-1.5 transition-colors shrink-0 cursor-pointer"
                 title="Copiar texto JSON para área de transferência"
               >
-                {copied ? <Check size={13} className="text-[#22c55e]" /> : <Copy size={13} />}
+                {copied ? <Check size={13} className="text-[color:var(--t-22c55e)]" /> : <Copy size={13} />}
                 <span>{copied ? 'COPIADO!' : 'COPIAR TEXTO'}</span>
               </button>
             </div>
@@ -226,29 +226,29 @@ export const BackupModal: React.FC<BackupModalProps> = ({
 
           {/* Section 2: UPLOAD / RESTORE */}
           <div className="space-y-2 pt-2">
-            <div className="flex items-center justify-between border-b border-[#14351a] pb-1">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-[#22c55e] uppercase tracking-wider">
+            <div className="flex items-center justify-between border-b border-[color:var(--t-14351a)] pb-1">
+              <span className="flex items-center gap-1.5 text-xs font-bold text-[color:var(--t-22c55e)] uppercase tracking-wider">
                 <Upload size={13} />
                 <span>2. Fazer Upload de Arquivo JSON (Restaurar em Outro Aparelho)</span>
               </span>
             </div>
 
-            <p className="text-[11px] text-[#86efac]/80 leading-relaxed">
+            <p className="text-[11px] text-[color:var(--t-86efac)]/80 leading-relaxed">
               Abra este site em outro computador ou navegador (ex: subindo pelo Netlify), clique neste botão e selecione o arquivo que você baixou. Tudo será reconstruído exatamente como você deixou.
             </p>
 
             {/* Mode selection: Replace or Merge */}
             <div className="flex items-center gap-3 pt-1 text-[11px]">
-              <span className="text-[#15803d]">MODO DE IMPORTAÇÃO:</span>
+              <span className="text-[color:var(--t-15803d)]">MODO DE IMPORTAÇÃO:</span>
               <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="radio"
                   name="importMode"
                   checked={importMode === 'replace'}
                   onChange={() => setImportMode('replace')}
-                  className="accent-[#22c55e]"
+                  className="accent-[color:var(--t-22c55e)]"
                 />
-                <span className={importMode === 'replace' ? 'text-[#22c55e] font-bold' : 'text-[#86efac]'}>
+                <span className={importMode === 'replace' ? 'text-[color:var(--t-22c55e)] font-bold' : 'text-[color:var(--t-86efac)]'}>
                   Substituir Tudo (Recomendado)
                 </span>
               </label>
@@ -259,9 +259,9 @@ export const BackupModal: React.FC<BackupModalProps> = ({
                   name="importMode"
                   checked={importMode === 'merge'}
                   onChange={() => setImportMode('merge')}
-                  className="accent-[#22c55e]"
+                  className="accent-[color:var(--t-22c55e)]"
                 />
-                <span className={importMode === 'merge' ? 'text-[#22c55e] font-bold' : 'text-[#86efac]'}>
+                <span className={importMode === 'merge' ? 'text-[color:var(--t-22c55e)] font-bold' : 'text-[color:var(--t-86efac)]'}>
                   Mesclar com Atuais
                 </span>
               </label>
@@ -278,15 +278,15 @@ export const BackupModal: React.FC<BackupModalProps> = ({
               onClick={() => fileInputRef.current?.click()}
               className={`p-6 border-2 border-dashed text-center transition-all cursor-pointer ${
                 isDragging
-                  ? 'border-[#22c55e] bg-[#0c2e14]'
-                  : 'border-[#14351a] bg-[#030904] hover:border-[#22c55e] hover:bg-[#051307]'
+                  ? 'border-[color:var(--t-22c55e)] bg-[color:var(--t-0c2e14)]'
+                  : 'border-[color:var(--t-14351a)] bg-[color:var(--t-030904)] hover:border-[color:var(--t-22c55e)] hover:bg-[color:var(--t-051307)]'
               }`}
             >
-              <Upload size={24} className="mx-auto mb-2 text-[#22c55e]" />
-              <div className="text-xs font-bold text-[#22c55e]">
+              <Upload size={24} className="mx-auto mb-2 text-[color:var(--t-22c55e)]" />
+              <div className="text-xs font-bold text-[color:var(--t-22c55e)]">
                 CLIQUE PARA ESCOLHER ARQUIVO .JSON
               </div>
-              <div className="text-[10px] text-[#15803d] mt-1">
+              <div className="text-[10px] text-[color:var(--t-15803d)] mt-1">
                 ou arraste e solte o arquivo de backup aqui
               </div>
               <input
@@ -300,10 +300,10 @@ export const BackupModal: React.FC<BackupModalProps> = ({
           </div>
 
           {/* Section 3: DIRECT PASTE TEXT FALLBACK */}
-          <div className="pt-2 border-t border-[#0e2513]">
+          <div className="pt-2 border-t border-[color:var(--t-0e2513)]">
             <button
               onClick={() => setPasteMode(!pasteMode)}
-              className="text-[11px] text-[#15803d] hover:text-[#22c55e] flex items-center gap-1 transition-colors"
+              className="text-[11px] text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] flex items-center gap-1 transition-colors"
             >
               <span>{pasteMode ? '[-] Ocultar entrada de texto JSON' : '[+] Ou colar código JSON diretamente (sem arquivo)'}</span>
             </button>
@@ -315,7 +315,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
                   onChange={(e) => setPastedJson(e.target.value)}
                   placeholder="Cole aqui o conteúdo do seu arquivo .json..."
                   rows={4}
-                  className="w-full bg-[#020502] border border-[#14351a] text-xs font-mono text-[#86efac] p-2 focus:outline-hidden focus:border-[#22c55e] resize-y"
+                  className="w-full bg-[color:var(--t-020502)] border border-[color:var(--t-14351a)] text-xs font-mono text-[color:var(--t-86efac)] p-2 focus:outline-hidden focus:border-[color:var(--t-22c55e)] resize-y"
                 />
                 <button
                   onClick={() => {
@@ -323,7 +323,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
                       processImportContent(pastedJson.trim());
                     }
                   }}
-                  className="px-3 py-1.5 bg-[#092211] hover:bg-[#0e2c14] border border-[#22c55e] text-xs text-[#22c55e] transition-colors"
+                  className="px-3 py-1.5 bg-[color:var(--t-092211)] hover:bg-[color:var(--t-0e2c14)] border border-[color:var(--t-22c55e)] text-xs text-[color:var(--t-22c55e)] transition-colors"
                 >
                   APLICAR JSON COLADO
                 </button>
@@ -333,14 +333,14 @@ export const BackupModal: React.FC<BackupModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2.5 bg-[#020502] border-t border-[#14351a] flex items-center justify-between text-[10px] text-[#15803d] shrink-0">
-          <div className="flex items-center gap-1.5 text-[#22c55e]">
+        <div className="px-4 py-2.5 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-15803d)] shrink-0">
+          <div className="flex items-center gap-1.5 text-[color:var(--t-22c55e)]">
             <ShieldCheck size={13} />
             <span>OPERATOR DATA VAULT // 100% OFFLINE & PRIVADO</span>
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-1 bg-[#051107] border border-[#14351a] text-[#86efac] hover:text-white hover:border-[#22c55e] transition-colors"
+            className="px-3 py-1 bg-[color:var(--t-051107)] border border-[color:var(--t-14351a)] text-[color:var(--t-86efac)] hover:text-white hover:border-[color:var(--t-22c55e)] transition-colors"
           >
             FECHAR [ESC]
           </button>

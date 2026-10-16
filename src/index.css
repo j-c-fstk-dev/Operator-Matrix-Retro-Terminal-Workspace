@@ -1,25 +1,26 @@
 @import "tailwindcss";
+@import "./theme/palette.css";
 
 @layer base {
   :root {
     --font-mono: 'JetBrains Mono', 'Fira Code', 'Share Tech Mono', monospace;
-    --matrix-green: #00ff66;
-    --matrix-bright: #66ff99;
-    --matrix-dim: #15803d;
-    --matrix-dark: #030704;
-    --matrix-surface: #071008;
-    --matrix-border: #14351a;
+    --matrix-green: var(--t-00ff66);
+    --matrix-bright: var(--t-66ff99);
+    --matrix-dim: var(--t-15803d);
+    --matrix-dark: var(--t-030704);
+    --matrix-surface: var(--t-071008);
+    --matrix-border: var(--t-14351a);
   }
 
   body {
     font-family: var(--font-mono);
     background-color: var(--matrix-dark);
-    color: #86efac;
+    color: var(--t-86efac);
   }
 
   /* Global authentic terminal caret */
   input, textarea, [contenteditable="true"] {
-    caret-color: #00ff66 !important;
+    caret-color: var(--t-00ff66) !important;
   }
 
   @supports (caret-shape: block) {
@@ -37,7 +38,7 @@
   ), linear-gradient(
     90deg,
     rgba(255, 0, 0, 0.03),
-    rgba(0, 255, 0, 0.01),
+    color-mix(in srgb, var(--t-00ff00) 1%, transparent),
     rgba(0, 0, 255, 0.03)
   );
   background-size: 100% 3px, 6px 100%;
@@ -46,15 +47,15 @@
 
 /* Subtle phosphor CRT curve & glow */
 .matrix-glow {
-  text-shadow: 0 0 8px rgba(0, 255, 102, 0.45);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--t-00ff66) 45%, transparent);
 }
 
 .matrix-glow-bright {
-  text-shadow: 0 0 12px rgba(102, 255, 153, 0.7);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--t-66ff99) 70%, transparent);
 }
 
 .matrix-border-glow {
-  box-shadow: 0 0 10px rgba(0, 255, 102, 0.15);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--t-00ff66) 15%, transparent);
 }
 
 /* Matrix phosphor scrollbar */
@@ -63,14 +64,14 @@
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #040905;
+  background: var(--t-040905);
 }
 ::-webkit-scrollbar-thumb {
-  background: #14351a;
+  background: var(--t-14351a);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #22c55e;
+  background: var(--t-22c55e);
 }
 
 /* Blinking terminal cursor keyframe */
@@ -85,8 +86,8 @@
   width: 0.55em;
   height: 1.15em;
   vertical-align: -0.15em;
-  background-color: #00ff66;
-  box-shadow: 0 0 8px rgba(0, 255, 102, 0.85);
+  background-color: var(--t-00ff66);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--t-00ff66) 85%, transparent);
   animation: matrixBlink 0.9s steps(1) infinite;
   pointer-events: none;
   flex-shrink: 0;
@@ -98,8 +99,8 @@
   width: 0.55em;
   height: 2px;
   vertical-align: -0.2em;
-  background-color: #00ff66;
-  box-shadow: 0 0 6px rgba(0, 255, 102, 0.85);
+  background-color: var(--t-00ff66);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--t-00ff66) 85%, transparent);
   animation: matrixBlink 0.85s steps(1) infinite;
   pointer-events: none;
   flex-shrink: 0;

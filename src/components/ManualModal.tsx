@@ -83,22 +83,22 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
       onClick={onClose}
     >
       <div
-        className="w-full max-w-3xl max-h-[88vh] bg-[#030804] border border-[#22c55e] shadow-[0_0_35px_rgba(0,255,102,0.2)] text-[#86efac] font-mono text-xs flex flex-col overflow-hidden"
+        className="w-full max-w-3xl max-h-[88vh] bg-[color:var(--t-030804)] border border-[color:var(--t-22c55e)] shadow-[0_0_35px_color-mix(in_srgb,var(--t-00ff66)_20%,transparent)] text-[color:var(--t-86efac)] font-mono text-xs flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Terminal Title Bar */}
-        <div className="flex items-center justify-between px-4 py-2 bg-[#061408] border-b border-[#14351a] shrink-0">
+        <div className="flex items-center justify-between px-4 py-2 bg-[color:var(--t-061408)] border-b border-[color:var(--t-14351a)] shrink-0">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 bg-[#22c55e] shadow-[0_0_8px_#22c55e]"></span>
-            <span className="font-bold text-[#22c55e] tracking-wider text-xs">
+            <span className="w-2.5 h-2.5 bg-[color:var(--t-22c55e)] shadow-[0_0_8px_var(--t-22c55e)]"></span>
+            <span className="font-bold text-[color:var(--t-22c55e)] tracking-wider text-xs">
               MAN OPERATOR(1) // MANUAL DO SISTEMA & ATALHOS
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-[#15803d] hidden sm:inline">[TECLE ESC PARA FECHAR]</span>
+            <span className="text-[10px] text-[color:var(--t-15803d)] hidden sm:inline">[TECLE ESC PARA FECHAR]</span>
             <button
               onClick={onClose}
-              className="text-[#15803d] hover:text-[#22c55e] p-1 transition-colors"
+              className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] p-1 transition-colors"
             >
               <X size={15} />
             </button>
@@ -106,7 +106,7 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
         </div>
 
         {/* Man Page Header Banner */}
-        <div className="px-5 py-2 bg-[#020502] border-b border-[#0d2212] text-[10px] text-[#166534] flex items-center justify-between shrink-0">
+        <div className="px-5 py-2 bg-[color:var(--t-020502)] border-b border-[color:var(--t-0d2212)] text-[10px] text-[color:var(--t-166534)] flex items-center justify-between shrink-0">
           <span>OPERATOR(1)</span>
           <span>MANUAL DE COMANDOS DO SISTEMA MATRIX</span>
           <span>OPERATOR(1)</span>
@@ -116,36 +116,36 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
           {/* Section: NAME */}
           <div>
-            <div className="text-[11px] font-bold text-[#22c55e] tracking-widest border-b border-[#14351a] pb-1 uppercase">
+            <div className="text-[11px] font-bold text-[color:var(--t-22c55e)] tracking-widest border-b border-[color:var(--t-14351a)] pb-1 uppercase">
               NAME
             </div>
-            <p className="mt-1 text-xs text-[#86efac] leading-relaxed">
+            <p className="mt-1 text-xs text-[color:var(--t-86efac)] leading-relaxed">
               <strong>operator</strong> - espaço minimalista de organização de projetos, tarefas hierárquicas, tags e notas técnicas com fluxo orientado a teclado para desenvolvedores.
             </p>
           </div>
 
           {/* Section: SHORTCUTS */}
           <div>
-            <div className="flex items-center justify-between border-b border-[#14351a] pb-1">
-              <span className="text-[11px] font-bold text-[#22c55e] tracking-widest uppercase flex items-center gap-1.5">
+            <div className="flex items-center justify-between border-b border-[color:var(--t-14351a)] pb-1">
+              <span className="text-[11px] font-bold text-[color:var(--t-22c55e)] tracking-widest uppercase flex items-center gap-1.5">
                 <Keyboard size={13} />
                 <span>ATALHOS DO TECLADO (LINUX & VIM COMPATÍVEIS)</span>
               </span>
               <button
                 onClick={handleCopyCheatsheet}
-                className="text-[10px] text-[#22c55e] hover:text-white flex items-center gap-1 transition-colors"
+                className="text-[10px] text-[color:var(--t-22c55e)] hover:text-white flex items-center gap-1 transition-colors"
               >
                 {copied ? <Check size={11} /> : <Copy size={11} />}
                 <span>{copied ? 'COPIADO' : 'COPIAR GUIA'}</span>
               </button>
             </div>
 
-            <p className="mt-1.5 text-[11px] text-[#15803d]">
-              Os atalhos de letra única (como <code className="text-[#86efac]">T</code>, <code className="text-[#86efac]">J/K</code>, <code className="text-[#86efac]">X</code>) funcionam quando você não estiver digitando dentro de um campo de texto.
+            <p className="mt-1.5 text-[11px] text-[color:var(--t-15803d)]">
+              Os atalhos de letra única (como <code className="text-[color:var(--t-86efac)]">T</code>, <code className="text-[color:var(--t-86efac)]">J/K</code>, <code className="text-[color:var(--t-86efac)]">X</code>) funcionam quando você não estiver digitando dentro de um campo de texto.
             </p>
 
-            <div className="mt-3 border border-[#102914] divide-y divide-[#0c2211]">
-              <div className="grid grid-cols-12 bg-[#051107] px-3 py-1.5 text-[10px] font-bold text-[#16a34a] tracking-wider uppercase">
+            <div className="mt-3 border border-[color:var(--t-102914)] divide-y divide-[color:var(--t-0c2211)]">
+              <div className="grid grid-cols-12 bg-[color:var(--t-051107)] px-3 py-1.5 text-[10px] font-bold text-[color:var(--t-16a34a)] tracking-wider uppercase">
                 <span className="col-span-3">ATALHO</span>
                 <span className="col-span-5">AÇÃO NO SISTEMA</span>
                 <span className="col-span-4">ANALOGIA LINUX / GIT</span>
@@ -154,17 +154,17 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
               {SHORTCUTS.map((item, idx) => (
                 <div
                   key={idx}
-                  className="grid grid-cols-12 px-3 py-2 text-xs hover:bg-[#061408] transition-colors items-center"
+                  className="grid grid-cols-12 px-3 py-2 text-xs hover:bg-[color:var(--t-061408)] transition-colors items-center"
                 >
-                  <div className="col-span-3 font-bold text-[#22c55e]">
-                    <kbd className="px-1.5 py-0.5 bg-[#08180b] border border-[#166534] text-[11px] text-[#22c55e]">
+                  <div className="col-span-3 font-bold text-[color:var(--t-22c55e)]">
+                    <kbd className="px-1.5 py-0.5 bg-[color:var(--t-08180b)] border border-[color:var(--t-166534)] text-[11px] text-[color:var(--t-22c55e)]">
                       {item.key}
                     </kbd>
                   </div>
-                  <div className="col-span-5 text-[#86efac]">
+                  <div className="col-span-5 text-[color:var(--t-86efac)]">
                     {item.action}
                   </div>
-                  <div className="col-span-4 text-[11px] text-[#166534] font-mono">
+                  <div className="col-span-4 text-[11px] text-[color:var(--t-166534)] font-mono">
                     // {item.analogy}
                   </div>
                 </div>
@@ -174,26 +174,26 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
 
           {/* Section: COMMAND LINE INTERFACE (Ctrl+K) */}
           <div>
-            <div className="text-[11px] font-bold text-[#22c55e] tracking-widest border-b border-[#14351a] pb-1 uppercase flex items-center gap-1.5">
+            <div className="text-[11px] font-bold text-[color:var(--t-22c55e)] tracking-widest border-b border-[color:var(--t-14351a)] pb-1 uppercase flex items-center gap-1.5">
               <Terminal size={13} />
               <span>COMANDOS DIGITÁVEIS NO PROMPT (CTRL + K)</span>
             </div>
 
-            <p className="mt-1.5 text-[11px] text-[#15803d]">
-              Pressione <kbd className="text-[#22c55e]">Ctrl+K</kbd> a qualquer momento e digite comandos estilo Git/Unix:
+            <p className="mt-1.5 text-[11px] text-[color:var(--t-15803d)]">
+              Pressione <kbd className="text-[color:var(--t-22c55e)]">Ctrl+K</kbd> a qualquer momento e digite comandos estilo Git/Unix:
             </p>
 
-            <div className="mt-2.5 border border-[#102914] divide-y divide-[#0c2211]">
+            <div className="mt-2.5 border border-[color:var(--t-102914)] divide-y divide-[color:var(--t-0c2211)]">
               {CLI_COMMANDS.map((c, idx) => (
                 <div
                   key={idx}
-                  className="grid grid-cols-12 px-3 py-1.5 text-xs hover:bg-[#061408] items-center"
+                  className="grid grid-cols-12 px-3 py-1.5 text-xs hover:bg-[color:var(--t-061408)] items-center"
                 >
-                  <div className="col-span-5 font-bold text-[#22c55e] flex items-center gap-1.5">
-                    <span className="text-[#15803d]">&gt;</span>
+                  <div className="col-span-5 font-bold text-[color:var(--t-22c55e)] flex items-center gap-1.5">
+                    <span className="text-[color:var(--t-15803d)]">&gt;</span>
                     <code>{c.cmd}</code>
                   </div>
-                  <div className="col-span-7 text-[#86efac]/80 text-[11px]">
+                  <div className="col-span-7 text-[color:var(--t-86efac)]/80 text-[11px]">
                     {c.desc}
                   </div>
                 </div>
@@ -203,26 +203,26 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
 
           {/* Section: LOCAL STORAGE & PERSISTENCE */}
           <div>
-            <div className="text-[11px] font-bold text-[#22c55e] tracking-widest border-b border-[#14351a] pb-1 uppercase">
+            <div className="text-[11px] font-bold text-[color:var(--t-22c55e)] tracking-widest border-b border-[color:var(--t-14351a)] pb-1 uppercase">
               PERSISTÊNCIA & NETLIFY
             </div>
-            <p className="mt-1.5 text-[11px] text-[#86efac]/80 leading-relaxed">
-              O sistema opera em modo <strong>local-first</strong>: todas as edições são persistidas no cache do navegador (<code className="text-[#22c55e]">localStorage</code>).
-              Para mover entre máquinas ou salvar checkpoints versionados como no Git, use o botão <strong>Backup JSON</strong> no topo ou na barra lateral para baixar seu <code className="text-[#22c55e]">.json</code> completo e subir no outro dispositivo em segundos.
+            <p className="mt-1.5 text-[11px] text-[color:var(--t-86efac)]/80 leading-relaxed">
+              O sistema opera em modo <strong>local-first</strong>: todas as edições são persistidas no cache do navegador (<code className="text-[color:var(--t-22c55e)]">localStorage</code>).
+              Para mover entre máquinas ou salvar checkpoints versionados como no Git, use o botão <strong>Backup JSON</strong> no topo ou na barra lateral para baixar seu <code className="text-[color:var(--t-22c55e)]">.json</code> completo e subir no outro dispositivo em segundos.
             </p>
           </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="px-4 py-2.5 bg-[#040c06] border-t border-[#14351a] flex items-center justify-between text-[11px] text-[#15803d] shrink-0">
+        <div className="px-4 py-2.5 bg-[color:var(--t-040c06)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[11px] text-[color:var(--t-15803d)] shrink-0">
           <div className="flex items-center gap-2">
             <span>OPERATOR CLI MANUAL</span>
             <span>·</span>
-            <span>PRESSIONE <kbd className="text-[#22c55e]">?</kbd> PARA ACESSAR DE QUALQUER TELA</span>
+            <span>PRESSIONE <kbd className="text-[color:var(--t-22c55e)]">?</kbd> PARA ACESSAR DE QUALQUER TELA</span>
           </div>
           <button
             onClick={onClose}
-            className="px-3 py-1 bg-[#092211] hover:bg-[#0e2c14] border border-[#22c55e] text-xs text-[#22c55e] transition-colors"
+            className="px-3 py-1 bg-[color:var(--t-092211)] hover:bg-[color:var(--t-0e2c14)] border border-[color:var(--t-22c55e)] text-xs text-[color:var(--t-22c55e)] transition-colors"
           >
             ENTENDIDO [ESC]
           </button>

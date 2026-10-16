@@ -6,6 +6,8 @@ import { getTerminalTagStyle } from '../src/utils/tagColors';
 import { Project, WorkspaceSettings } from '../src/types';
 import { detectAttachmentType, formatBytes } from '../src/services/storageService';
 import { detectBrowserKind } from '../src/pwa/installPrompt';
+import { ACCENT_THEMES, themeColor, resolveAccentTheme } from '../src/theme/themes';
+import { BASE_PALETTE } from '../src/theme/basePalette';
 
 console.log('⚡ [INICIANDO BATERIA DE TESTES DO OPERATOR WORKSPACE] ⚡\n');
 
@@ -451,6 +453,25 @@ test('PWA: Detecção de navegador deve escolher o guia de instalação certo', 
   for (const [ua, expected] of cases) {
     assert.strictEqual(detectBrowserKind(ua), expected, `UA: ${ua}`);
   }
+});
+
+test('Temas: tema Matrix preserva as cores originais e os demais geram cores válidas', () => {
+  for (const hex of BASE_PALETTE) {
+    assert.strictEqual(themeColor(hex, 'matrix'), `#${hex}`);
+    for (const t of ACCENT_THEMES) {
+      assert.match(themeColor(hex, t.id), /^#[0-9a-f]{6}$/, `${t.id} / ${hex}`);
+    }
+  }
+  // Mono deve virar escala de cinza (R, G e B quase iguais)
+  const mono = themeColor('22c55e', 'mono').slice(1);
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(mono.slice(i, i + 2), 16));
+  assert(Math.max(r, g, b) - Math.min(r, g, b) <= 3, `mono não é cinza: ${mono}`);
+  // Vermelho deve ter o canal R dominante
+  const red = themeColor('22c55e', 'red').slice(1);
+  assert(parseInt(red.slice(0, 2), 16) > parseInt(red.slice(2, 4), 16), `vermelho inválido: ${red}`);
+  // Valor desconhecido cai no padrão
+  assert.strictEqual(resolveAccentTheme('nao-existe'), 'matrix');
+  assert.strictEqual(resolveAccentTheme(undefined), 'matrix');
 });
 
 console.log(`\n========================================`);

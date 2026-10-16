@@ -69,4 +69,5 @@ export interface WorkspaceSettings {
   scanlines: boolean;
   soundEnabled: boolean;
   glowEffect: boolean;
+  accentTheme?: string;
 }

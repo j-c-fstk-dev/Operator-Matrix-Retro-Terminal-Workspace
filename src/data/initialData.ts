@@ -6,6 +6,7 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   scanlines: true,
   soundEnabled: true,
   glowEffect: true,
+  accentTheme: 'matrix',
 };
 
 export const INITIAL_PROJECTS: Project[] = [

@@ -16,6 +16,7 @@ import { BackupModal } from './components/BackupModal';
 import { AuthModal } from './components/AuthModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { sound } from './utils/audio';
+import { applyAccentTheme, resolveAccentTheme } from './theme/themes';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
 import { supabaseService } from './services/supabaseService';
 import { User } from '@supabase/supabase-js';
@@ -63,6 +64,11 @@ export default function App() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const hiddenImportRef = useRef<HTMLInputElement>(null);
+
+  const accentTheme = resolveAccentTheme(settings.accentTheme);
+  useEffect(() => {
+    applyAccentTheme(accentTheme);
+  }, [accentTheme]);
 
   // Sync sounds setting
   useEffect(() => {
@@ -557,11 +563,12 @@ export default function App() {
   };
 
   return (
-    <div className="relative w-screen h-screen flex overflow-hidden bg-[#030704] text-[#86efac] font-mono select-none">
+    <div className="relative w-screen h-screen flex overflow-hidden bg-[color:var(--t-030704)] text-[color:var(--t-86efac)] font-mono select-none">
       {/* Background Matrix Rain */}
       <MatrixRainCanvas
         enabled={settings.rainEnabled}
         opacity={settings.rainOpacity}
+        accentTheme={accentTheme}
       />
 
       {/* CRT Scanline Overlay */}
@@ -682,8 +689,8 @@ export default function App() {
 
       {/* Feedback Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-9 right-5 z-50 bg-[#061408] border border-[#22c55e] text-[#22c55e] text-xs font-mono px-4 py-2 shadow-[0_0_15px_rgba(34,197,94,0.3)] flex items-center gap-2">
-          <span className="w-2 h-2 bg-[#22c55e] animate-ping"></span>
+        <div className="fixed bottom-9 right-5 z-50 bg-[color:var(--t-061408)] border border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] text-xs font-mono px-4 py-2 shadow-[0_0_15px_color-mix(in_srgb,var(--t-22c55e)_30%,transparent)] flex items-center gap-2">
+          <span className="w-2 h-2 bg-[color:var(--t-22c55e)] animate-ping"></span>
           <span>{toastMessage}</span>
         </div>
       )}

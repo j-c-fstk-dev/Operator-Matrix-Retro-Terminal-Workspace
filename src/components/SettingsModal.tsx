@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { WorkspaceSettings, Project } from '../types';
 import { X, Volume2, VolumeX, Eye, Download, Upload, RotateCcw, Monitor } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { ACCENT_THEMES, resolveAccentTheme, themeColor } from '../theme/themes';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -36,20 +37,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full max-w-lg bg-[#040a05] border border-[#166534] shadow-[0_0_30px_rgba(0,255,102,0.2)] text-[#86efac] font-mono text-xs overflow-hidden"
+        className="w-full max-w-lg bg-[color:var(--t-040a05)] border border-[color:var(--t-166534)] shadow-[0_0_30px_color-mix(in_srgb,var(--t-00ff66)_20%,transparent)] text-[color:var(--t-86efac)] font-mono text-xs overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-4 py-2.5 bg-[#091a0c] border-b border-[#166534]">
+        <div className="flex items-center justify-between px-4 py-2.5 bg-[color:var(--t-091a0c)] border-b border-[color:var(--t-166534)]">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-[#22c55e]"></span>
-            <span className="font-bold text-[#22c55e] tracking-wider">
+            <span className="w-2 h-2 bg-[color:var(--t-22c55e)]"></span>
+            <span className="font-bold text-[color:var(--t-22c55e)] tracking-wider">
               OPERATOR // PREFERÊNCIAS & BACKUP
             </span>
           </div>
           <button
             onClick={onClose}
-            className="text-[#15803d] hover:text-[#22c55e] p-1"
+            className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] p-1"
           >
             <X size={14} />
           </button>
@@ -58,15 +59,52 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="p-4 space-y-5 max-h-[80vh] overflow-y-auto">
           {/* Aesthetic Controls */}
           <div className="space-y-3">
-            <div className="text-[10px] text-[#15803d] uppercase tracking-widest border-b border-[#0f2a13] pb-1">
+            <div className="text-[10px] text-[color:var(--t-15803d)] uppercase tracking-widest border-b border-[color:var(--t-0f2a13)] pb-1">
               Estética & Som
+            </div>
+
+            {/* Accent Color Theme */}
+            <div className="py-1">
+              <div className="font-medium text-[color:var(--t-86efac)]">Cor do Terminal</div>
+              <div className="text-[10px] text-[color:var(--t-15803d)] mb-2">Cor primária do fósforo em toda a interface</div>
+              <div className="grid grid-cols-4 gap-1.5" role="radiogroup" aria-label="Cor do terminal">
+                {ACCENT_THEMES.map((t) => {
+                  const active = resolveAccentTheme(settings.accentTheme) === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      role="radio"
+                      aria-checked={active}
+                      onClick={() => {
+                        onUpdateSettings({ accentTheme: t.id });
+                        sound.playClick(700);
+                      }}
+                      className={`flex flex-col items-center gap-1 px-1 py-1.5 text-[10px] border transition-colors ${
+                        active
+                          ? 'border-[color:var(--t-22c55e)] bg-[color:var(--t-0e2c14)] text-[color:var(--t-22c55e)]'
+                          : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)] hover:border-[color:var(--t-15803d)]'
+                      }`}
+                    >
+                      <span
+                        className="w-4 h-4 border"
+                        style={{
+                          backgroundColor: themeColor('22c55e', t.id),
+                          borderColor: themeColor('14351a', t.id),
+                          boxShadow: `0 0 8px ${themeColor('22c55e', t.id)}66`,
+                        }}
+                      />
+                      <span className="truncate max-w-full">{t.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Matrix Rain */}
             <div className="flex items-center justify-between py-1">
               <div>
-                <div className="font-medium text-[#86efac]">Chuva Digital (Matrix Rain)</div>
-                <div className="text-[10px] text-[#15803d]">Caracteres caindo em segundo plano</div>
+                <div className="font-medium text-[color:var(--t-86efac)]">Chuva Digital (Matrix Rain)</div>
+                <div className="text-[10px] text-[color:var(--t-15803d)]">Caracteres caindo em segundo plano</div>
               </div>
               <button
                 onClick={() => {
@@ -75,8 +113,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 }}
                 className={`px-3 py-1 text-xs border ${
                   settings.rainEnabled
-                    ? 'bg-[#0e2c14] border-[#22c55e] text-[#22c55e]'
-                    : 'border-[#14351a] text-[#15803d]'
+                    ? 'bg-[color:var(--t-0e2c14)] border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)]'
+                    : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)]'
                 }`}
               >
                 {settings.rainEnabled ? '[ATIVADO]' : '[DESLIGADO]'}
@@ -85,8 +123,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             {/* Rain Opacity */}
             {settings.rainEnabled && (
-              <div className="flex items-center justify-between py-1 pl-3 border-l-2 border-[#103016]">
-                <div className="text-[11px] text-[#86efac]">Opacidade da Chuva</div>
+              <div className="flex items-center justify-between py-1 pl-3 border-l-2 border-[color:var(--t-103016)]">
+                <div className="text-[11px] text-[color:var(--t-86efac)]">Opacidade da Chuva</div>
                 <div className="flex items-center gap-2">
                   <input
                     type="range"
@@ -97,9 +135,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onChange={(e) =>
                       onUpdateSettings({ rainOpacity: parseFloat(e.target.value) })
                     }
-                    className="w-24 accent-[#22c55e]"
+                    className="w-24 accent-[color:var(--t-22c55e)]"
                   />
-                  <span className="text-[10px] text-[#22c55e] w-8 tabular-nums">
+                  <span className="text-[10px] text-[color:var(--t-22c55e)] w-8 tabular-nums">
                     {Math.round(settings.rainOpacity * 100)}%
                   </span>
                 </div>
@@ -109,8 +147,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* CRT Scanlines */}
             <div className="flex items-center justify-between py-1">
               <div>
-                <div className="font-medium text-[#86efac]">Linhas de Varredura (Scanlines CRT)</div>
-                <div className="text-[10px] text-[#15803d]">Efeito visual de monitor vintage</div>
+                <div className="font-medium text-[color:var(--t-86efac)]">Linhas de Varredura (Scanlines CRT)</div>
+                <div className="text-[10px] text-[color:var(--t-15803d)]">Efeito visual de monitor vintage</div>
               </div>
               <button
                 onClick={() => {
@@ -119,8 +157,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 }}
                 className={`px-3 py-1 text-xs border ${
                   settings.scanlines
-                    ? 'bg-[#0e2c14] border-[#22c55e] text-[#22c55e]'
-                    : 'border-[#14351a] text-[#15803d]'
+                    ? 'bg-[color:var(--t-0e2c14)] border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)]'
+                    : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)]'
                 }`}
               >
                 {settings.scanlines ? '[ATIVADO]' : '[DESLIGADO]'}
@@ -130,8 +168,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* Sound Feedback */}
             <div className="flex items-center justify-between py-1">
               <div>
-                <div className="font-medium text-[#86efac]">Feedback Sonoro Terminal</div>
-                <div className="text-[10px] text-[#15803d]">Clicks e beeps via Web Audio sintetizado</div>
+                <div className="font-medium text-[color:var(--t-86efac)]">Feedback Sonoro Terminal</div>
+                <div className="text-[10px] text-[color:var(--t-15803d)]">Clicks e beeps via Web Audio sintetizado</div>
               </div>
               <button
                 onClick={() => {
@@ -142,8 +180,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 }}
                 className={`px-3 py-1 text-xs border ${
                   settings.soundEnabled
-                    ? 'bg-[#0e2c14] border-[#22c55e] text-[#22c55e]'
-                    : 'border-[#14351a] text-[#15803d]'
+                    ? 'bg-[color:var(--t-0e2c14)] border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)]'
+                    : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)]'
                 }`}
               >
                 {settings.soundEnabled ? '[LIGADO]' : '[MUTADO]'}
@@ -153,11 +191,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Backup & Persistence */}
           <div className="space-y-3 pt-2">
-            <div className="text-[10px] text-[#15803d] uppercase tracking-widest border-b border-[#0f2a13] pb-1">
+            <div className="text-[10px] text-[color:var(--t-15803d)] uppercase tracking-widest border-b border-[color:var(--t-0f2a13)] pb-1">
               Persistência & Backup ({totalProjects} Projetos)
             </div>
 
-            <p className="text-[11px] text-[#15803d] leading-normal">
+            <p className="text-[11px] text-[color:var(--t-15803d)] leading-normal">
               Seus dados são salvos automaticamente no armazenamento local (localStorage) deste navegador.
               Você pode exportar um arquivo JSON de backup ou importá-lo em outro dispositivo a qualquer momento.
             </p>
@@ -165,7 +203,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
               <button
                 onClick={onExportData}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-[#071609] hover:bg-[#0e2e14] border border-[#22c55e] text-[#22c55e] transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-[color:var(--t-071609)] hover:bg-[color:var(--t-0e2e14)] border border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] transition-colors"
               >
                 <Download size={13} />
                 <span>Exportar Backup (JSON)</span>
@@ -173,7 +211,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-[#071609] hover:bg-[#0e2e14] border border-[#14351a] text-[#86efac] transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-[color:var(--t-071609)] hover:bg-[color:var(--t-0e2e14)] border border-[color:var(--t-14351a)] text-[color:var(--t-86efac)] transition-colors"
               >
                 <Upload size={13} />
                 <span>Importar Backup (JSON)</span>
@@ -187,7 +225,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               />
             </div>
 
-            <div className="pt-3 border-t border-[#0e2413]">
+            <div className="pt-3 border-t border-[color:var(--t-0e2413)]">
               {confirmReset ? (
                 <div className="p-2.5 bg-[#170a0a] border border-red-800 text-red-400 space-y-2">
                   <div className="text-[11px] font-bold">
@@ -206,7 +244,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </button>
                     <button
                       onClick={() => setConfirmReset(false)}
-                      className="px-2.5 py-1 bg-[#061408] border border-[#14351a] text-[#86efac] text-[11px]"
+                      className="px-2.5 py-1 bg-[color:var(--t-061408)] border border-[color:var(--t-14351a)] text-[color:var(--t-86efac)] text-[11px]"
                     >
                       CANCELAR
                     </button>
@@ -215,7 +253,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               ) : (
                 <button
                   onClick={() => setConfirmReset(true)}
-                  className="text-[11px] text-[#15803d] hover:text-red-400 flex items-center gap-1.5 transition-colors"
+                  className="text-[11px] text-[color:var(--t-15803d)] hover:text-red-400 flex items-center gap-1.5 transition-colors"
                 >
                   <RotateCcw size={12} />
                   <span>Restaurar dados de exemplo iniciais</span>
@@ -226,11 +264,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 bg-[#020603] border-t border-[#0d2212] flex items-center justify-between text-[10px] text-[#15803d]">
+        <div className="px-4 py-2 bg-[color:var(--t-020603)] border-t border-[color:var(--t-0d2212)] flex items-center justify-between text-[10px] text-[color:var(--t-15803d)]">
           <span>OPERATOR WORKSPACE // LOCAL STORAGE SYNC</span>
           <button
             onClick={onClose}
-            className="text-[#22c55e] hover:underline"
+            className="text-[color:var(--t-22c55e)] hover:underline"
           >
             [FECHAR]
           </button>
