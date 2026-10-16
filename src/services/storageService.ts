@@ -3,6 +3,25 @@ import { ProjectAttachment, AttachmentType } from '../types';
 
 export const BUCKET_NAME = 'project-attachments';
 
+/** Limite por arquivo na nuvem (o plano grátis do Supabase aceita até 50 MB). */
+export const MAX_CLOUD_FILE_BYTES = 50 * 1024 * 1024;
+/** Limite por arquivo salvo só no aparelho (localStorage tem poucos MB no total). */
+export const MAX_LOCAL_FILE_BYTES = 2 * 1024 * 1024;
+
+export class AttachmentTooLargeError extends Error {}
+
+/** Valida o tamanho antes de enviar; lança erro com mensagem pronta para o usuário. */
+export function assertFileSize(size: number, cloud: boolean): void {
+  if (size > MAX_CLOUD_FILE_BYTES) {
+    throw new AttachmentTooLargeError(`Arquivo com ${formatBytes(size)}: o limite é ${formatBytes(MAX_CLOUD_FILE_BYTES)} por arquivo.`);
+  }
+  if (!cloud && size > MAX_LOCAL_FILE_BYTES) {
+    throw new AttachmentTooLargeError(
+      `Arquivo com ${formatBytes(size)}: sem nuvem, o limite é ${formatBytes(MAX_LOCAL_FILE_BYTES)} por arquivo. Faça login para enviar arquivos maiores.`
+    );
+  }
+}
+
 export function detectAttachmentType(file: File | { name: string; type?: string }): AttachmentType {
   const name = file.name.toLowerCase();
   const mime = (file.type || '').toLowerCase();
@@ -70,6 +89,8 @@ export const storageService = {
     projectId: string,
     userId?: string | null
   ): Promise<ProjectAttachment> {
+    const canUseCloud = Boolean(userId && supabase && isSupabaseConfigured);
+    assertFileSize(file.size, canUseCloud);
     const fileType = detectAttachmentType(file);
     const attachmentId = `att-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
@@ -93,7 +114,7 @@ export const storageService = {
           .from(BUCKET_NAME)
           .upload(storagePath, file, {
             cacheControl: '3600',
-            upsert: true,
+            upsert: false,
           });
 
         if (!uploadError) {
@@ -118,6 +139,12 @@ export const storageService = {
     }
 
     // Local / Offline fallback (read as DataURL)
+    if (canUseCloud && file.size > MAX_LOCAL_FILE_BYTES) {
+      throw new AttachmentTooLargeError(
+        `O envio para a nuvem falhou e o arquivo (${formatBytes(file.size)}) é grande demais para salvar só no aparelho. Tente novamente quando a conexão voltar.`
+      );
+    }
+    assertFileSize(file.size, false);
     const dataUrl = await readFileAsDataURL(file);
     return {
       id: attachmentId,
@@ -158,7 +185,7 @@ export const storageService = {
         .from(BUCKET_NAME)
         .upload(storagePath, blob, {
           cacheControl: '3600',
-          upsert: true,
+          upsert: false,
           contentType: mime,
         });
 

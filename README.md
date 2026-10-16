@@ -53,8 +53,8 @@ Quando você quiser usar o mesmo workspace no PC e no celular, basta **entrar co
   - **Documentos PDF**: leitor e download direto em 1 clique.
   - **Código & Texto**: inspetor com pré-visualização monoespaçada e botão de cópia para o clipboard.
 - **Armazenamento Híbrido**:
-  - **Logado + bucket configurado**: o arquivo vai para o bucket `project-attachments` do Supabase Storage e fica disponível em todos os seus aparelhos (indicador de nuvem no card).
-  - **Sem login, offline ou bucket ausente**: o arquivo é salvo localmente neste navegador (indicador âmbar *"salvo apenas neste aparelho"*).
+  - **Logado + bucket configurado**: o arquivo vai para o bucket privado `project-attachments` do Supabase Storage e fica disponível em todos os seus aparelhos (indicador de nuvem no card), até 50 MB por arquivo.
+  - **Sem login, offline ou bucket ausente**: o arquivo é salvo localmente neste navegador (indicador âmbar *"salvo apenas neste aparelho"*), até 2 MB por arquivo.
 - **Sincronizar Anexos Locais com 1 Clique**: quando existem anexos salvos só no aparelho, aparece um aviso com o botão `SINCRONIZAR COM A NUVEM`, que os envia ao Storage depois que você fizer login.
 - **Persistência Dupla dos Metadados**: a lista de anexos é gravada na coluna `attachments` e também embutida nas observações do projeto, então os anexos sincronizam mesmo em bancos criados antes dessa coluna existir.
 
@@ -218,25 +218,12 @@ O suporte ao [Supabase](https://supabase.com) é opcional. Se as variáveis não
 
 ### 3. Ativar o Upload de Arquivos (Supabase Storage)
 
-1. No painel do **Supabase**, clique em **Storage** > **New bucket**.
-2. Defina o nome exatamente como: `project-attachments`.
-3. Marque **Public bucket** (as imagens, vídeos e PDFs são abertos por URL pública) e clique em **Save**.
-4. Libere o upload para usuários logados. Um bucket público permite *leitura*, mas o envio e a exclusão de arquivos precisam de políticas no `storage.objects`. No **SQL Editor**, rode:
-   ```sql
-   -- Cada usuário só envia/altera/remove arquivos dentro da própria pasta (<user_id>/...)
-   create policy "Users upload own attachments"
-   on storage.objects for insert to authenticated
-   with check (bucket_id = 'project-attachments' and (storage.foldername(name))[1] = auth.uid()::text);
+1. No **SQL Editor**, cole o conteúdo de `supabase/storage.sql` e clique em **RUN**. O script cria o bucket **privado** `project-attachments` com limite de 50 MB por arquivo e as políticas que deixam cada usuário acessar só a própria pasta. Se o bucket já existir como público, ele vira privado.
+2. Pronto! Os arquivos abrem por **links temporários assinados** (válidos por 1 hora e renovados automaticamente), gerados só para o dono.
 
-   create policy "Users update own attachments"
-   on storage.objects for update to authenticated
-   using (bucket_id = 'project-attachments' and (storage.foldername(name))[1] = auth.uid()::text);
+> Se o bucket ou as políticas estiverem faltando, o app salva o arquivo localmente (até 2 MB) e depois você pode enviá-lo com `SINCRONIZAR COM A NUVEM`.
 
-   create policy "Users delete own attachments"
-   on storage.objects for delete to authenticated
-   using (bucket_id = 'project-attachments' and (storage.foldername(name))[1] = auth.uid()::text);
-   ```
-5. Pronto! Os novos uploads passam a ir para a nuvem. Se o bucket ou as políticas estiverem faltando, o app avisa e salva o arquivo localmente, e depois você pode enviá-lo com `SINCRONIZAR COM A NUVEM`.
+**Limites de tamanho**: até 50 MB por arquivo na nuvem (máximo do plano grátis do Supabase) e até 2 MB por arquivo salvo só no aparelho.
 
 Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_<nome-do-arquivo>`.
 
@@ -251,7 +238,8 @@ Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_
 ├── scripts/
 │   └── generate-png-icons.js      # Gera os ícones PNG do PWA
 ├── supabase/
-│   └── schema.sql                 # Tabela projects, RLS e índices no Supabase
+│   ├── schema.sql                 # Tabela projects, RLS e índices no Supabase
+│   └── storage.sql                # Bucket privado de anexos e políticas de acesso
 ├── src/
 │   ├── components/
 │   │   ├── AuthModal.tsx          # Login (e-mail/senha e Google) e envio de projetos para a nuvem
@@ -282,6 +270,7 @@ Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_
 │   │   ├── syncState.ts           # Fila offline e metadados de sincronização
 │   │   └── useCloudSync.ts        # Envio agrupado, retentativas e atualização entre aparelhos
 │   ├── services/
+│   │   ├── attachmentUrls.ts      # URLs assinadas e temporárias dos anexos
 │   │   ├── supabaseService.ts     # CRUD e mapeamento dos projetos no Postgres
 │   │   └── storageService.ts      # Upload/remoção de anexos no Storage com fallback local
 │   ├── data/
@@ -306,7 +295,7 @@ Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_
 - **Modo Local (sem login)**: nenhum dado de projeto ou arquivo sai do seu navegador.
 - **Aviso de armazenamento cheio**: se o `localStorage` do navegador lotar, o app avisa em vez de falhar em silêncio.
 - **Modo Nuvem (com login)**: projetos ficam no seu projeto Supabase, protegidos por Row Level Security (cada usuário só acessa as próprias linhas).
-- **Atenção com anexos**: o bucket `project-attachments` é público. Qualquer pessoa que tenha a URL de um arquivo consegue abri-lo, então evite enviar documentos sensíveis.
+- **Anexos privados**: o bucket `project-attachments` é privado. Os arquivos só abrem por links temporários (1 hora) gerados para o dono da conta.
 - **Seus Dados Pertencem a Você**: baixe seu backup em `.json` a qualquer momento para garantir a custódia das suas informações.
 
 ---
