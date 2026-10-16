@@ -17,6 +17,7 @@ Quando você quiser usar o mesmo workspace no PC e no celular, basta **entrar co
 ## 🚀 Principais Funcionalidades
 
 ### 1. 🟢 Estética Monocromática Matrix & Terminal CRT
+- **8 Cores de Terminal**: Matrix (verde, padrão), Verde-água, Azul Profundo, Roxo, Rosa Neon, Vermelho, Âmbar e Mono, escolhidas em **Preferências > Cor do Terminal**. Cada tema recalcula toda a paleta em OKLCH mantendo o contraste original.
 - **Chuva Digital (Matrix Rain)** em segundo plano renderizada em Canvas de alta performance com controle de opacidade e toggle instantâneo.
 - **Filtro de Scanlines CRT** simulando a textura de monitores fósforo verde vintage.
 - **Sintetizador de Áudio Terminal**: beeps e cliques mecânicos sintetizados em tempo real via **Web Audio API** (sem carregar arquivos de áudio externos).
@@ -94,7 +95,7 @@ Opere o sistema sem tirar as mãos do teclado:
 - Funciona sem conta: é a forma de migrar dados entre aparelhos sem usar o Supabase.
 
 ### 8. 📱 PWA Instalável (Offline & Standalone)
-- **Instalação Nativa**: instale no Android, Windows, macOS e Linux pelo botão `[Instalar App]` ou pelo menu do navegador. No **iPhone/iPad** o botão mostra o passo a passo do Safari (*Compartilhar → Adicionar à Tela de Início*).
+- **Instalação Nativa**: instale no Android, Windows, macOS e Linux pelo botão `[Instalar App]` ou pelo menu do navegador. Quando o navegador não oferece a instalação automática, o botão mostra o passo a passo certo para cada navegador (Chrome, Edge, Samsung Internet, Firefox e Safari no iPhone/iPad) e avisa quando o link foi aberto dentro de apps como Instagram ou Facebook, que não instalam PWA.
 - **Janela Standalone**: roda sem barra de URL, com ícone próprio na tela de início/desktop.
 - **Service Worker com Auto-Update**: novas versões publicadas são aplicadas em segundo plano automaticamente.
 - **Funciona Offline**: assets, fontes e scripts ficam em cache. Um indicador âmbar `MODO OFFLINE` aparece quando a conexão cai, e o app continua operando no cache local.
@@ -264,7 +265,14 @@ Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_
 │   │   ├── useOnlineStatus.ts     # Detecta conexão online/offline
 │   │   └── usePWAInstall.ts       # Captura o prompt de instalação do PWA
 │   ├── lib/
+│   │   ├── appInfo.ts             # Link do código-fonte e licença exibidos no app
 │   │   └── supabase.ts            # Cliente do Supabase (desativado sem variáveis de ambiente)
+│   ├── pwa/
+│   │   └── installPrompt.ts       # Captura antecipada do prompt de instalação e detecção de navegador
+│   ├── theme/
+│   │   ├── themes.ts              # Temas de cor e conversão OKLCH
+│   │   ├── basePalette.ts         # Tons base do tema Matrix (gerado)
+│   │   └── palette.css            # Variáveis CSS --t-<hex> padrão (gerado)
 │   ├── services/
 │   │   ├── supabaseService.ts     # CRUD e mapeamento dos projetos no Postgres
 │   │   └── storageService.ts      # Upload/remoção de anexos no Storage com fallback local
@@ -296,4 +304,9 @@ Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_
 
 ## 📄 Licença
 
-Distribuído sob a licença Apache 2.0 (SPDX: `Apache-2.0`).
+Distribuído sob a **GNU Affero General Public License v3.0** (`AGPL-3.0-only`). Veja o arquivo [LICENSE](LICENSE).
+
+Em resumo:
+- Você pode usar, estudar, modificar e hospedar o Operator, inclusive para uso próprio ou da sua empresa.
+- Se você distribuir uma versão modificada **ou oferecê-la como serviço pela internet**, precisa disponibilizar o código-fonte dessas modificações sob a mesma licença.
+- O app exibe um link para o código-fonte nas Preferências e no Manual, conforme a seção 13 da AGPL.

@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { WorkspaceSettings, Project } from '../types';
 import { X, Volume2, VolumeX, Eye, Download, Upload, RotateCcw, Monitor } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { SOURCE_CODE_URL, LICENSE_NAME } from '../lib/appInfo';
 import { ACCENT_THEMES, resolveAccentTheme, themeColor } from '../theme/themes';
 
 interface SettingsModalProps {
@@ -265,7 +266,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Footer */}
         <div className="px-4 py-2 bg-[color:var(--t-020603)] border-t border-[color:var(--t-0d2212)] flex items-center justify-between text-[10px] text-[color:var(--t-15803d)]">
-          <span>OPERATOR WORKSPACE // LOCAL STORAGE SYNC</span>
+          <a
+            href={SOURCE_CODE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-[color:var(--t-22c55e)] hover:underline"
+            title="Código-fonte aberto sob a licença AGPL-3.0"
+          >
+            CÓDIGO-FONTE ({LICENSE_NAME})
+          </a>
           <button
             onClick={onClose}
             className="text-[color:var(--t-22c55e)] hover:underline"

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { SOURCE_CODE_URL, LICENSE_NAME } from '../lib/appInfo';
 import { X, Terminal, BookOpen, Command, Copy, Check, ExternalLink, Keyboard } from 'lucide-react';
 import { sound } from '../utils/audio';
 
@@ -218,7 +219,17 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
           <div className="flex items-center gap-2">
             <span>OPERATOR CLI MANUAL</span>
             <span>·</span>
-            <span>PRESSIONE <kbd className="text-[color:var(--t-22c55e)]">?</kbd> PARA ACESSAR DE QUALQUER TELA</span>
+            <span className="hidden sm:inline">PRESSIONE <kbd className="text-[color:var(--t-22c55e)]">?</kbd> PARA ACESSAR DE QUALQUER TELA</span>
+            <span className="hidden sm:inline">·</span>
+            <a
+              href={SOURCE_CODE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[color:var(--t-22c55e)] hover:underline"
+              title="Código-fonte aberto sob a licença AGPL-3.0"
+            >
+              CÓDIGO-FONTE ({LICENSE_NAME})
+            </a>
           </div>
           <button
             onClick={onClose}
