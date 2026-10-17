@@ -233,6 +233,8 @@ Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_
 
 Página de apresentação estática (HTML, CSS e JS sem build) com um prompt Ctrl+K que funciona, os 8 temas, a chuva Matrix e a lista de espera do Sync Pro. O plano de design e as verificações estão em `landing/DESIGN.md`.
 
+Em dois idiomas: inglês na raiz (`/`) e português em `/pt/`. Navegadores em português são redirecionados para `/pt/`, e o seletor EN/PT no topo guarda a escolha.
+
 ### Publicar no Netlify (segundo site, mesmo repositório)
 
 1. No Netlify: **Add new site > Import an existing project** e escolha este repositório.

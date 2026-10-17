@@ -3,6 +3,15 @@
   command = "node build-config.mjs"
   publish = "."
 
+# Navegador em português na raiz: vai para /pt/. O seletor EN/PT grava o cookie
+# nf_lang, que o Netlify usa no lugar do idioma do navegador.
+[[redirects]]
+  from = "/"
+  to = "/pt/"
+  status = 302
+  force = true
+  conditions = { Language = ["pt"] }
+
 [[headers]]
   for = "/*"
   [headers.values]

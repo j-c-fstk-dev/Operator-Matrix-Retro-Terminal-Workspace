@@ -120,3 +120,18 @@ modal escurecendo o app, frase do CTA quebrando antes do campo.
 - Texto do Sync Pro ("plano pago que estamos preparando, com mais espaço para anexos"): confirme se é isso.
 - Dados de exemplo nos fragmentos (`lancamento-beta`, tarefas e tags) são ilustrativos.
 - Página de privacidade: o contato é por resposta ao e-mail ou issue no GitHub.
+
+## Idiomas (17/10/2026)
+
+- `/` em inglês (`index.html`, `privacy.html`) e `/pt/` em português (`pt/index.html`, `pt/privacidade.html`).
+  Mesma estrutura, mesmo CSS e o mesmo `main.js`, que escolhe os textos pelo `<html lang>`.
+- Os textos em inglês foram escritos como texto original (stop-slop), não traduzidos palavra por palavra.
+- Imagens, vídeo e a imagem de compartilhamento continuam em português, por decisão do projeto. Os `alt`
+  da versão em inglês avisam que a interface mostrada está em português.
+- Seletor EN/PT no topo grava o cookie `nf_lang`; o `netlify.toml` manda navegadores em português de `/`
+  para `/pt/` (redirecionamento por idioma do Netlify, que respeita esse cookie).
+- `hreflang` e `og:image` usam `__SITE__`, trocado pelo endereço do site no build (`build-config.mjs`).
+- A lista de espera grava `source` como `landing-en` ou `landing-pt`.
+- Verificado: inspetor sem FAIL nas duas versões, CSP sem bloqueios nas quatro páginas, testes funcionais
+  28/28 (PT) e 13/13 (EN, incluindo o seletor e o cookie). O redirecionamento por idioma só roda no
+  Netlify e não foi testado localmente.

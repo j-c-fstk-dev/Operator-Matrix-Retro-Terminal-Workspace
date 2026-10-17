@@ -8,6 +8,73 @@ const APP_URL = CONFIG.appUrl || 'https://matrix-operator.netlify.app';
 const motionOK = () => !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* ======================================================================
+   Idioma: a página define <html lang>; a raiz é inglês e /pt/ é português
+   ====================================================================== */
+const LANG = (document.documentElement.lang || 'en').toLowerCase().startsWith('pt') ? 'pt' : 'en';
+const STRINGS = {
+  en: {
+    themes: { matrix: 'Matrix', aqua: 'Aqua', blue: 'Deep Blue', purple: 'Purple', pink: 'Neon Pink', red: 'Red', amber: 'Amber', mono: 'Mono' },
+    project: 'beta-launch',
+    tasks: ['Review landing page', 'Record 30s demo', 'Set up Supabase'],
+    help: ['Commands in this demo:', '  git status          project summary', '  + task #tag         creates a task', '  git init <name>     creates a project', '  theme <color>       matrix, aqua, blue, purple, pink, red, amber, mono', '  rain                turns the rain on or off', '  clear               clears the screen'],
+    status: (p, d, t, pct) => `${p}: ${d} of ${t} tasks done (${pct}%)`,
+    taskEmpty: 'Write the task after the +, for example: + buy coffee #home',
+    taskAdded: (p) => `Task created in ${p}.`,
+    projectEmpty: 'Name the project: git init my-project',
+    projectAdded: (p) => `Project ${p} created and opened (git init).`,
+    themeUnknown: 'Colors: matrix, aqua, blue, purple, pink, red, amber, mono. Example: theme purple',
+    themeSet: (l) => `Phosphor switched to ${l}. In the app, this lives in Preferences.`,
+    rainOn: 'Rain on.', rainOff: 'Rain off.',
+    exportInfo: 'In the app, this copies the project as Markdown to the clipboard.',
+    installInfo: 'In the app, this opens the install flow. It installs on Android, iPhone and desktop.',
+    loginInfo: 'In the app, this opens sign-in with Google or email to sync.',
+    unknown: (c) => `command not found: ${c}. Type help.`,
+    copy: 'Copy', copied: 'Copied', copyFail: 'Select and copy',
+    pause: 'Pause', play: 'Play',
+    joined: 'Done. You’re on the Sync Pro waitlist.',
+    badEmail: 'That email looks incomplete. Check it and try again.',
+    noConfig: 'The waitlist isn’t connected on this copy of the site. Try the official page.',
+    already: 'That email is already on the list. Nothing else to do.',
+    saveFail: (code) => `Couldn’t save right now (error ${code}). Try again in a moment.`,
+    offline: 'No connection. Try again when you’re back online.',
+  },
+  pt: {
+    themes: { matrix: 'Matrix', aqua: 'Verde-água', blue: 'Azul Profundo', purple: 'Roxo', pink: 'Rosa Neon', red: 'Vermelho', amber: 'Âmbar', mono: 'Mono' },
+    project: 'lancamento-beta',
+    tasks: ['Revisar landing page', 'Gravar demo de 30s', 'Configurar Supabase'],
+    help: ['Comandos desta demonstração:', '  git status          resumo do projeto', '  + tarefa #tag        cria uma tarefa', '  git init <nome>      cria um projeto', '  theme <cor>          matrix, agua, azul, roxo, rosa, vermelho, ambar, mono', '  rain                 liga ou desliga a chuva', '  clear                limpa a tela'],
+    status: (p, d, t, pct) => `${p}: ${d} de ${t} tarefas feitas (${pct}%)`,
+    taskEmpty: 'Escreva a tarefa depois do +, por exemplo: + comprar café #casa',
+    taskAdded: (p) => `Tarefa criada em ${p}.`,
+    projectEmpty: 'Dê um nome ao projeto: git init meu-projeto',
+    projectAdded: (p) => `Projeto ${p} criado e aberto (git init).`,
+    themeUnknown: 'Cores: matrix, agua, azul, roxo, rosa, vermelho, ambar, mono. Exemplo: theme roxo',
+    themeSet: (l) => `Fósforo trocado para ${l}. No app, a escolha fica em Preferências.`,
+    rainOn: 'Chuva ligada.', rainOff: 'Chuva desligada.',
+    exportInfo: 'No app, isso copia o projeto em Markdown para a área de transferência.',
+    installInfo: 'No app, isso abre a instalação. Ele instala no Android, no iPhone e no desktop.',
+    loginInfo: 'No app, isso abre o login com Google ou e-mail para sincronizar.',
+    unknown: (c) => `comando não encontrado: ${c}. Digite help.`,
+    copy: 'Copiar', copied: 'Copiado', copyFail: 'Selecione e copie',
+    pause: 'Pausar', play: 'Reproduzir',
+    joined: 'Pronto. Você está na fila do Sync Pro.',
+    badEmail: 'Esse e-mail parece incompleto. Confira e tente de novo.',
+    noConfig: 'A lista ainda não está ligada nesta cópia do site. Tente pela página oficial.',
+    already: 'Esse e-mail já está na fila. Nada mais a fazer.',
+    saveFail: (code) => `Não deu para salvar agora (erro ${code}). Tente de novo em instantes.`,
+    offline: 'Sem conexão. Tente de novo quando a internet voltar.',
+  },
+};
+const T = STRINGS[LANG];
+
+// Lembra a escolha manual de idioma: o Netlify usa o cookie nf_lang no lugar do idioma do navegador.
+function initLangSwitch() {
+  $$('[data-set-lang]').forEach((a) => a.addEventListener('click', () => {
+    document.cookie = `nf_lang=${a.dataset.setLang}; path=/; max-age=31536000; SameSite=Lax`;
+  }));
+}
+
+/* ======================================================================
    Temas: mesma conversão OKLCH do app (src/theme/themes.ts)
    ====================================================================== */
 const THEMES = {
@@ -248,11 +315,11 @@ const rain = (() => {
    Prompt Ctrl+K que funciona
    ====================================================================== */
 const demo = {
-  project: 'lancamento-beta',
+  project: T.project,
   tasks: [
-    { text: 'Revisar landing page', tag: 'marketing', done: false },
-    { text: 'Gravar demo de 30s', tag: 'video', done: false },
-    { text: 'Configurar Supabase', tag: 'infra', done: true },
+    { text: T.tasks[0], tag: 'marketing', done: false },
+    { text: T.tasks[1], tag: 'video', done: false },
+    { text: T.tasks[2], tag: 'infra', done: true },
   ],
 };
 const TAG_CLASSES = new Set(['marketing', 'video', 'infra', 'beta', 'casa']);
@@ -286,65 +353,59 @@ function runCommand(raw) {
 
   if (!input) return null;
   if (lower === 'help' || lower === 'man' || lower === '?') {
-    say('Comandos desta demonstração:');
-    say('  git status          resumo do projeto');
-    say('  + tarefa #tag        cria uma tarefa');
-    say('  git init <nome>      cria um projeto');
-    say('  theme <cor>          matrix, agua, azul, roxo, rosa, vermelho, ambar, mono');
-    say('  rain                 liga ou desliga a chuva');
-    say('  clear                limpa a tela');
+    T.help.forEach((line) => say(line));
     return { lines };
   }
   if (lower === 'clear' || lower === 'cls') return { lines: [], clear: true };
   if (lower === 'git status' || lower === 'status') {
     const done = demo.tasks.filter((t) => t.done).length;
-    say(`${demo.project}: ${done} de ${demo.tasks.length} tarefas feitas (${Math.round((done / demo.tasks.length) * 100)}%)`);
+    say(T.status(demo.project, done, demo.tasks.length, demo.tasks.length ? Math.round((done / demo.tasks.length) * 100) : 0));
     return { lines, tasks: true };
   }
   if (input.startsWith('+') || lower.startsWith('task:')) {
     const body = input.startsWith('+') ? input.slice(1).trim() : input.slice(5).trim();
-    if (!body) { say('Escreva a tarefa depois do +, por exemplo: + comprar café #casa', 'err'); return { lines }; }
+    if (!body) { say(T.taskEmpty, 'err'); return { lines }; }
     const tag = (body.match(/#([\p{L}\p{N}_-]+)/u) || [])[1]?.toLowerCase();
     const text = body.replace(/#[\p{L}\p{N}_-]+/gu, '').trim() || body;
     demo.tasks.push({ text, tag, done: false });
-    say(`Tarefa criada em ${demo.project}.`, 'ok');
+    say(T.taskAdded(demo.project), 'ok');
     return { lines, tasks: true };
   }
   if (lower.startsWith('git init') || lower.startsWith('new ')) {
     const name = input.replace(/^(git init|new)\s*/i, '').trim();
-    if (!name) { say('Dê um nome ao projeto: git init meu-projeto', 'err'); return { lines }; }
+    if (!name) { say(T.projectEmpty, 'err'); return { lines }; }
     demo.project = name.toLowerCase().replace(/\s+/g, '-').slice(0, 40);
     demo.tasks = [];
-    say(`Projeto ${demo.project} criado e aberto (git init).`, 'ok');
+    say(T.projectAdded(demo.project), 'ok');
     return { lines };
   }
   if (lower.startsWith('theme') || lower.startsWith('tema')) {
     const arg = lower.split(/\s+/)[1];
     const id = THEME_ALIASES[arg];
-    if (!id) { say('Cores: matrix, agua, azul, roxo, rosa, vermelho, ambar, mono. Exemplo: theme roxo', 'err'); return { lines }; }
+    if (!id) { say(T.themeUnknown, 'err'); return { lines }; }
     applyTheme(id);
-    say(`Fósforo trocado para ${THEMES[id].label}. No app, a escolha fica em Preferências.`, 'ok');
+    say(T.themeSet(T.themes[id]), 'ok');
     return { lines };
   }
   if (lower === 'rain' || lower === 'chuva') {
     const on = rain.toggle();
     setBand('rain', on);
-    say(on ? 'Chuva ligada.' : 'Chuva desligada.', 'ok');
+    say(on ? T.rainOn : T.rainOff, 'ok');
     return { lines };
   }
   if (lower === 'git commit' || lower === 'export' || lower === 'md') {
-    say('No app, isso copia o projeto em Markdown para a área de transferência.', 'ok');
+    say(T.exportInfo, 'ok');
     return { lines };
   }
   if (lower === 'instalar' || lower === 'pwa' || lower === 'install') {
-    say('No app, isso abre a instalação. Ele instala no Android, no iPhone e no desktop.', 'ok');
+    say(T.installInfo, 'ok');
     return { lines };
   }
-  if (lower === 'login' || lower === 'nuvem') {
-    say('No app, isso abre o login com Google ou e-mail para sincronizar.', 'ok');
+  if (lower === 'login' || lower === 'nuvem' || lower === 'signin') {
+    say(T.loginInfo, 'ok');
     return { lines };
   }
-  say(`comando não encontrado: ${input.slice(0, 40)}. Digite help.`, 'err');
+  say(T.unknown(input.slice(0, 40)), 'err');
   return { lines };
 }
 
@@ -459,12 +520,12 @@ function initCopy() {
     b.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(b.dataset.copy);
-        b.textContent = 'Copiado';
+        b.textContent = T.copied;
       } catch {
-        b.textContent = 'Selecione e copie';
+        b.textContent = T.copyFail;
       }
       sound.click(820);
-      setTimeout(() => { b.textContent = 'Copiar'; }, 1600);
+      setTimeout(() => { b.textContent = T.copy; }, 1600);
     });
   }
 }
@@ -536,15 +597,15 @@ function initWaitlist() {
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if ($('#site').value) { show('Pronto. Você está na fila do Sync Pro.'); form.reset(); return; }
+    if ($('#site').value) { show(T.joined); form.reset(); return; }
     const email = input.value.trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || email.length > 254) {
-      show('Esse e-mail parece incompleto. Confira e tente de novo.', true);
+      show(T.badEmail, true);
       input.focus();
       return;
     }
     if (!CONFIG.supabaseUrl || !CONFIG.supabaseAnonKey) {
-      show('A lista ainda não está ligada nesta cópia do site. Tente pela página oficial.', true);
+      show(T.noConfig, true);
       return;
     }
     button.setAttribute('aria-busy', 'true');
@@ -558,13 +619,13 @@ function initWaitlist() {
           'Content-Type': 'application/json',
           Prefer: 'return=minimal',
         },
-        body: JSON.stringify({ email, source: 'landing', theme: currentTheme }),
+        body: JSON.stringify({ email, source: `landing-${LANG}`, theme: currentTheme }),
       });
-      if (res.ok) { show('Pronto. Você está na fila do Sync Pro.'); form.reset(); sound.click(980); }
-      else if (res.status === 409) { show('Esse e-mail já está na fila. Nada mais a fazer.'); form.reset(); }
-      else { show(`Não deu para salvar agora (erro ${res.status}). Tente de novo em instantes.`, true); }
+      if (res.ok) { show(T.joined); form.reset(); sound.click(980); }
+      else if (res.status === 409) { show(T.already); form.reset(); }
+      else { show(T.saveFail(res.status), true); }
     } catch {
-      show('Sem conexão. Tente de novo quando a internet voltar.', true);
+      show(T.offline, true);
     } finally {
       button.removeAttribute('aria-busy');
       button.disabled = false;
@@ -580,7 +641,7 @@ function initVideo() {
   const button = $('#video-toggle');
   if (!video || !button) return;
   button.hidden = false;
-  const sync = () => { button.textContent = video.paused ? 'Reproduzir' : 'Pausar'; };
+  const sync = () => { button.textContent = video.paused ? T.play : T.pause; };
   button.addEventListener('click', () => { (video.paused ? video.play() : Promise.resolve(video.pause())).catch(() => {}).finally(sync); });
   video.addEventListener('play', sync);
   video.addEventListener('pause', sync);
@@ -590,6 +651,7 @@ function initVideo() {
 
 /* ====================================================================== */
 initAppLinks();
+initLangSwitch();
 initVideo();
 initPrompt();
 initBands();
