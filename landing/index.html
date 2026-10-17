@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Operator: seus projetos num terminal</title>
+  <meta name="description" content="Gerenciador de projetos pessoal com cara de terminal. Tarefas, notas e snippets pelo teclado, com prompt Ctrl+K. Funciona offline, sem conta, e é grátis.">
+  <meta name="theme-color" content="#030704">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Operator: seus projetos num terminal">
+  <meta property="og:description" content="Tarefas, notas e snippets pelo teclado. Funciona offline, sem conta, e é grátis.">
+  <meta property="og:image" content="media/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="styles.css">
+  <script src="boot.js"></script>
+  <script src="config.js" defer></script>
+  <script src="main.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#conteudo">Pular para o conteúdo</a>
+  <canvas class="rain" id="rain" aria-hidden="true"></canvas>
+  <div class="scanlines" id="scanlines" aria-hidden="true"></div>
+
+  <header class="nav">
+    <a class="nav__mark" href="#topo" translate="no">Operator<span>_</span></a>
+    <nav class="nav__links" aria-label="Principal">
+      <a class="nav__extra" href="#prompt">Prompt</a>
+      <a class="nav__extra" href="#recursos">Recursos</a>
+      <a href="#perguntas">Perguntas</a>
+      <a class="button" href="https://matrix-operator.netlify.app" data-app-link>Abrir o Operator</a>
+    </nav>
+  </header>
+
+  <div class="page">
+    <main id="conteudo">
+      <section class="hero" id="topo" aria-labelledby="hero-title">
+        <div class="hero__stage">
+          <h1 class="hero__title" id="hero-title">
+            <span class="hero__half hero__half--a"><span data-line data-i="0">Seus projetos</span></span>
+            <span class="hero__half hero__half--b"><span data-line data-i="1">num terminal</span></span>
+          </h1>
+
+          <div class="reel" id="reel">
+            <div class="reel__track" id="reel-track">
+              <figure class="frame frame--live" id="prompt" data-rise data-i="0">
+                <div class="cmd" data-ui>
+                  <div class="cmd__bar" aria-hidden="true"><span>OPERATOR // COMANDOS</span><span>Ctrl+K</span></div>
+                  <form class="cmd__form" id="cmd-form" autocomplete="off">
+                    <span class="cmd__prompt" aria-hidden="true">&gt;</span>
+                    <label class="sr-only" for="cmd-input">Comando do Operator</label>
+                    <input class="cmd__input" id="cmd-input" name="comando" type="text" spellcheck="false" autocapitalize="off" autocomplete="off" enterkeyhint="go" placeholder="digite help e Enter…">
+                  </form>
+                  <div class="cmd__out" id="cmd-out" aria-live="polite">
+                    <p class="cmd__line cmd__line--echo">&gt; git status</p>
+                    <p class="cmd__line">lancamento-beta: 1 de 3 tarefas feitas (33%)</p>
+                    <ul class="cmd__tasks">
+                      <li><span aria-hidden="true">[ ]</span> Revisar landing page <span class="tag tag--marketing">#marketing</span></li>
+                      <li><span aria-hidden="true">[ ]</span> Gravar demo de 30s <span class="tag tag--video">#video</span></li>
+                      <li class="is-done"><span aria-hidden="true">[x]</span> Configurar Supabase <span class="tag tag--infra">#infra</span></li>
+                    </ul>
+                  </div>
+                  <div class="cmd__suggest" aria-label="Sugestões de comando">
+                    <button class="cmd__chip" type="button" data-cmd="theme roxo">theme roxo</button>
+                    <button class="cmd__chip" type="button" data-cmd="+ comprar café #casa">+ comprar café #casa</button>
+                    <button class="cmd__chip" type="button" data-cmd="git status">git status</button>
+                    <button class="cmd__chip" type="button" data-cmd="help">help</button>
+                  </div>
+                </div>
+              </figure>
+
+              <figure class="frame frame--media">
+                <video id="demo-video" muted loop playsinline preload="metadata" poster="media/demo-poster.webp" width="960" height="540" aria-label="Gravação do Operator: uma tarefa é criada pelo teclado e marcada como feita, com a chuva Matrix ao fundo">
+                  <source src="media/demo.webm" type="video/webm">
+                  <source src="media/demo.mp4" type="video/mp4">
+                </video>
+                <button class="frame__toggle" type="button" id="video-toggle" aria-controls="demo-video" hidden>Pausar</button>
+                <figcaption class="frame__caption">Tecla T, a tarefa, Enter. Sem mouse.</figcaption>
+              </figure>
+
+              <figure class="frame frame--media">
+                <img src="media/reel-roxo.webp" width="1400" height="788" loading="lazy" decoding="async" alt="Tela do Operator no tema Roxo, com a lista de projetos e as tarefas do projeto aberto">
+                <figcaption class="frame__caption">Tema Roxo, um dos 8 fósforos</figcaption>
+              </figure>
+
+              <figure class="frame frame--media">
+                <img src="media/reel-ambar.webp" width="1400" height="788" loading="lazy" decoding="async" alt="Lista de tarefas do Operator no tema Âmbar, com subtarefas e tags coloridas">
+                <figcaption class="frame__caption">Tema Âmbar, com tarefas e subtarefas</figcaption>
+              </figure>
+            </div>
+          </div>
+
+          <div class="hero__foot">
+            <p class="hero__lead" data-rise data-i="2">Tarefas, notas e snippets organizados pelo teclado. Funciona offline, sem conta, e é grátis.</p>
+            <p class="hero__hint" data-rise data-i="3">O prompt acima funciona. Aperte <kbd>Ctrl</kbd>+<kbd>K</kbd> e digite <code>help</code>.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="estados-title">
+        <div class="grid">
+          <h2 class="section-title states__title" id="estados-title" data-reveal>Do prompt ao feito</h2>
+
+          <div class="state">
+            <p class="state__word" data-reveal>Nova</p>
+            <div class="state__row" data-reveal data-i="1">
+              <div class="task" data-ui>
+                <span class="task__check" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.5 5 9l5-6" stroke="currentColor" stroke-width="2"/></svg></span>
+                <div class="task__body">
+                  <p class="task__text">Gravar demo de 30s para o lançamento</p>
+                  <div class="task__meta"><span class="tag tag--video">#video</span><span class="tag tag--beta">#beta</span><span class="task__sub">0/2 subtarefas</span></div>
+                </div>
+                <div class="task__side"><span class="task__badge">MED</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="state">
+            <p class="state__word" data-reveal>Em foco</p>
+            <div class="state__row" data-reveal data-i="1">
+              <div class="task is-focus" data-ui id="live-task">
+                <button class="task__check" type="button" role="checkbox" aria-checked="false" aria-label="Marcar “Revisar landing page” como feita" id="live-check"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 6.5 5 9l5-6" stroke="currentColor" stroke-width="2"/></svg></button>
+                <div class="task__body">
+                  <p class="task__text">Revisar landing page</p>
+                  <div class="task__meta"><span class="tag tag--marketing">#marketing</span><span class="task__sub">2/3 subtarefas</span></div>
+                </div>
+                <div class="task__side"><span class="task__badge">CRIT</span><span class="task__actions" aria-hidden="true"><span>X marcar</span><span>Del</span></span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="state">
+            <p class="state__word" data-reveal>Feita</p>
+            <div class="state__row" data-reveal data-i="1">
+              <div class="task is-done" data-ui>
+                <span class="task__check" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.5 5 9l5-6" stroke="currentColor" stroke-width="2"/></svg></span>
+                <div class="task__body">
+                  <p class="task__text">Configurar Supabase e o bucket de anexos</p>
+                  <div class="task__meta"><span class="tag tag--infra">#infra</span><span class="task__sub">3/3 subtarefas</span></div>
+                </div>
+                <div class="task__side"><span class="task__badge">LOW</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bands" id="recursos" aria-label="Recursos">
+        <div class="band is-on" data-band="rain" data-theme="matrix">
+          <p class="band__text" id="band-rain">Deixe a chuva Matrix cair no fundo.</p>
+          <span class="band__switch"><button class="switch" type="button" role="switch" aria-checked="true" aria-labelledby="band-rain" data-ui></button></span>
+          <p class="band__more">Um canvas a 30 quadros por segundo que redesenha só as células que mudam. Ela está caindo atrás desta página agora.</p>
+        </div>
+        <div class="band is-on" data-band="crt" data-theme="aqua">
+          <p class="band__text" id="band-crt">Ligue as linhas de varredura do CRT.</p>
+          <span class="band__switch"><button class="switch" type="button" role="switch" aria-checked="true" aria-labelledby="band-crt" data-ui></button></span>
+          <p class="band__more">Uma camada de CSS por cima da tela, sem custo de processador. Desligue para ver a diferença.</p>
+        </div>
+        <div class="band" data-band="sound" data-theme="amber">
+          <p class="band__text" id="band-sound">Ouça um clique a cada comando.</p>
+          <span class="band__switch"><button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="band-sound" data-ui></button></span>
+          <p class="band__more">O som sai de um oscilador da Web Audio API, sem baixar arquivo de áudio. Teste no prompt lá em cima.</p>
+        </div>
+        <div class="band" data-band="offline" data-theme="blue">
+          <p class="band__text" id="band-offline">Continue trabalhando quando a internet cair.</p>
+          <span class="band__switch"><button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="band-offline" data-ui></button></span>
+          <p class="band__more">Cada alteração entra numa fila no aparelho e sobe sozinha quando a conexão volta, mesmo se você fechar o app.</p>
+        </div>
+        <div class="band" data-band="sync" data-theme="pink">
+          <p class="band__text" id="band-sync">Abra o mesmo projeto no celular e no PC.</p>
+          <span class="band__switch"><button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="band-sync" data-ui></button></span>
+          <p class="band__more">Entre com Google ou e-mail. O Operator mescla cada projeto pela edição mais recente e mostra no topo se ficou algo pendente.</p>
+        </div>
+      </section>
+
+      <section class="section flow" id="fluxo" aria-labelledby="fluxo-title">
+        <div class="flow__col">
+          <h2 class="section-title flow__title" id="fluxo-title" data-reveal>Tudo pelo Ctrl+K</h2>
+
+          <div class="step">
+            <p class="step__say" data-reveal>Primeiro, crie o projeto.</p>
+            <div class="call" data-reveal data-i="1"><pre><code>git init lancamento-beta</code></pre><button class="copy" type="button" data-copy="git init lancamento-beta">Copiar</button></div>
+            <div class="response" data-reveal data-i="2">
+              <div class="sidebar-frag" data-ui>
+                <div class="sidebar-frag__item">
+                  <div class="sidebar-frag__name">Nebuchadnezzar: Relay de Telemetria</div>
+                  <div class="sidebar-frag__meta"><span>CORE DEV</span><span>1/4 feitas</span></div>
+                  <div class="sidebar-frag__bar"><span class="bar-25"></span></div>
+                </div>
+                <div class="sidebar-frag__item is-active">
+                  <div class="sidebar-frag__name">&gt; lancamento-beta</div>
+                  <div class="sidebar-frag__meta"><span>DEV</span><span>novo</span></div>
+                  <div class="sidebar-frag__bar"><span class="bar-0"></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <p class="step__say" data-reveal>Depois, jogue as tarefas com tags.</p>
+            <div class="call" data-reveal data-i="1"><pre><code>+ revisar landing page #marketing</code></pre><button class="copy" type="button" data-copy="+ revisar landing page #marketing">Copiar</button></div>
+            <div class="response" data-reveal data-i="2">
+              <div class="task" data-ui>
+                <span class="task__check" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6.5 5 9l5-6" stroke="currentColor" stroke-width="2"/></svg></span>
+                <div class="task__body">
+                  <p class="task__text">revisar landing page</p>
+                  <div class="task__meta"><span class="tag tag--marketing">#marketing</span></div>
+                </div>
+                <div class="task__side"><span class="task__badge">MED</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <p class="step__say" data-reveal>Por fim, instale no celular.</p>
+            <div class="call" data-reveal data-i="1"><pre><code>instalar</code></pre><button class="copy" type="button" data-copy="instalar">Copiar</button></div>
+            <figure class="response response--wide" data-reveal="mask" data-i="2">
+              <div class="devices">
+                <img src="media/pc-agua.webp" width="1200" height="717" decoding="async" alt="O Operator no computador, tema Verde-água, com o projeto Nebuchadnezzar aberto">
+                <img src="media/celular-agua.webp" width="480" height="977" decoding="async" alt="O mesmo projeto aberto no Operator instalado num celular Android">
+              </div>
+              <figcaption class="devices__caption">O mesmo projeto no PC e no celular. O app instala como PWA no Android, no iPhone e no desktop.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section cta" id="sync-pro" aria-labelledby="cta-title">
+        <form class="cta__form" id="waitlist" novalidate>
+          <div class="cta__line" data-reveal>
+            <h2 id="cta-title">Me chame para o Sync Pro em</h2>
+            <label class="sr-only" for="email">Seu e-mail</label>
+            <input class="cta__input" id="email" name="email" type="email" inputmode="email" autocomplete="email" spellcheck="false" required maxlength="254" placeholder="voce@email.com">
+            <button class="cta__submit" type="submit">Entrar na fila</button>
+          </div>
+          <div class="trap" aria-hidden="true"><label for="site">Não preencha</label><input id="site" name="site" type="text" tabindex="-1" autocomplete="off"></div>
+          <p class="cta__note" data-reveal data-i="1">O Sync Pro é o plano pago que estamos preparando, com mais espaço para anexos. Você recebe um e-mail quando ele abrir para testes. Para sair da lista, responda esse e-mail.</p>
+          <p class="cta__status" id="waitlist-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="section faq" id="perguntas" aria-labelledby="faq-title">
+        <div class="grid">
+          <h2 class="faq__title" id="faq-title">Perguntas</h2>
+          <div class="faq__list">
+            <details class="faq__item" name="faq" data-reveal>
+              <summary>O Operator é grátis?<span class="faq__plus" aria-hidden="true"></span></summary>
+              <p class="faq__answer">É. O app, o modo offline, os 8 temas e o sync entre aparelhos não custam nada. O Sync Pro vai ser um plano pago opcional; quem não assinar continua com tudo isso.</p>
+            </details>
+            <details class="faq__item" name="faq" data-reveal data-i="1">
+              <summary>Preciso criar conta?<span class="faq__plus" aria-hidden="true"></span></summary>
+              <p class="faq__answer">Não. Abra o app e comece. A conta, com Google ou e-mail, só serve para sincronizar entre aparelhos.</p>
+            </details>
+            <details class="faq__item" name="faq" data-reveal data-i="2">
+              <summary>Onde ficam meus dados?<span class="faq__plus" aria-hidden="true"></span></summary>
+              <p class="faq__answer">No armazenamento do seu navegador. Se você entrar na conta, uma cópia vai para um banco Supabase em que cada conta só lê os próprios projetos. Os anexos ficam num bucket privado e abrem por links que expiram em uma hora.</p>
+            </details>
+            <details class="faq__item" name="faq" data-reveal data-i="3">
+              <summary>Funciona sem internet?<span class="faq__plus" aria-hidden="true"></span></summary>
+              <p class="faq__answer">Funciona. Depois da primeira visita, o app abre offline. O que você mudar sem conexão espera numa fila e sobe quando a internet volta.</p>
+            </details>
+            <details class="faq__item" name="faq" data-reveal data-i="4">
+              <summary>Dá para instalar no celular?<span class="faq__plus" aria-hidden="true"></span></summary>
+              <p class="faq__answer">Dá. No Android, abra no Chrome e toque em ⋮ e depois em Instalar app. No iPhone, abra no Safari, toque em Compartilhar e escolha Adicionar à Tela de Início.</p>
+            </details>
+            <details class="faq__item" name="faq" data-reveal data-i="5">
+              <summary>Posso levar meus dados embora?<span class="faq__plus" aria-hidden="true"></span></summary>
+              <p class="faq__answer">Pode. O backup baixa um arquivo .json com todos os projetos, e a tecla M copia o projeto aberto em Markdown.</p>
+            </details>
+            <details class="faq__item" name="faq" data-reveal data-i="6">
+              <summary>O código é aberto?<span class="faq__plus" aria-hidden="true"></span></summary>
+              <p class="faq__answer">É, sob a licença AGPL-3.0. O <a href="https://github.com/j-c-fstk-dev/Operator-Matrix-Retro-Terminal-Workspace">código está no GitHub</a> e você pode hospedar a sua própria cópia.</p>
+            </details>
+            <details class="faq__item" name="faq" data-reveal data-i="7">
+              <summary>O que muda no Sync Pro?<span class="faq__plus" aria-hidden="true"></span></summary>
+              <p class="faq__answer">Ele ainda está em definição. A ideia é mais espaço para anexos e recursos para quem usa o Operator todo dia. Entre na fila acima para receber o convite quando abrir.</p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Operator, um terminal de projetos</span>
+      <span class="footer__links"><a href="https://matrix-operator.netlify.app" data-app-link>Abrir o app</a><a href="https://github.com/j-c-fstk-dev/Operator-Matrix-Retro-Terminal-Workspace">GitHub</a><a href="https://github.com/j-c-fstk-dev/Operator-Matrix-Retro-Terminal-Workspace/blob/main/LICENSE">Licença AGPL</a></span>
+      <span class="footer__end"><span>2026</span><a href="privacidade.html">Privacidade</a></span>
+    </footer>
+  </div>
+
+  <p class="offline-badge" id="offline-badge" aria-hidden="true">MODO OFFLINE: operando no cache local</p>
+</body>
+</html>

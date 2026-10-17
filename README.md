@@ -229,7 +229,20 @@ Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_
 
 ---
 
-## 📁 Estrutura do Código
+## 🛰️ Landing Page (`landing/`)
+
+Página de apresentação estática (HTML, CSS e JS sem build) com um prompt Ctrl+K que funciona, os 8 temas, a chuva Matrix e a lista de espera do Sync Pro. O plano de design e as verificações estão em `landing/DESIGN.md`.
+
+### Publicar no Netlify (segundo site, mesmo repositório)
+
+1. No Netlify: **Add new site > Import an existing project** e escolha este repositório.
+2. Em **Base directory**, coloque `landing`. O resto vem do `landing/netlify.toml` (build `node build-config.mjs`, publicação da própria pasta, cabeçalhos de segurança).
+3. Em **Site configuration > Environment variables**, adicione `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (os mesmos valores do app).
+4. No Supabase, rode `supabase/waitlist.sql` no SQL Editor. Os inscritos aparecem em **Table Editor > waitlist**.
+
+Sem as variáveis, a página funciona e a lista de espera avisa que está desligada.
+
+
 
 ```
 ├── public/
@@ -237,9 +250,11 @@ Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_
 │   └── icon.svg, pwa-*.png, ...   # Ícones do PWA, favicon e apple-touch-icon
 ├── scripts/
 │   └── generate-png-icons.js      # Gera os ícones PNG do PWA
+├── landing/                   # Landing page estática (ver landing/DESIGN.md)
 ├── supabase/
 │   ├── schema.sql                 # Tabela projects, RLS e índices no Supabase
-│   └── storage.sql                # Bucket privado de anexos e políticas de acesso
+│   ├── storage.sql                # Bucket privado de anexos e políticas de acesso
+│   └── waitlist.sql               # Lista de espera do Sync Pro (só INSERT pela chave pública)
 ├── src/
 │   ├── components/
 │   │   ├── AuthModal.tsx          # Login (e-mail/senha e Google) e envio de projetos para a nuvem
