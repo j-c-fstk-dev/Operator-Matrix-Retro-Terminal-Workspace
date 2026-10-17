@@ -42,6 +42,7 @@ const CLI_COMMANDS: { id: CommandId; cmd: string | ((t: Dict) => string) }[] = [
   { id: 'task', cmd: (t) => t.manual.cmdTask },
   { id: 'pwa', cmd: (t) => t.manual.cmdPwa },
   { id: 'lang', cmd: 'lang en | lang pt' },
+  { id: 'theme', cmd: (t) => t.manual.cmdTheme },
 ];
 
 export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => {

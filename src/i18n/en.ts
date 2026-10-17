@@ -200,6 +200,7 @@ export const en: Dict = {
     versionTitle: 'Running version (commit · build date)',
   },
   manual: {
+    cmdTheme: 'theme <color>',
     banner: 'MATRIX SYSTEM COMMAND MANUAL',
     cheatsheetTitle: 'OPERATOR(1): SHORTCUTS & COMMANDS GUIDE',
     cmdAuth: 'auth or login',
@@ -213,6 +214,7 @@ export const en: Dict = {
     colAnalogy: 'LINUX / GIT ANALOGY',
     colKey: 'KEY',
     commands: {
+      theme: 'Changes the terminal color',
       auth: 'Opens sign-in and cloud sync (Supabase)',
       checkout: 'Switches to the project with that name',
       commit: 'Copies the active project as Markdown',
@@ -259,6 +261,11 @@ export const en: Dict = {
     banner: 'OFFLINE MODE: running from local cache.',
   },
   palette: {
+    acceptHint: 'TAB or → to complete',
+    commandsHeader: 'Commands',
+    tagHint: 'Filters tasks by this tag',
+    themeSet: (label: string) => `Theme: ${label}`,
+    themeUsage: 'Use: theme matrix, aqua, blue, purple, pink, red, amber or mono',
     addTask: 'Add task:',
     clear: '[CLEAR]',
     copiedMd: 'Copied as Markdown!',
@@ -279,7 +286,7 @@ export const en: Dict = {
     manualHint: 'Press ? for the manual',
     newProject: 'Create new project (git init)',
     noMatch: 'No task, tag or project found for:',
-    placeholder: 'Quick-Find: search tasks, #tags or projects…',
+    placeholder: 'Search tasks, #tags and projects or type a command…',
     projects: (count: number) => `Projects (${count})`,
     rain: (on: boolean) => `Digital Rain (Matrix Rain): ${on ? 'ON' : 'OFF'}`,
     sound: (on: boolean) => `Sound effects: ${on ? 'ON' : 'MUTED'}`,

@@ -86,6 +86,7 @@ Run everything without leaving the keyboard:
 ### 6. 🔍 Quick-Find in the command prompt (`Cmd+K` / `Ctrl+K`)
 - **Searches everything at once**: task titles, `#tags`, subtasks, and project names, categories and descriptions.
 - **Jumps straight to the task**: pick a task in the results (click or `Enter`) and the workspace opens its project, scrolls to it and highlights it with a phosphor glow.
+- **Terminal-style autocomplete**: as you type, the rest of the first matching command shows up dimmed after the cursor; press `→` or `Tab` to accept it. Matching commands are also listed (with what they do) above the search results, so you can click them on a phone.
 - **Commands you can run**:
   - `git checkout <name>` (or `switch <name>`): switches to that project.
   - `git init <name>` (or `new <name>`): creates a project with that title.
@@ -97,6 +98,7 @@ Run everything without leaving the keyboard:
   - `pwa` or `install`: installs the app on the device.
   - `man`, `help`, `:help` or `?`: opens the manual.
   - `lang en` or `lang pt` (also `language`): switches the interface language.
+  - `theme <color>`: switches the terminal color (`matrix`, `aqua`, `blue`, `purple`, `pink`, `red`, `amber`, `mono`, or the color name in English or Portuguese).
 
 ### 7. 💾 Backup & migration (.JSON)
 - **One-click download**: a file with every project, task, tag, note, attachment metadata and preference (e.g. `operator_backup_2026-10-05.json`).

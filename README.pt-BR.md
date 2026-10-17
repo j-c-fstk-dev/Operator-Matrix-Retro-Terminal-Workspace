@@ -86,6 +86,7 @@ Opere o sistema sem tirar as mãos do teclado:
 ### 6. 🔍 Quick-Find no Prompt de Comandos (`Cmd+K` / `Ctrl+K`)
 - **Busca Simultânea**: pesquise instantaneamente em títulos de tarefas, `#tags`, subtarefas e nomes, categorias e descrições de projetos.
 - **Salto Direto com Auto-Scroll**: ao selecionar uma tarefa nos resultados (via clique ou `Enter`), o workspace pula para o projeto pai, rola até a tarefa e a destaca com efeito fosforescente.
+- **Autocomplete estilo terminal**: enquanto você digita, o resto do primeiro comando que combina aparece apagado depois do cursor; `→` ou `Tab` aceita. Os comandos que combinam também aparecem listados (com o que fazem) acima dos resultados da busca, para tocar no celular.
 - **Comandos Executáveis no Prompt**:
   - `git checkout <nome>` (ou `switch <nome>`): troca para o projeto informado.
   - `git init <nome>` (ou `new <nome>`): cria um projeto já com o título informado.
@@ -97,6 +98,7 @@ Opere o sistema sem tirar as mãos do teclado:
   - `pwa`, `instalar` ou `install`: instala o app no dispositivo.
   - `man`, `help`, `:help` ou `?`: abre o manual.
   - `lang pt` ou `lang en` (ou `idioma`, `language`): troca o idioma da interface.
+  - `tema <cor>` ou `theme <cor>`: troca a cor do terminal (`roxo`, `verde-água`, `âmbar`… ou os ids `matrix`, `aqua`, `blue`, `purple`, `pink`, `red`, `amber`, `mono`).
 
 ### 7. 💾 Central de Backup & Migração (.JSON)
 - **Download em 1 Clique**: baixe um arquivo com todos os seus projetos, tarefas, tags, anotações, metadados de anexos e preferências (ex: `operator_backup_2026-10-05.json`).

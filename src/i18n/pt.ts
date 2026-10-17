@@ -198,6 +198,7 @@ export const pt = {
     versionTitle: 'Versão em execução (commit · data do build)',
   },
   manual: {
+    cmdTheme: 'theme <cor> ou tema <cor>',
     banner: 'MANUAL DE COMANDOS DO SISTEMA MATRIX',
     cheatsheetTitle: 'OPERATOR(1): GUIA DE ATALHOS & COMANDOS',
     cmdAuth: 'auth ou login',
@@ -211,6 +212,7 @@ export const pt = {
     colAnalogy: 'ANALOGIA LINUX / GIT',
     colKey: 'ATALHO',
     commands: {
+      theme: 'Troca a cor do terminal',
       auth: 'Abre o login e a sincronização na nuvem (Supabase)',
       checkout: 'Muda para o projeto com esse nome',
       commit: 'Copia o projeto ativo em Markdown',
@@ -257,6 +259,11 @@ export const pt = {
     banner: 'MODO OFFLINE: operando no cache local.',
   },
   palette: {
+    acceptHint: 'TAB ou → completa',
+    commandsHeader: 'Comandos',
+    tagHint: 'Filtra as tarefas por essa tag',
+    themeSet: (label: string) => `Tema: ${label}`,
+    themeUsage: 'Use: theme matrix, aqua, blue, purple, pink, red, amber ou mono',
     addTask: 'Adicionar tarefa:',
     clear: '[LIMPAR]',
     copiedMd: 'Copiado em Markdown!',
@@ -277,7 +284,7 @@ export const pt = {
     manualHint: 'Tecle ? para o manual',
     newProject: 'Criar novo projeto (git init)',
     noMatch: 'Nenhuma tarefa, tag ou projeto encontrado para:',
-    placeholder: 'Quick-Find: busque tarefas, #tags ou projetos…',
+    placeholder: 'Busque tarefas, #tags e projetos ou digite um comando…',
     projects: (count: number) => `Projetos (${count})`,
     rain: (on: boolean) => `Chuva Digital (Matrix Rain): ${on ? 'ATIVADA' : 'DESATIVADA'}`,
     sound: (on: boolean) => `Efeitos sonoros: ${on ? 'LIGADO' : 'MUTADO'}`,

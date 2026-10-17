@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Project, WorkspaceSettings, Task } from '../types';
 import { Search, FolderPlus, Terminal, Volume2, VolumeX, Eye, FileDown, FileUp, Copy, Check, BookOpen, ArrowRight, CheckSquare, Square, Tag as TagIcon, Sparkles, Cloud } from 'lucide-react';
 import { sound } from '../utils/audio';
-import { useT, Lang } from '../i18n';
+import { useT, useLang, Lang } from '../i18n';
+import { buildCommandCatalog, suggestCommands, resolveThemeName, CommandSuggestion } from '../commands/suggest';
 import { getTerminalTagStyle } from '../utils/tagColors';
 
 interface TaskSearchResult {
@@ -50,6 +51,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onShowToast,
 }) => {
   const t = useT();
+  const lang = useLang();
   const [query, setQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -79,60 +81,82 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   if (!isOpen) return null;
 
-  const trimmed = query.trim();
-  const lower = trimmed.toLowerCase();
+  // Interpreta o texto do prompt: comandos reconhecidos e resultados do Quick-Find.
+  const analyze = (text: string) => {
+    const trimmed = text.trim();
+    const lower = trimmed.toLowerCase();
 
-  // Recognize Git & Linux commands
-  const isHelpCommand = lower === 'man' || lower === 'help' || lower === ':help' || lower === '?';
-  const isAuthCommand = ['login', 'auth', 'supabase', 'nuvem', 'entrar', 'sair', 'signin', 'cloud', 'logout'].includes(lower);
-  const isPwaCommand = lower === 'pwa' || lower === 'instalar' || lower === 'install';
-  const isGitCommit = lower === 'git commit' || lower === 'export' || lower === 'md';
-  const isGitStatus = lower === 'git status' || lower === 'status';
-  const isGitCheckout = lower.startsWith('git checkout ') || lower.startsWith('switch ');
-  const isGitInit = lower.startsWith('git init ') || lower.startsWith('new ');
-  const langMatch = lower.match(/^(lang|idioma|language)\s+(\S+)$/);
-  const langTarget: Lang | null = langMatch
-    ? (/^(pt|pt-br|portugu[eê]s|portuguese)$/.test(langMatch[2]) ? 'pt' : /^(en|en-us|english|ingl[eê]s)$/.test(langMatch[2]) ? 'en' : null)
-    : null;
+    // Recognize Git & Linux commands
+    const isHelpCommand = lower === 'man' || lower === 'help' || lower === ':help' || lower === '?';
+    const isAuthCommand = ['login', 'auth', 'supabase', 'nuvem', 'entrar', 'sair', 'signin', 'cloud', 'logout'].includes(lower);
+    const isPwaCommand = lower === 'pwa' || lower === 'instalar' || lower === 'install';
+    const isGitCommit = lower === 'git commit' || lower === 'export' || lower === 'md';
+    const isGitStatus = lower === 'git status' || lower === 'status';
+    const isGitCheckout = lower.startsWith('git checkout ') || lower.startsWith('switch ');
+    const isGitInit = lower.startsWith('git init ') || lower.startsWith('new ');
+    const langMatch = lower.match(/^(lang|idioma|language)\s+(\S+)$/);
+    const langTarget: Lang | null = langMatch
+      ? (/^(pt|pt-br|portugu[eê]s|portuguese)$/.test(langMatch[2]) ? 'pt' : /^(en|en-us|english|ingl[eê]s)$/.test(langMatch[2]) ? 'en' : null)
+      : null;
+    const themeMatch = lower.match(/^(theme|tema)\s+(.+)$/);
+    const themeTarget = themeMatch ? resolveThemeName(themeMatch[2]) : null;
 
-  const isAddTaskCommand = query.startsWith('+') || lower.startsWith('task:');
-  const taskText = isAddTaskCommand 
-    ? (query.startsWith('+') ? query.slice(1).trim() : query.slice(5).trim())
-    : '';
+    const isAddTaskCommand = text.startsWith('+') || lower.startsWith('task:');
+    const taskText = isAddTaskCommand 
+      ? (text.startsWith('+') ? text.slice(1).trim() : text.slice(5).trim())
+      : '';
 
-  // QUICK-FIND: Search across all task titles and tags simultaneously across all projects
-  const isTagQuery = lower.startsWith('#');
-  const targetTagQuery = isTagQuery ? lower.slice(1) : lower;
+    // QUICK-FIND: Search across all task titles and tags simultaneously across all projects
+    const isTagQuery = lower.startsWith('#');
+    const targetTagQuery = isTagQuery ? lower.slice(1) : lower;
 
-  const matchingTasks: TaskSearchResult[] = [];
-  if (lower.length > 0 && !isAddTaskCommand && !isGitCheckout && !isGitInit) {
-    for (const proj of projects) {
-      for (const task of proj.tasks) {
-        const titleMatch = task.text.toLowerCase().includes(lower);
-        const matchedTag = (task.tags || []).find((tg) =>
-          tg.toLowerCase().includes(targetTagQuery)
-        );
-        const subtaskMatch = (task.subtasks || []).some((s) =>
-          s.text.toLowerCase().includes(lower)
-        );
+    const matchingTasks: TaskSearchResult[] = [];
+    if (lower.length > 0 && !isAddTaskCommand && !isGitCheckout && !isGitInit) {
+      for (const proj of projects) {
+        for (const task of proj.tasks) {
+          const titleMatch = task.text.toLowerCase().includes(lower);
+          const matchedTag = (task.tags || []).find((tg) =>
+            tg.toLowerCase().includes(targetTagQuery)
+          );
+          const subtaskMatch = (task.subtasks || []).some((s) =>
+            s.text.toLowerCase().includes(lower)
+          );
 
-        if (titleMatch) {
-          matchingTasks.push({ project: proj, task, matchedBy: 'title' });
-        } else if (matchedTag) {
-          matchingTasks.push({ project: proj, task, matchedBy: 'tag', matchedTag });
-        } else if (subtaskMatch) {
-          matchingTasks.push({ project: proj, task, matchedBy: 'subtask' });
+          if (titleMatch) {
+            matchingTasks.push({ project: proj, task, matchedBy: 'title' });
+          } else if (matchedTag) {
+            matchingTasks.push({ project: proj, task, matchedBy: 'tag', matchedTag });
+          } else if (subtaskMatch) {
+            matchingTasks.push({ project: proj, task, matchedBy: 'subtask' });
+          }
         }
       }
     }
-  }
 
-  const filteredProjects = projects.filter(
-    (p) =>
-      p.title.toLowerCase().includes(lower) ||
-      p.category.toLowerCase().includes(lower) ||
-      p.description.toLowerCase().includes(lower)
+    const filteredProjects = projects.filter(
+      (p) =>
+        p.title.toLowerCase().includes(lower) ||
+        p.category.toLowerCase().includes(lower) ||
+        p.description.toLowerCase().includes(lower)
+    );
+
+    return { trimmed, lower, isHelpCommand, isAuthCommand, isPwaCommand, isGitCommit, isGitStatus, isGitCheckout, isGitInit, langMatch, langTarget, themeMatch, themeTarget, isAddTaskCommand, taskText, matchingTasks, filteredProjects };
+  };
+
+  const { trimmed, lower, isHelpCommand, isAuthCommand, isPwaCommand, isGitCommit, isGitStatus, isGitCheckout, isGitInit, langMatch, langTarget, themeMatch, themeTarget, isAddTaskCommand, taskText, matchingTasks, filteredProjects } = analyze(query);
+
+  // Autocomplete estilo terminal: a 1ª sugestão aparece apagada depois do texto digitado.
+  const suggestions = suggestCommands(
+    query,
+    buildCommandCatalog({ t, lang, projects, accentTheme: settings.accentTheme })
   );
+  const ghost = suggestions[0] ? suggestions[0].completion.slice(query.length) : '';
+
+  const acceptSuggestion = (s: CommandSuggestion) => {
+    setQuery(s.completion);
+    sound.playClick(700);
+    inputRef.current?.focus();
+  };
 
   const handleExecuteAddTask = () => {
     if (taskText) {
@@ -163,7 +187,26 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     onClose();
   };
 
-  const handleCommandSubmit = () => {
+  const handleCommandSubmit = (text: string = query) => {
+    const {
+      trimmed,
+      isHelpCommand,
+      isAuthCommand,
+      isPwaCommand,
+      isGitCommit,
+      isGitStatus,
+      isGitCheckout,
+      isGitInit,
+      langMatch,
+      langTarget,
+      themeMatch,
+      themeTarget,
+      isAddTaskCommand,
+      taskText,
+      matchingTasks,
+      filteredProjects,
+    } = analyze(text);
+
     if (isHelpCommand) {
       onClose();
       onOpenManual();
@@ -177,6 +220,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         onShowToast(langTarget === 'pt' ? 'Idioma: Português' : 'Language: English');
       } else {
         onShowToast(t.palette.langUsage);
+      }
+      onClose();
+      return;
+    }
+
+    if (themeMatch) {
+      if (themeTarget) {
+        onUpdateSettings({ accentTheme: themeTarget });
+        sound.playClick(800);
+        onShowToast(t.palette.themeSet(t.themes[themeTarget]));
+      } else {
+        onShowToast(t.palette.themeUsage);
       }
       onClose();
       return;
@@ -231,7 +286,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
 
     if (isAddTaskCommand && taskText) {
-      handleExecuteAddTask();
+      onQuickAddTask(taskText);
+      sound.playClick(750);
+      onClose();
       return;
     }
 
@@ -245,6 +302,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (filteredProjects.length > 0) {
       onSelectProject(filteredProjects[0].id);
       onClose();
+      return;
+    }
+
+    // Nada encontrado, mas o texto é o começo de um comando: completa (e executa, se já estiver completo).
+    const [first] = suggestCommands(text, buildCommandCatalog({ t, lang, projects, accentTheme: settings.accentTheme }));
+    if (first) {
+      if (first.needsArg) acceptSuggestion(first);
+      else handleCommandSubmit(first.completion);
       return;
     }
 
@@ -282,7 +347,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         {/* Input Bar */}
         <div className="flex items-center gap-2.5 px-3.5 py-3 border-b border-[color:var(--t-14351a)] bg-[color:var(--t-051107)]">
           <span className="text-[color:var(--t-22c55e)] font-mono text-sm font-bold">&gt;</span>
-          <div className="flex-1 flex items-center">
+          <div className="relative flex-1 flex items-center">
+            {ghost && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 flex items-center overflow-hidden whitespace-pre font-mono text-xs"
+              >
+                <span className="invisible">{query}</span>
+                <span className="text-[color:var(--t-21a04d)] opacity-70">{ghost}</span>
+              </div>
+            )}
             <input
               ref={inputRef}
               type="text"
@@ -291,10 +365,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   handleCommandSubmit();
+                } else if (suggestions[0] && (e.key === 'Tab' || (e.key === 'ArrowRight' && e.currentTarget.selectionStart === query.length))) {
+                  e.preventDefault();
+                  acceptSuggestion(suggestions[0]);
                 }
               }}
+              aria-autocomplete="inline"
+              spellCheck={false}
+              autoComplete="off"
               placeholder={t.palette.placeholder}
-              className="w-full bg-transparent text-[color:var(--t-22c55e)] placeholder-[color:var(--t-21a04d)] font-mono text-xs focus:outline-hidden"
+              className="relative w-full bg-transparent text-[color:var(--t-22c55e)] placeholder-[color:var(--t-21a04d)] font-mono text-xs focus:outline-hidden"
             />
             <span className="terminal-block-cursor"></span>
           </div>
@@ -322,6 +402,33 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               </div>
               <span className="text-[10px] text-[color:var(--t-21a04d)] group-hover:text-[color:var(--t-22c55e)] font-mono">ENTER</span>
             </button>
+          )}
+
+          {/* Autocomplete: comandos que continuam o que foi digitado */}
+          {suggestions.length > 0 && (
+            <div className="py-1">
+              <div className="text-[10px] font-mono text-[color:var(--t-21a04d)] px-2 py-1 uppercase tracking-widest flex items-center justify-between">
+                <span className="text-[color:var(--t-22c55e)] font-bold">{t.palette.commandsHeader}</span>
+                <span className="text-[color:var(--t-16a34a)]">{t.palette.acceptHint}</span>
+              </div>
+              {suggestions.map((s) => (
+                <button
+                  key={s.completion}
+                  type="button"
+                  onClick={() => (s.needsArg ? acceptSuggestion(s) : handleCommandSubmit(s.completion))}
+                  className="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between gap-3 hover:bg-[color:var(--t-0c2612)] transition-colors group"
+                >
+                  <span className="flex items-center gap-2 min-w-0 font-mono">
+                    <Terminal size={12} className="shrink-0 text-[color:var(--t-22c55e)]" />
+                    <span className="truncate">
+                      <span className="text-[color:var(--t-86efac)] group-hover:text-white">{s.completion.slice(0, query.length)}</span>
+                      <span className="text-[color:var(--t-21a04d)] group-hover:text-[color:var(--t-86efac)]">{s.completion.slice(query.length)}</span>
+                    </span>
+                  </span>
+                  <span className="text-[10px] text-[color:var(--t-21a04d)] truncate text-right">{s.hint}</span>
+                </button>
+              ))}
+            </div>
           )}
 
           {/* Quick-Find: Task and Tag Matches */}
@@ -552,7 +659,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           )}
 
           {/* Empty state when nothing matched */}
-          {lower.length > 0 && matchingTasks.length === 0 && filteredProjects.length === 0 && (
+          {lower.length > 0 && matchingTasks.length === 0 && filteredProjects.length === 0 && suggestions.length === 0 && (
             <div className="p-6 text-center text-xs font-mono space-y-2">
               <div className="text-[color:var(--t-21a04d)]">
                 {t.palette.noMatch} <strong className="text-[color:var(--t-86efac)]">“{query}”</strong>
