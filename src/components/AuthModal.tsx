@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { X, Lock, Mail, Key, ShieldCheck, Cloud, LogOut, CheckCircle, AlertTriangle, ArrowRight, Database, Terminal } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { sound } from '../utils/audio';
@@ -13,6 +13,11 @@ interface AuthModalProps {
   onSyncLocalToCloud: () => Promise<void>;
   onShowToast: (msg: string) => void;
   localProjectsCount: number;
+  /** true quando a pessoa voltou pelo link de "esqueci minha senha". */
+  isPasswordRecovery?: boolean;
+  onPasswordRecoveryDone?: () => void;
+  /** Motivo de um link de e-mail inválido ou expirado, mostrado no topo. */
+  linkError?: string | null;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -22,6 +27,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onSyncLocalToCloud,
   onShowToast,
   localProjectsCount,
+  isPasswordRecovery = false,
+  onPasswordRecoveryDone,
+  linkError,
 }) => {
   const t = useT();
   const [tab, setTab] = useState<'login' | 'register'>('login');
@@ -30,6 +38,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [view, setView] = useState<'form' | 'forgot'>('form');
+  const [infoMessage, setInfoMessage] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Ao fechar, volta para o formulário de login.
+  useEffect(() => {
+    if (!isOpen) {
+      setView('form');
+      setInfoMessage(null);
+      setErrorMessage(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -82,6 +103,82 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setLoading(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase || !isSupabaseConfigured) {
+      setErrorMessage(t.auth.notConfigured);
+      return;
+    }
+    if (!email.trim()) {
+      setErrorMessage(t.auth.emailRequired);
+      return;
+    }
+    setLoading(true);
+    setErrorMessage(null);
+    setInfoMessage(null);
+    try {
+      // O link do e-mail volta para esta mesma origem; o App detecta a recuperação e reabre este modal.
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+        redirectTo: window.location.origin,
+      });
+      if (error) throw error;
+      sound.playCommand();
+      setInfoMessage(t.auth.forgotSent(email.trim()));
+    } catch (err: any) {
+      sound.playClick(300);
+      setErrorMessage(err.message || t.auth.forgotFailed);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!supabase) return;
+    if (newPassword.length < 6) {
+      setErrorMessage(t.auth.passwordTooShort);
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setErrorMessage(t.auth.passwordMismatch);
+      return;
+    }
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) throw error;
+      sound.playCommand();
+      setNewPassword('');
+      setConfirmPassword('');
+      onShowToast(t.auth.resetDone);
+      onPasswordRecoveryDone?.();
+      onClose();
+    } catch (err: any) {
+      sound.playClick(300);
+      setErrorMessage(err.message || t.auth.resetFailed);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showView = (next: 'form' | 'forgot') => {
+    setView(next);
+    setErrorMessage(null);
+    setInfoMessage(null);
+    sound.playClick(600);
+  };
+
+  const labelClass = 'text-[10px] text-[color:var(--t-21a04d)] uppercase tracking-wider flex items-center gap-1';
+  const fieldClass = 'flex items-center gap-2 bg-[color:var(--t-020502)] border border-[color:var(--t-14351a)] px-2.5 py-1.5 focus-within:border-[color:var(--t-22c55e)]';
+  const inputClass = 'w-full bg-transparent text-xs font-mono text-[color:var(--t-86efac)] placeholder-[color:var(--t-21a04d)] focus:outline-hidden';
+  const submitClass = 'w-full py-2.5 px-3 bg-[color:var(--t-0a2612)] hover:bg-[color:var(--t-0e3318)] border border-[color:var(--t-22c55e)] text-xs font-bold text-[color:var(--t-22c55e)] hover:text-white flex items-center justify-center gap-2 shadow-[0_0_10px_color-mix(in_srgb,var(--t-22c55e)_20%,transparent)] transition-all cursor-pointer';
+  const errorBox = errorMessage && (
+    <div className="p-2 bg-[#170808] border border-red-800 text-red-400 text-[11px] leading-tight" role="alert">
+      {errorMessage}
+    </div>
+  );
 
   const handleLogout = async () => {
     if (!supabase) return;
@@ -151,7 +248,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] p-1"
+            className="text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)] p-1"
           >
             <X size={15} />
           </button>
@@ -159,7 +256,69 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         {/* Content Body */}
         <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-          {user ? (
+          {linkError && (
+            <div className="p-2.5 bg-[#120803] border border-amber-600/90 text-amber-400 text-[11px] leading-snug flex items-start gap-1.5" role="alert">
+              <AlertTriangle size={13} className="shrink-0 mt-px" />
+              <span>{linkError}</span>
+            </div>
+          )}
+          {user && isPasswordRecovery ? (
+            /* Voltou pelo link de recuperação: define a senha nova */
+            <form onSubmit={handleResetPassword} className="space-y-3">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-[color:var(--t-22c55e)]">
+                <Lock size={13} />
+                <span>{t.auth.resetTitle}</span>
+              </div>
+              <p className="text-[11px] text-[color:var(--t-86efac)]/80 leading-relaxed">{t.auth.resetBody}</p>
+              <div className="text-[10px] text-[color:var(--t-21a04d)] truncate">
+                {t.auth.operator} <strong className="text-white">{user.email}</strong>
+              </div>
+              <div className="space-y-1">
+                <label htmlFor="auth-new-password" className={labelClass}>
+                  <Key size={11} />
+                  <span>{t.auth.newPasswordLabel}</span>
+                </label>
+                <div className={fieldClass}>
+                  <span className="text-[color:var(--t-21a04d)]">&gt;</span>
+                  <input
+                    id="auth-new-password"
+                    type="password"
+                    autoComplete="new-password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    autoFocus
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label htmlFor="auth-confirm-password" className={labelClass}>
+                  <Key size={11} />
+                  <span>{t.auth.confirmPasswordLabel}</span>
+                </label>
+                <div className={fieldClass}>
+                  <span className="text-[color:var(--t-21a04d)]">&gt;</span>
+                  <input
+                    id="auth-confirm-password"
+                    type="password"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+              {errorBox}
+              <button type="submit" disabled={loading} className={submitClass}>
+                <CheckCircle size={13} />
+                <span>{loading ? t.auth.processing : t.auth.resetSubmit}</span>
+              </button>
+            </form>
+          ) : user ? (
             /* Logged in state */
             <div className="space-y-4">
               <div className="bg-[color:var(--t-061509)] border border-[color:var(--t-14351a)] p-3.5 space-y-2">
@@ -173,7 +332,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <div className="text-xs text-[color:var(--t-86efac)] truncate pt-1">
                   {t.auth.operator} <strong className="text-white">{user.email}</strong>
                 </div>
-                <div className="text-[10px] text-[color:var(--t-15803d)]">
+                <div className="text-[10px] text-[color:var(--t-21a04d)]">
                   {t.auth.syncingNote}
                 </div>
               </div>
@@ -184,7 +343,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <Cloud size={13} />
                   <span>{t.auth.syncTitle}</span>
                 </div>
-                <p className="text-[10px] text-[color:var(--t-15803d)] leading-relaxed">
+                <p className="text-[10px] text-[color:var(--t-21a04d)] leading-relaxed">
                   {t.auth.syncBody(localProjectsCount)}
                 </p>
                 <button
@@ -207,6 +366,54 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <span>{t.auth.signOut}</span>
               </button>
             </div>
+          ) : view === 'forgot' ? (
+            /* Esqueci minha senha: pede o e-mail e envia o link */
+            <form onSubmit={handleForgotPassword} className="space-y-3">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-[color:var(--t-22c55e)]">
+                <Lock size={13} />
+                <span>{t.auth.forgotTitle}</span>
+              </div>
+              <p className="text-[11px] text-[color:var(--t-86efac)]/80 leading-relaxed">{t.auth.forgotBody}</p>
+              <div className="space-y-1">
+                <label htmlFor="auth-forgot-email" className={labelClass}>
+                  <Mail size={11} />
+                  <span>{t.auth.emailLabel}</span>
+                </label>
+                <div className={fieldClass}>
+                  <span className="text-[color:var(--t-21a04d)]">&gt;</span>
+                  <input
+                    id="auth-forgot-email"
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={t.auth.emailPlaceholder}
+                    required
+                    autoFocus
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+              {errorBox}
+              {infoMessage && (
+                <div className="p-2 bg-[color:var(--t-061509)] border border-[color:var(--t-22c55e)] text-[color:var(--t-86efac)] text-[11px] leading-snug" role="status">
+                  {infoMessage}
+                </div>
+              )}
+              <button type="submit" disabled={loading} className={submitClass}>
+                <ArrowRight size={13} />
+                <span>{loading ? t.auth.processing : t.auth.forgotSubmit}</span>
+              </button>
+              <div className="pt-2 border-t border-[color:var(--t-0e2513)] text-center">
+                <button
+                  type="button"
+                  onClick={() => showView('form')}
+                  className="text-[11px] text-[color:var(--t-21a04d)] hover:text-[color:var(--t-86efac)] transition-colors"
+                >
+                  {t.auth.backToLogin}
+                </button>
+              </div>
+            </form>
           ) : (
             /* Logged out state */
             <div className="space-y-4">
@@ -238,7 +445,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <span>{t.auth.google}</span>
               </button>
 
-              <div className="flex items-center gap-2 text-[10px] text-[color:var(--t-15803d)]">
+              <div className="flex items-center gap-2 text-[10px] text-[color:var(--t-21a04d)]">
                 <div className="flex-1 h-px bg-[color:var(--t-14351a)]"></div>
                 <span>{t.auth.or}</span>
                 <div className="flex-1 h-px bg-[color:var(--t-14351a)]"></div>
@@ -256,7 +463,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   className={`flex-1 py-1.5 text-center text-xs font-bold transition-colors ${
                     tab === 'login'
                       ? 'bg-[color:var(--t-0b2411)] text-[color:var(--t-22c55e)] border-b-2 border-[color:var(--t-22c55e)]'
-                      : 'text-[color:var(--t-15803d)] hover:text-[color:var(--t-86efac)]'
+                      : 'text-[color:var(--t-21a04d)] hover:text-[color:var(--t-86efac)]'
                   }`}
                 >
                   {t.auth.tabLogin}
@@ -271,7 +478,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   className={`flex-1 py-1.5 text-center text-xs font-bold transition-colors ${
                     tab === 'register'
                       ? 'bg-[color:var(--t-0b2411)] text-[color:var(--t-22c55e)] border-b-2 border-[color:var(--t-22c55e)]'
-                      : 'text-[color:var(--t-15803d)] hover:text-[color:var(--t-86efac)]'
+                      : 'text-[color:var(--t-21a04d)] hover:text-[color:var(--t-86efac)]'
                   }`}
                 >
                   {t.auth.tabRegister}
@@ -281,47 +488,56 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {/* Form */}
               <form onSubmit={handleAuth} className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-[10px] text-[color:var(--t-15803d)] uppercase tracking-wider flex items-center gap-1">
+                  <label className="text-[10px] text-[color:var(--t-21a04d)] uppercase tracking-wider flex items-center gap-1">
                     <Mail size={11} />
                     <span>{t.auth.emailLabel}</span>
                   </label>
                   <div className="flex items-center gap-2 bg-[color:var(--t-020502)] border border-[color:var(--t-14351a)] px-2.5 py-1.5 focus-within:border-[color:var(--t-22c55e)]">
-                    <span className="text-[color:var(--t-15803d)]">&gt;</span>
+                    <span className="text-[color:var(--t-21a04d)]">&gt;</span>
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder={t.auth.emailPlaceholder}
                       required
-                      className="w-full bg-transparent text-xs font-mono text-[color:var(--t-86efac)] placeholder-[color:var(--t-15803d)] focus:outline-hidden"
+                      className="w-full bg-transparent text-xs font-mono text-[color:var(--t-86efac)] placeholder-[color:var(--t-21a04d)] focus:outline-hidden"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] text-[color:var(--t-15803d)] uppercase tracking-wider flex items-center gap-1">
+                  <label className="text-[10px] text-[color:var(--t-21a04d)] uppercase tracking-wider flex items-center gap-1">
                     <Key size={11} />
                     <span>{t.auth.passwordLabel}</span>
                   </label>
                   <div className="flex items-center gap-2 bg-[color:var(--t-020502)] border border-[color:var(--t-14351a)] px-2.5 py-1.5 focus-within:border-[color:var(--t-22c55e)]">
-                    <span className="text-[color:var(--t-15803d)]">&gt;</span>
+                    <span className="text-[color:var(--t-21a04d)]">&gt;</span>
                     <input
                       type="password"
+                      autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="••••••••••••"
                       required
                       minLength={6}
-                      className="w-full bg-transparent text-xs font-mono text-[color:var(--t-86efac)] placeholder-[color:var(--t-15803d)] focus:outline-hidden"
+                      className="w-full bg-transparent text-xs font-mono text-[color:var(--t-86efac)] placeholder-[color:var(--t-21a04d)] focus:outline-hidden"
                     />
                   </div>
                 </div>
 
-                {errorMessage && (
-                  <div className="p-2 bg-[#170808] border border-red-800 text-red-400 text-[11px] leading-tight">
-                    {errorMessage}
+                {tab === 'login' && (
+                  <div className="text-right -mt-1">
+                    <button
+                      type="button"
+                      onClick={() => showView('forgot')}
+                      className="text-[11px] text-[color:var(--t-4ade80)] hover:text-white underline underline-offset-2"
+                    >
+                      {t.auth.forgotLink}
+                    </button>
                   </div>
                 )}
+
+                {errorBox}
 
                 <button
                   type="submit"
@@ -339,7 +555,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="text-[11px] text-[color:var(--t-15803d)] hover:text-[color:var(--t-86efac)] transition-colors"
+                  className="text-[11px] text-[color:var(--t-21a04d)] hover:text-[color:var(--t-86efac)] transition-colors"
                 >
                   {t.auth.continueLocal}
                 </button>
@@ -349,7 +565,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-15803d)] shrink-0">
+        <div className="px-4 py-2 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-21a04d)] shrink-0">
           <span>OPERATOR AUTH // SUPABASE POSTGRES</span>
           <button
             onClick={onClose}

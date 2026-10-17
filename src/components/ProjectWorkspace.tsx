@@ -483,7 +483,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           >
             <Menu size={16} />
           </button>
-          <div className="flex items-center gap-1.5 text-xs font-mono text-[color:var(--t-166534)] truncate">
+          <div className="flex items-center gap-1.5 text-xs font-mono text-[color:var(--t-21a04d)] truncate">
             <span>OPERATOR</span>
             <span>&gt;</span>
             <span>{t.workspace.breadcrumbProjects}</span>
@@ -520,7 +520,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   ? 'text-amber-400'
                   : user
                     ? `text-[color:var(--t-22c55e)] ${syncStatus === 'syncing' ? 'animate-pulse' : ''}`
-                    : 'text-[color:var(--t-15803d)]'
+                    : 'text-[color:var(--t-21a04d)]'
               }
             />
             <span className="hidden md:inline">{syncLabel(syncStatus, pendingSyncCount)}</span>
@@ -598,13 +598,13 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                     onChange={(e) =>
                       onUpdateProject({ ...project, category: e.target.value.toUpperCase() })
                     }
-                    className="text-[10px] font-mono tracking-widest text-[color:var(--t-15803d)] uppercase bg-transparent border-b border-transparent hover:border-[color:var(--t-14351a)] focus:border-[color:var(--t-22c55e)] focus:outline-hidden w-36"
+                    className="text-[10px] font-mono tracking-widest text-[color:var(--t-21a04d)] uppercase bg-transparent border-b border-transparent hover:border-[color:var(--t-14351a)] focus:border-[color:var(--t-22c55e)] focus:outline-hidden w-36"
                     placeholder={t.workspace.categoryPlaceholder}
                   />
                   <span className="terminal-underscore-cursor"></span>
                 </div>
-                <span className="text-[10px] text-[color:var(--t-15803d)]">·</span>
-                <span className="text-[10px] font-mono text-[color:var(--t-15803d)]">
+                <span className="text-[10px] text-[color:var(--t-21a04d)]">·</span>
+                <span className="text-[10px] font-mono text-[color:var(--t-21a04d)]">
                   {t.workspace.lastUpdate} {new Date(project.updatedAt).toLocaleTimeString(localeOf(lang), { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
@@ -644,7 +644,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   </h1>
                   <button
                     onClick={() => setEditingTitle(true)}
-                    className="opacity-0 group-hover:opacity-100 text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] transition-opacity"
+                    className="opacity-0 group-hover:opacity-100 text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)] transition-opacity"
                     title={t.workspace.editTitle}
                   >
                     <Edit3 size={13} />
@@ -680,7 +680,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
             {/* ASCII / Segmented Progress Meter */}
             <div className="bg-[color:var(--t-030704)] border border-[color:var(--t-14351a)] p-3 shrink-0 md:w-60 font-mono text-xs">
-              <div className="flex items-center justify-between text-[11px] text-[color:var(--t-166534)] mb-1">
+              <div className="flex items-center justify-between text-[11px] text-[color:var(--t-21a04d)] mb-1">
                 <span>{t.workspace.progress}</span>
                 <span className="text-[color:var(--t-22c55e)] tabular-nums font-bold">
                   {doneTasks}/{totalTasks} ({progressPercent}%)
@@ -692,7 +692,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
-              <div className="mt-1 text-[10px] text-[color:var(--t-15803d)] text-right">
+              <div className="mt-1 text-[10px] text-[color:var(--t-21a04d)] text-right">
                 {t.workspace.pendingTasks(totalTasks - doneTasks)}
               </div>
             </div>
@@ -705,7 +705,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               className={`px-3 py-1 text-xs font-mono transition-colors ${
                 activeTab === 'all'
                   ? 'bg-[color:var(--t-0f2c15)] text-[color:var(--t-22c55e)] border border-[color:var(--t-22c55e)]'
-                  : 'text-[color:var(--t-166534)] hover:text-[color:var(--t-86efac)] border border-transparent'
+                  : 'text-[color:var(--t-21a04d)] hover:text-[color:var(--t-86efac)] border border-transparent'
               }`}
             >
               {t.workspace.tabs.all}
@@ -715,7 +715,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               className={`px-3 py-1 text-xs font-mono transition-colors flex items-center gap-1.5 ${
                 activeTab === 'tasks'
                   ? 'bg-[color:var(--t-0f2c15)] text-[color:var(--t-22c55e)] border border-[color:var(--t-22c55e)]'
-                  : 'text-[color:var(--t-166534)] hover:text-[color:var(--t-86efac)] border border-transparent'
+                  : 'text-[color:var(--t-21a04d)] hover:text-[color:var(--t-86efac)] border border-transparent'
               }`}
             >
               <ListTodo size={12} />
@@ -726,7 +726,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               className={`px-3 py-1 text-xs font-mono transition-colors flex items-center gap-1.5 ${
                 activeTab === 'notes'
                   ? 'bg-[color:var(--t-0f2c15)] text-[color:var(--t-22c55e)] border border-[color:var(--t-22c55e)]'
-                  : 'text-[color:var(--t-166534)] hover:text-[color:var(--t-86efac)] border border-transparent'
+                  : 'text-[color:var(--t-21a04d)] hover:text-[color:var(--t-86efac)] border border-transparent'
               }`}
             >
               <FileText size={12} />
@@ -737,7 +737,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               className={`px-3 py-1 text-xs font-mono transition-colors flex items-center gap-1.5 ${
                 activeTab === 'code'
                   ? 'bg-[color:var(--t-0f2c15)] text-[color:var(--t-22c55e)] border border-[color:var(--t-22c55e)]'
-                  : 'text-[color:var(--t-166534)] hover:text-[color:var(--t-86efac)] border border-transparent'
+                  : 'text-[color:var(--t-21a04d)] hover:text-[color:var(--t-86efac)] border border-transparent'
               }`}
             >
               <Code size={12} />
@@ -748,7 +748,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               className={`px-3 py-1 text-xs font-mono transition-colors flex items-center gap-1.5 ${
                 activeTab === 'files'
                   ? 'bg-[color:var(--t-0f2c15)] text-[color:var(--t-22c55e)] border border-[color:var(--t-22c55e)]'
-                  : 'text-[color:var(--t-166534)] hover:text-[color:var(--t-86efac)] border border-transparent'
+                  : 'text-[color:var(--t-21a04d)] hover:text-[color:var(--t-86efac)] border border-transparent'
               }`}
             >
               <HardDrive size={12} />
@@ -777,7 +777,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                     className={`px-2 py-0.5 transition-colors ${
                       taskFilter === filter
                         ? 'bg-[color:var(--t-103417)] text-[color:var(--t-22c55e)] border border-[color:var(--t-22c55e)]'
-                        : 'text-[color:var(--t-15803d)] hover:text-[color:var(--t-4ade80)]'
+                        : 'text-[color:var(--t-21a04d)] hover:text-[color:var(--t-4ade80)]'
                     }`}
                   >
                     {t.workspace.taskFilter[filter]}
@@ -789,7 +789,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             {/* Terminal Tag Filter Chips (if project has tags) */}
             {allProjectTags.length > 0 && (
               <div className="flex flex-wrap items-center gap-1.5 py-1 px-1 bg-[color:var(--t-020703)] border border-[color:var(--t-0d2212)]">
-                <span className="text-[10px] font-mono text-[color:var(--t-15803d)] uppercase tracking-wider flex items-center gap-1 pl-1">
+                <span className="text-[10px] font-mono text-[color:var(--t-21a04d)] uppercase tracking-wider flex items-center gap-1 pl-1">
                   <Tag size={10} />
                   <span>Tags:</span>
                 </span>
@@ -843,20 +843,20 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   value={newTaskText}
                   onChange={(e) => setNewTaskText(e.target.value)}
                   placeholder={t.workspace.newTaskPlaceholder}
-                  className="w-full bg-transparent text-xs font-mono text-[color:var(--t-86efac)] placeholder-[color:var(--t-15803d)] focus:outline-hidden"
+                  className="w-full bg-transparent text-xs font-mono text-[color:var(--t-86efac)] placeholder-[color:var(--t-21a04d)] focus:outline-hidden"
                 />
                 <span className="terminal-block-cursor"></span>
               </div>
 
               <div className="flex items-center gap-2">
                 <div className="w-32 sm:w-36 flex items-center gap-1.5 bg-[color:var(--t-050f07)] border border-[color:var(--t-14351a)] px-2 py-2 focus-within:border-[color:var(--t-22c55e)]">
-                  <Tag size={11} className="text-[color:var(--t-15803d)] shrink-0" />
+                  <Tag size={11} className="text-[color:var(--t-21a04d)] shrink-0" />
                   <input
                     type="text"
                     value={newTaskTagsInput}
                     onChange={(e) => setNewTaskTagsInput(e.target.value)}
                     placeholder={t.workspace.tagsPlaceholder}
-                    className="w-full bg-transparent text-xs font-mono text-[color:var(--t-22c55e)] placeholder-[color:var(--t-15803d)] focus:outline-hidden"
+                    className="w-full bg-transparent text-xs font-mono text-[color:var(--t-22c55e)] placeholder-[color:var(--t-21a04d)] focus:outline-hidden"
                   />
                   <span className="terminal-underscore-cursor"></span>
                 </div>
@@ -884,7 +884,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             {/* Task Items List */}
             <div className="space-y-2">
               {visibleTasks.length === 0 ? (
-                <div className="p-4 text-center font-mono text-xs text-[color:var(--t-15803d)] border border-dashed border-[color:var(--t-102a15)] bg-[color:var(--t-030804)]">
+                <div className="p-4 text-center font-mono text-xs text-[color:var(--t-21a04d)] border border-dashed border-[color:var(--t-102a15)] bg-[color:var(--t-030804)]">
                   {selectedTagFilter
                     ? t.workspace.emptyTag(selectedTagFilter)
                     : taskFilter === 'done'
@@ -939,7 +939,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                                 onChange={(e) => handleUpdateTaskText(task.id, e.target.value)}
                                 className={`w-full bg-transparent text-xs font-mono focus:outline-hidden focus:bg-[color:var(--t-07170a)] px-1 -mx-1 ${
                                   task.done
-                                    ? 'line-through text-[color:var(--t-15803d)]'
+                                    ? 'line-through text-[color:var(--t-21a04d)]'
                                     : 'text-[color:var(--t-86efac)] font-medium'
                                 }`}
                               />
@@ -954,7 +954,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
                           {/* Task Note if exists */}
                           {task.notes && (
-                            <p className="mt-1 text-[11px] font-mono text-[color:var(--t-15803d)]">
+                            <p className="mt-1 text-[11px] font-mono text-[color:var(--t-21a04d)]">
                               // {task.notes}
                             </p>
                           )}
@@ -1028,7 +1028,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                                     setTagInputTaskId(null);
                                     setNewTagInputVal('');
                                   }}
-                                  className="text-[10px] text-[color:var(--t-15803d)] hover:text-red-400 px-0.5"
+                                  className="text-[10px] text-[color:var(--t-21a04d)] hover:text-red-400 px-0.5"
                                 >
                                   ×
                                 </button>
@@ -1041,7 +1041,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                                   setTagInputTaskId(task.id);
                                   setNewTagInputVal('');
                                 }}
-                                className="inline-flex items-center gap-0.5 text-[10px] font-mono text-[color:var(--t-15803d)] hover:text-[color:var(--t-4ade80)] px-1.5 py-0.5 border border-dashed border-[color:var(--t-14351a)] hover:border-[color:var(--t-22c55e)] transition-colors"
+                                className="inline-flex items-center gap-0.5 text-[10px] font-mono text-[color:var(--t-21a04d)] hover:text-[color:var(--t-4ade80)] px-1.5 py-0.5 border border-dashed border-[color:var(--t-14351a)] hover:border-[color:var(--t-22c55e)] transition-colors"
                                 title={t.workspace.addTag}
                               >
                                 <Plus size={9} />
@@ -1052,7 +1052,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
                           {/* Subtask Status Info */}
                           {totalSubs > 0 && (
-                            <div className="mt-1.5 flex items-center gap-2 text-[10px] font-mono text-[color:var(--t-166534)]">
+                            <div className="mt-1.5 flex items-center gap-2 text-[10px] font-mono text-[color:var(--t-21a04d)]">
                               <button
                                 onClick={() =>
                                   setExpandedTaskIds((prev) => ({
@@ -1080,14 +1080,14 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                                 [task.id]: !prev[task.id],
                               }))
                             }
-                            className="p-1 text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] transition-colors"
+                            className="p-1 text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)] transition-colors"
                             title={t.workspace.toggleSubtasks}
                           >
                             {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                           </button>
                           <button
                             onClick={() => handleDeleteTask(task.id)}
-                            className="p-1 text-[color:var(--t-15803d)] hover:text-red-400 transition-colors"
+                            className="p-1 text-[color:var(--t-21a04d)] hover:text-red-400 transition-colors"
                             title={t.workspace.deleteTask}
                           >
                             <Trash2 size={13} />
@@ -1125,7 +1125,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                                   }
                                   className={`w-full bg-transparent text-xs font-mono focus:outline-hidden focus:bg-[color:var(--t-07170a)] px-1 ${
                                     sub.done
-                                      ? 'line-through text-[color:var(--t-15803d)]'
+                                      ? 'line-through text-[color:var(--t-21a04d)]'
                                       : 'text-[color:var(--t-86efac)]/90'
                                   }`}
                                 />
@@ -1134,7 +1134,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
                               <button
                                 onClick={() => handleDeleteSubtask(task.id, sub.id)}
-                                className="opacity-0 group-hover/sub:opacity-100 text-[color:var(--t-15803d)] hover:text-red-400 p-0.5 transition-opacity"
+                                className="opacity-0 group-hover/sub:opacity-100 text-[color:var(--t-21a04d)] hover:text-red-400 p-0.5 transition-opacity"
                                 title={t.workspace.deleteSubtask}
                               >
                                 <Trash2 size={11} />
@@ -1162,7 +1162,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                                   }
                                 }}
                                 placeholder={t.workspace.subtaskPlaceholder}
-                                className="w-full bg-transparent text-[11px] font-mono text-[color:var(--t-22c55e)] placeholder-[color:var(--t-15803d)] focus:outline-hidden"
+                                className="w-full bg-transparent text-[11px] font-mono text-[color:var(--t-22c55e)] placeholder-[color:var(--t-21a04d)] focus:outline-hidden"
                               />
                               <span className="terminal-block-cursor" style={{ width: '0.45em', height: '0.9em' }}></span>
                             </div>
@@ -1205,7 +1205,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             </div>
 
             {project.observations.length === 0 ? (
-              <div className="p-4 text-center font-mono text-xs text-[color:var(--t-15803d)] border border-dashed border-[color:var(--t-102a15)] bg-[color:var(--t-030804)]">
+              <div className="p-4 text-center font-mono text-xs text-[color:var(--t-21a04d)] border border-dashed border-[color:var(--t-102a15)] bg-[color:var(--t-030804)]">
                 {t.workspace.notesEmpty}
               </div>
             ) : (
@@ -1226,7 +1226,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                             onChange={(e) =>
                               handleUpdateObservation(obs.id, { tag: e.target.value.toUpperCase() })
                             }
-                            className="text-[10px] text-[color:var(--t-15803d)] font-mono bg-transparent border-b border-transparent hover:border-[color:var(--t-14351a)] focus:border-[color:var(--t-22c55e)] focus:outline-hidden w-24"
+                            className="text-[10px] text-[color:var(--t-21a04d)] font-mono bg-transparent border-b border-transparent hover:border-[color:var(--t-14351a)] focus:border-[color:var(--t-22c55e)] focus:outline-hidden w-24"
                           />
                           <span className="text-[color:var(--t-102b15)]">·</span>
                           <div className="flex items-center flex-1">
@@ -1245,7 +1245,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                         <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             onClick={() => setEditingNoteId(isEditing ? null : obs.id)}
-                            className="text-[10px] text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] px-1.5 py-0.5 border border-[color:var(--t-14351a)]"
+                            className="text-[10px] text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)] px-1.5 py-0.5 border border-[color:var(--t-14351a)]"
                           >
                             {isEditing ? t.workspace.view : t.workspace.edit}
                           </button>
@@ -1254,14 +1254,14 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                               navigator.clipboard.writeText(`${obs.title}\n\n${obs.content}`);
                               sound.playClick(900);
                             }}
-                            className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] p-1"
+                            className="text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)] p-1"
                             title={t.workspace.copyNote}
                           >
                             <Copy size={12} />
                           </button>
                           <button
                             onClick={() => handleDeleteObservation(obs.id)}
-                            className="text-[color:var(--t-15803d)] hover:text-red-400 p-1"
+                            className="text-[color:var(--t-21a04d)] hover:text-red-400 p-1"
                             title={t.workspace.deleteNote}
                           >
                             <Trash2 size={12} />
@@ -1288,7 +1288,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                         )}
                       </div>
 
-                      <div className="mt-2 text-[10px] text-[color:var(--t-15803d)] text-right">
+                      <div className="mt-2 text-[10px] text-[color:var(--t-21a04d)] text-right">
                         {t.workspace.updatedAt} {new Date(obs.updatedAt).toLocaleString(localeOf(lang))}
                       </div>
                     </div>
@@ -1320,7 +1320,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             </div>
 
             {project.codeSnippets.length === 0 ? (
-              <div className="p-4 text-center font-mono text-xs text-[color:var(--t-15803d)] border border-dashed border-[color:var(--t-102a15)] bg-[color:var(--t-030804)]">
+              <div className="p-4 text-center font-mono text-xs text-[color:var(--t-21a04d)] border border-dashed border-[color:var(--t-102a15)] bg-[color:var(--t-030804)]">
                 {t.workspace.snippetsEmpty}
               </div>
             ) : (
@@ -1384,7 +1384,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
                         <button
                           onClick={() => handleDeleteSnippet(snip.id)}
-                          className="text-[color:var(--t-15803d)] hover:text-red-400 p-0.5"
+                          className="text-[color:var(--t-21a04d)] hover:text-red-400 p-0.5"
                           title={t.workspace.deleteSnippet}
                         >
                           <Trash2 size={12} />
@@ -1421,7 +1421,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   {t.workspace.filesHeading}
                 </h2>
               </div>
-              <span className="text-[10px] text-[color:var(--t-15803d)] font-mono">
+              <span className="text-[10px] text-[color:var(--t-21a04d)] font-mono">
                 {t.workspace.linkedFiles((project.attachments || []).length)}
               </span>
             </div>
@@ -1437,7 +1437,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       </div>
 
       {/* Persistent Linux/Git Cheatsheet Status Bar */}
-      <footer className="px-4 py-1.5 bg-[color:var(--t-020603)] border-t border-[color:var(--t-102914)] text-[10px] font-mono text-[color:var(--t-15803d)] flex items-center justify-between overflow-x-auto shrink-0 select-none">
+      <footer className="px-4 py-1.5 bg-[color:var(--t-020603)] border-t border-[color:var(--t-102914)] text-[10px] font-mono text-[color:var(--t-21a04d)] flex items-center justify-between overflow-x-auto shrink-0 select-none">
         <div className="flex items-center gap-3">
           <button
             onClick={onOpenManual}
@@ -1464,7 +1464,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           </span>
         </div>
 
-        <div className="text-[10px] text-[color:var(--t-166534)] tabular-nums hidden sm:flex items-center gap-2">
+        <div className="text-[10px] text-[color:var(--t-21a04d)] tabular-nums hidden sm:flex items-center gap-2">
           <span>{t.workspace.visibleTasks(visibleTasks.length)}</span>
         </div>
       </footer>

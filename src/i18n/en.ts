@@ -3,6 +3,7 @@ import type { Dict } from './index';
 
 export const en: Dict = {
   app: {
+    authLinkError: (reason: string) => `Invalid or expired email link (${reason}). Request a new one.`,
     backupDownloaded: 'Backup file downloaded!',
     cacheFailed: 'Could not save to localStorage.',
     cacheSaved: '[GIT SYNC] Local cache checked and saved.',
@@ -106,6 +107,23 @@ export const en: Dict = {
     zoom: 'ZOOM',
   },
   auth: {
+    forgotLink: 'Forgot my password',
+    forgotTitle: 'RESET PASSWORD',
+    forgotBody: 'Enter your account email. We will send you a link to create a new password.',
+    forgotSubmit: 'SEND LINK',
+    forgotSent: (email: string) => `If an account exists for ${email}, the link will arrive in a few minutes. Check your spam folder too.`,
+    forgotFailed: 'Could not send the recovery email.',
+    backToLogin: '[ Back to sign in ]',
+    emailRequired: 'Enter your email.',
+    resetTitle: 'NEW PASSWORD',
+    resetBody: 'You signed in with a recovery link. Choose a new password for your account.',
+    newPasswordLabel: 'New password',
+    confirmPasswordLabel: 'Repeat the new password',
+    passwordMismatch: 'The passwords do not match.',
+    passwordTooShort: 'The password needs at least 6 characters.',
+    resetSubmit: 'SAVE NEW PASSWORD',
+    resetDone: 'Password changed. You are signed in.',
+    resetFailed: 'Could not change the password.',
     checkEmail: 'Account created! Confirm it through the email we sent.',
     continueLocal: '[ Continue in local / offline mode ]',
     created: 'Account created and signed in!',
@@ -182,6 +200,7 @@ export const en: Dict = {
     versionTitle: 'Running version (commit · build date)',
   },
   manual: {
+    cmdTheme: 'theme <color>',
     banner: 'MATRIX SYSTEM COMMAND MANUAL',
     cheatsheetTitle: 'OPERATOR(1): SHORTCUTS & COMMANDS GUIDE',
     cmdAuth: 'auth or login',
@@ -195,6 +214,7 @@ export const en: Dict = {
     colAnalogy: 'LINUX / GIT ANALOGY',
     colKey: 'KEY',
     commands: {
+      theme: 'Changes the terminal color',
       auth: 'Opens sign-in and cloud sync (Supabase)',
       checkout: 'Switches to the project with that name',
       commit: 'Copies the active project as Markdown',
@@ -241,6 +261,11 @@ export const en: Dict = {
     banner: 'OFFLINE MODE: running from local cache.',
   },
   palette: {
+    acceptHint: 'TAB or → to complete',
+    commandsHeader: 'Commands',
+    tagHint: 'Filters tasks by this tag',
+    themeSet: (label: string) => `Theme: ${label}`,
+    themeUsage: 'Use: theme matrix, aqua, blue, purple, pink, red, amber or mono',
     addTask: 'Add task:',
     clear: '[CLEAR]',
     copiedMd: 'Copied as Markdown!',
@@ -261,7 +286,7 @@ export const en: Dict = {
     manualHint: 'Press ? for the manual',
     newProject: 'Create new project (git init)',
     noMatch: 'No task, tag or project found for:',
-    placeholder: 'Quick-Find: search tasks, #tags or projects…',
+    placeholder: 'Search tasks, #tags and projects or type a command…',
     projects: (count: number) => `Projects (${count})`,
     rain: (on: boolean) => `Digital Rain (Matrix Rain): ${on ? 'ON' : 'OFF'}`,
     sound: (on: boolean) => `Sound effects: ${on ? 'ON' : 'MUTED'}`,

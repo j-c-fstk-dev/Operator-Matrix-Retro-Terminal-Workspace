@@ -35,6 +35,7 @@ Quando você quiser usar o mesmo workspace no PC e no celular, basta **entrar co
 
 ### 3. ☁️ Conta & Sincronização na Nuvem (Supabase) — opcional
 - **Login com E-mail/Senha ou Google (OAuth)** pelo botão `[ENTRAR]` ou pelo comando `login` no prompt (`Ctrl+K`).
+- **Esqueci minha senha**: o modal de login envia um link de recuperação por e-mail; ao abrir o link, o app pede a senha nova. Se o link estiver expirado, o motivo aparece no modal de login.
 - **Merge sem perda de dados**: ao entrar, os projetos locais e os da nuvem são mesclados projeto a projeto, e vence a versão editada por último. No primeiro login, os projetos locais sobem para a conta; os projetos de exemplo intocados não são enviados para uma conta que já tem dados.
 - **Fila offline persistente**: cada criação, edição ou exclusão entra numa fila salva no aparelho. Sem internet, as alterações esperam e são enviadas sozinhas quando a conexão volta, mesmo depois de fechar o app.
 - **Envio agrupado**: a digitação é agrupada e enviada 1,5s depois da última tecla (no máximo a cada 10s), em vez de uma requisição por tecla.
@@ -85,6 +86,7 @@ Opere o sistema sem tirar as mãos do teclado:
 ### 6. 🔍 Quick-Find no Prompt de Comandos (`Cmd+K` / `Ctrl+K`)
 - **Busca Simultânea**: pesquise instantaneamente em títulos de tarefas, `#tags`, subtarefas e nomes, categorias e descrições de projetos.
 - **Salto Direto com Auto-Scroll**: ao selecionar uma tarefa nos resultados (via clique ou `Enter`), o workspace pula para o projeto pai, rola até a tarefa e a destaca com efeito fosforescente.
+- **Autocomplete estilo terminal**: enquanto você digita, o resto do primeiro comando que combina aparece apagado depois do cursor; `→` ou `Tab` aceita. Os comandos que combinam também aparecem listados (com o que fazem) acima dos resultados da busca, para tocar no celular.
 - **Comandos Executáveis no Prompt**:
   - `git checkout <nome>` (ou `switch <nome>`): troca para o projeto informado.
   - `git init <nome>` (ou `new <nome>`): cria um projeto já com o título informado.
@@ -96,6 +98,7 @@ Opere o sistema sem tirar as mãos do teclado:
   - `pwa`, `instalar` ou `install`: instala o app no dispositivo.
   - `man`, `help`, `:help` ou `?`: abre o manual.
   - `lang pt` ou `lang en` (ou `idioma`, `language`): troca o idioma da interface.
+  - `tema <cor>` ou `theme <cor>`: troca a cor do terminal (`roxo`, `verde-água`, `âmbar`… ou os ids `matrix`, `aqua`, `blue`, `purple`, `pink`, `red`, `amber`, `mono`).
 
 ### 7. 💾 Central de Backup & Migração (.JSON)
 - **Download em 1 Clique**: baixe um arquivo com todos os seus projetos, tarefas, tags, anotações, metadados de anexos e preferências (ex: `operator_backup_2026-10-05.json`).
@@ -206,6 +209,8 @@ O suporte ao [Supabase](https://supabase.com) é opcional. Se as variáveis não
    VITE_SUPABASE_ANON_KEY="sua-chave-anon"
    ```
 5. Pronto! Clique em `[ENTRAR]` no app, crie uma conta e seus projetos passam a ser sincronizados com a nuvem.
+
+> 📧 **E-mails (confirmação de cadastro e recuperação de senha)**: o serviço de e-mail embutido do Supabase envia poucos e-mails por hora e serve só para testes. Antes de abrir o app ao público, configure um SMTP próprio em **Authentication > Emails > SMTP Settings** (Resend, Brevo, Amazon SES e outros têm plano grátis). O texto dos e-mails fica em **Authentication > Emails > Templates**. O link de recuperação volta para o endereço do site, que precisa estar em **Authentication > URL Configuration**.
 
 ### 2. Ativar Login com Google (OAuth)
 

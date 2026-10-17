@@ -259,7 +259,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
               className={`px-2 py-0.5 transition-colors cursor-pointer border ${
                 filterType === f.id
                   ? 'bg-[color:var(--t-0e2f16)] border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] font-bold'
-                  : 'bg-[color:var(--t-030804)] border-[color:var(--t-14351a)] text-[color:var(--t-15803d)] hover:text-[color:var(--t-86efac)]'
+                  : 'bg-[color:var(--t-030804)] border-[color:var(--t-14351a)] text-[color:var(--t-21a04d)] hover:text-[color:var(--t-86efac)]'
               }`}
             >
               [{f.label}]
@@ -337,7 +337,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
               ? uploadProgress || t.attachments.processing
               : t.attachments.dropHint}
           </div>
-          <div className="text-[10px] text-[color:var(--t-15803d)] mt-1">
+          <div className="text-[10px] text-[color:var(--t-21a04d)] mt-1">
             {t.attachments.formats} PNG, JPG, GIF, WebP, MP4, WebM, PDF, TXT, JS, TS, PY, JSON, etc.
           </div>
         </div>
@@ -349,8 +349,8 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
 
       {/* Files Grid / List */}
       {filteredAttachments.length === 0 ? (
-        <div className="p-8 text-center border border-[color:var(--t-14351a)] bg-[color:var(--t-020603)] text-[color:var(--t-15803d)] space-y-1">
-          <p className="font-mono text-xs text-[color:var(--t-166534)]">
+        <div className="p-8 text-center border border-[color:var(--t-14351a)] bg-[color:var(--t-020603)] text-[color:var(--t-21a04d)] space-y-1">
+          <p className="font-mono text-xs text-[color:var(--t-21a04d)]">
             {t.attachments.emptyTitle}
           </p>
           <p className="text-[10px]">
@@ -420,7 +420,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
 
                 {(att.type === 'code' || att.type === 'text') && (
                   <div className="p-3 bg-[color:var(--t-030604)] border-b border-[color:var(--t-14351a)] font-mono">
-                    <div className="flex items-center justify-between pb-1.5 text-[10px] text-[color:var(--t-15803d)]">
+                    <div className="flex items-center justify-between pb-1.5 text-[10px] text-[color:var(--t-21a04d)]">
                       <span className="flex items-center gap-1 font-bold text-[#facc15]">
                         <FileCode size={12} /> {t.attachments.sourceCode}
                       </span>
@@ -463,12 +463,12 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                         {att.name}
                       </span>
                     </div>
-                    <span className="text-[10px] text-[color:var(--t-15803d)] shrink-0 font-mono">
+                    <span className="text-[10px] text-[color:var(--t-21a04d)] shrink-0 font-mono">
                       {formatBytes(att.size)}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-[10px] text-[color:var(--t-15803d)]">
+                  <div className="flex items-center justify-between text-[10px] text-[color:var(--t-21a04d)]">
                     <div className="flex items-center gap-1.5">
                       <span>{new Date(att.createdAt).toLocaleDateString(localeOf(lang))}</span>
                       <span>·</span>
@@ -525,7 +525,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                     </button>
                     <button
                       onClick={() => setDeleteConfirmId(null)}
-                      className="text-[color:var(--t-15803d)] hover:text-white"
+                      className="text-[color:var(--t-21a04d)] hover:text-white"
                     >
                       {t.attachments.cancel}
                     </button>
@@ -536,7 +536,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                       setDeleteConfirmId(att.id);
                       sound.playClick(400);
                     }}
-                    className="text-[color:var(--t-15803d)] hover:text-red-400 transition-colors"
+                    className="text-[color:var(--t-21a04d)] hover:text-red-400 transition-colors"
                     title={t.attachments.deleteTitle}
                   >
                     <Trash2 size={12} />
@@ -574,7 +574,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                 </a>
                 <button
                   onClick={() => setViewingImage(null)}
-                  className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)]"
+                  className="text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)]"
                 >
                   <X size={16} />
                 </button>
@@ -605,7 +605,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
               <div className="flex items-center gap-2">
                 <FileCode size={14} className="text-[#facc15]" />
                 <span className="font-bold text-[color:var(--t-22c55e)]">{viewingCode.name}</span>
-                <span className="text-[10px] text-[color:var(--t-15803d)]">({formatBytes(viewingCode.size)})</span>
+                <span className="text-[10px] text-[color:var(--t-21a04d)]">({formatBytes(viewingCode.size)})</span>
               </div>
               <div className="flex items-center gap-3">
                 <button
@@ -616,7 +616,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                 </button>
                 <button
                   onClick={() => setViewingCode(null)}
-                  className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)]"
+                  className="text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)]"
                 >
                   <X size={16} />
                 </button>
@@ -625,7 +625,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
             <div className="p-4 overflow-y-auto bg-[color:var(--t-010402)] text-[color:var(--t-86efac)] text-xs font-mono leading-relaxed whitespace-pre-wrap select-text">
               {viewingCode.textContent || t.attachments.noPreview}
             </div>
-            <div className="px-4 py-2 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-15803d)]">
+            <div className="px-4 py-2 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-21a04d)]">
               <span>TERMINAL CODE INSPECTOR</span>
               <button
                 onClick={() => setViewingCode(null)}

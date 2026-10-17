@@ -27,7 +27,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
             <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--t-22c55e)] shadow-[0_0_6px_var(--t-22c55e)]"></span>
             <span>{t.pwa.installed}</span>
           </span>
-          <span className="text-[color:var(--t-15803d)]">STANDALONE</span>
+          <span className="text-[color:var(--t-21a04d)]">STANDALONE</span>
         </div>
       );
     }
@@ -95,7 +95,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
               </div>
               <button
                 onClick={() => setShowGuideModal(false)}
-                className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] p-1"
+                className="text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)] p-1"
               >
                 <X size={15} />
               </button>
@@ -197,14 +197,14 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
                   <CheckCircle size={13} className="text-[color:var(--t-22c55e)]" />
                   <span>{t.pwa.safetyTitle}</span>
                 </div>
-                <p className="text-[10px] text-[color:var(--t-15803d)] leading-relaxed">
+                <p className="text-[10px] text-[color:var(--t-21a04d)] leading-relaxed">
                   <Rich text={t.pwa.safetyBody} slots={{ ls: <code className="text-[color:var(--t-86efac)]">localStorage</code> }} />
                 </p>
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="px-4 py-2 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-15803d)]">
+            <div className="px-4 py-2 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-21a04d)]">
               <span>PWA STANDALONE // VITE AUTO-UPDATE</span>
               <button
                 onClick={() => setShowGuideModal(false)}

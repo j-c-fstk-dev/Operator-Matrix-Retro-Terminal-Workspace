@@ -42,6 +42,7 @@ const CLI_COMMANDS: { id: CommandId; cmd: string | ((t: Dict) => string) }[] = [
   { id: 'task', cmd: (t) => t.manual.cmdTask },
   { id: 'pwa', cmd: (t) => t.manual.cmdPwa },
   { id: 'lang', cmd: 'lang en | lang pt' },
+  { id: 'theme', cmd: (t) => t.manual.cmdTheme },
 ];
 
 export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => {
@@ -90,10 +91,10 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-[color:var(--t-15803d)] hidden sm:inline">{t.manual.escHint}</span>
+            <span className="text-[10px] text-[color:var(--t-21a04d)] hidden sm:inline">{t.manual.escHint}</span>
             <button
               onClick={onClose}
-              className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] p-1 transition-colors"
+              className="text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)] p-1 transition-colors"
             >
               <X size={15} />
             </button>
@@ -101,7 +102,7 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
         </div>
 
         {/* Man Page Header Banner */}
-        <div className="px-5 py-2 bg-[color:var(--t-020502)] border-b border-[color:var(--t-0d2212)] text-[10px] text-[color:var(--t-166534)] flex items-center justify-between shrink-0">
+        <div className="px-5 py-2 bg-[color:var(--t-020502)] border-b border-[color:var(--t-0d2212)] text-[10px] text-[color:var(--t-21a04d)] flex items-center justify-between shrink-0">
           <span>OPERATOR(1)</span>
           <span>{t.manual.banner}</span>
           <span>OPERATOR(1)</span>
@@ -135,7 +136,7 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
               </button>
             </div>
 
-            <p className="mt-1.5 text-[11px] text-[color:var(--t-15803d)]">
+            <p className="mt-1.5 text-[11px] text-[color:var(--t-21a04d)]">
               <Rich text={t.manual.singleKeyHint} slots={{ keys: <code className="text-[color:var(--t-86efac)]">T, J/K, X</code> }} />
             </p>
 
@@ -159,7 +160,7 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
                   <div className="col-span-5 text-[color:var(--t-86efac)]">
                     {t.manual.shortcuts[item.id]}
                   </div>
-                  <div className="col-span-4 text-[11px] text-[color:var(--t-166534)] font-mono">
+                  <div className="col-span-4 text-[11px] text-[color:var(--t-21a04d)] font-mono">
                     // {item.analogy}
                   </div>
                 </div>
@@ -174,7 +175,7 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
               <span>{t.manual.commandsSection}</span>
             </div>
 
-            <p className="mt-1.5 text-[11px] text-[color:var(--t-15803d)]">
+            <p className="mt-1.5 text-[11px] text-[color:var(--t-21a04d)]">
               <Rich text={t.manual.commandsHint} slots={{ kbd: <kbd className="text-[color:var(--t-22c55e)]">Ctrl+K</kbd> }} />
             </p>
 
@@ -185,7 +186,7 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
                   className="grid grid-cols-12 px-3 py-1.5 text-xs hover:bg-[color:var(--t-061408)] items-center"
                 >
                   <div className="col-span-5 font-bold text-[color:var(--t-22c55e)] flex items-center gap-1.5">
-                    <span className="text-[color:var(--t-15803d)]">&gt;</span>
+                    <span className="text-[color:var(--t-21a04d)]">&gt;</span>
                     <code>{cmdOf(c)}</code>
                   </div>
                   <div className="col-span-7 text-[color:var(--t-86efac)]/80 text-[11px]">
@@ -208,7 +209,7 @@ export const ManualModal: React.FC<ManualModalProps> = ({ isOpen, onClose }) => 
         </div>
 
         {/* Modal Footer */}
-        <div className="px-4 py-2.5 bg-[color:var(--t-040c06)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[11px] text-[color:var(--t-15803d)] shrink-0">
+        <div className="px-4 py-2.5 bg-[color:var(--t-040c06)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[11px] text-[color:var(--t-21a04d)] shrink-0">
           <div className="flex items-center gap-2">
             <span>OPERATOR CLI MANUAL</span>
             <span>·</span>

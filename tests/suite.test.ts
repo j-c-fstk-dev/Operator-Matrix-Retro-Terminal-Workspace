@@ -6,6 +6,7 @@ import { SEED_PROJECTS_EN } from '../src/data/initialData.en';
 import { pt } from '../src/i18n/pt';
 import { en } from '../src/i18n/en';
 import { detectLang, resolveLang, setCurrentLang, getT } from '../src/i18n';
+import { buildCommandCatalog, suggestCommands, resolveThemeName } from '../src/commands/suggest';
 import { mergeProjects } from '../src/sync/merge';
 import { enqueue, acknowledge, Outbox } from '../src/sync/syncState';
 import { getTerminalTagStyle } from '../src/utils/tagColors';
@@ -461,6 +462,26 @@ test('PWA: Detecção de navegador deve escolher o guia de instalação certo', 
   }
 });
 
+test('Temas: texto secundário tem contraste AA (4,5:1) sobre o fundo em todos os temas', () => {
+  const luminance = (hex: string) => {
+    const n = parseInt(hex.replace('#', ''), 16);
+    const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => {
+      const c = v / 255;
+      return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const ratio = (a: string, b: string) => {
+    const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+    return (hi + 0.05) / (lo + 0.05);
+  };
+  // 21a04d: texto secundário; 030704: fundo da página.
+  for (const t of ACCENT_THEMES) {
+    const r = ratio(themeColor('21a04d', t.id), themeColor('030704', t.id));
+    assert(r >= 4.5, `${t.id}: contraste ${r.toFixed(2)}:1`);
+  }
+});
+
 test('Temas: tema Matrix preserva as cores originais e os demais geram cores válidas', () => {
   for (const hex of BASE_PALETTE) {
     assert.strictEqual(themeColor(hex, 'matrix'), `#${hex}`);
@@ -642,6 +663,46 @@ test('i18n: mensagens fora do React seguem o idioma atual', () => {
   assert.strictEqual(getT(), en);
   setCurrentLang('pt');
   assert.strictEqual(getT(), pt);
+});
+
+// --------------------------------------------------------------------------
+// Autocomplete do prompt (Ctrl+K)
+// --------------------------------------------------------------------------
+const catalogPt = buildCommandCatalog({ t: pt, lang: 'pt', projects: SEED_PROJECTS_PT, accentTheme: 'matrix' });
+const completions = (input: string) => suggestCommands(input, catalogPt).map((s) => s.completion);
+
+test('Autocomplete: "lang" sugere primeiro o outro idioma', () => {
+  assert.deepStrictEqual(completions('lang'), ['lang en', 'lang pt']);
+  assert.deepStrictEqual(completions('lang e'), ['lang en']);
+  const catalogEn = buildCommandCatalog({ t: en, lang: 'en', projects: [], accentTheme: 'matrix' });
+  assert.strictEqual(suggestCommands('la', catalogEn)[0].completion, 'lang pt');
+});
+
+test('Autocomplete: completa comandos, projetos, temas e tags', () => {
+  assert.strictEqual(completions('git s')[0], 'git status');
+  assert.strictEqual(completions('git checkout infra')[0], 'git checkout Infra & Homelab: Cluster Local com Arch Linux');
+  assert(completions('theme').includes('theme purple'));
+  assert.notStrictEqual(completions('theme')[0], 'theme matrix', 'tema atual vai para o fim');
+  assert.strictEqual(completions('#webs')[0], '#websocket');
+  assert(suggestCommands('git init', catalogPt)[0].needsArg, '"git init " ainda pede um nome');
+});
+
+test('Autocomplete: nada a sugerir para comando completo, texto vazio ou espaço inicial', () => {
+  assert.deepStrictEqual(completions('lang en'), []);
+  assert.deepStrictEqual(completions(''), []);
+  assert.deepStrictEqual(completions(' lang'), []);
+  assert.deepStrictEqual(completions('xyz'), []);
+  assert.strictEqual(suggestCommands('g', catalogPt).length <= 6, true);
+});
+
+test('Comando theme aceita id ou nome em qualquer idioma', () => {
+  assert.strictEqual(resolveThemeName('purple'), 'purple');
+  assert.strictEqual(resolveThemeName('Roxo'), 'purple');
+  assert.strictEqual(resolveThemeName('verde-agua'), 'aqua');
+  assert.strictEqual(resolveThemeName('Verde-água'), 'aqua');
+  assert.strictEqual(resolveThemeName('deep blue'), 'blue');
+  assert.strictEqual(resolveThemeName('ambar'), 'amber');
+  assert.strictEqual(resolveThemeName('neon'), null);
 });
 
 console.log(`\n========================================`);
