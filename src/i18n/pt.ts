@@ -1,6 +1,7 @@
 // Textos da interface em português (fonte da verdade: en.ts é tipado a partir deste arquivo).
 export const pt = {
   app: {
+    authLinkError: (reason: string) => `Link do e-mail inválido ou expirado (${reason}). Peça um novo.`,
     backupDownloaded: 'Arquivo de backup baixado com sucesso!',
     cacheFailed: 'Erro ao sincronizar com o localStorage.',
     cacheSaved: '[GIT SYNC] Cache local validado e sincronizado.',
@@ -104,6 +105,23 @@ export const pt = {
     zoom: 'AMPLIAR',
   },
   auth: {
+    forgotLink: 'Esqueci minha senha',
+    forgotTitle: 'RECUPERAR SENHA',
+    forgotBody: 'Digite o e-mail da sua conta. Enviaremos um link para criar uma senha nova.',
+    forgotSubmit: 'ENVIAR LINK',
+    forgotSent: (email: string) => `Se existir uma conta com ${email}, o link chega em alguns minutos. Confira também o spam.`,
+    forgotFailed: 'Não foi possível enviar o e-mail de recuperação.',
+    backToLogin: '[ Voltar para o login ]',
+    emailRequired: 'Digite seu e-mail.',
+    resetTitle: 'NOVA SENHA',
+    resetBody: 'Você entrou pelo link de recuperação. Escolha a nova senha da conta.',
+    newPasswordLabel: 'Nova senha',
+    confirmPasswordLabel: 'Repita a nova senha',
+    passwordMismatch: 'As senhas não são iguais.',
+    passwordTooShort: 'A senha precisa ter pelo menos 6 caracteres.',
+    resetSubmit: 'SALVAR NOVA SENHA',
+    resetDone: 'Senha alterada. Você já está conectado.',
+    resetFailed: 'Não foi possível alterar a senha.',
     checkEmail: 'Conta criada! Confirme pelo e-mail que enviamos.',
     continueLocal: '[ Continuar no modo local / offline ]',
     created: 'Conta criada e login feito!',

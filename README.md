@@ -35,6 +35,7 @@ When you want the same workspace on your computer and your phone, **sign in with
 
 ### 3. ☁️ Account & cloud sync (Supabase), optional
 - **Email/password or Google (OAuth) sign-in** from the `[SIGN IN]` button or the `login` command in the prompt (`Ctrl+K`).
+- **Forgot your password?** The sign-in dialog emails a recovery link; opening it brings you back to the app to choose a new password. Expired links show the reason in the sign-in dialog.
 - **Merge without data loss**: when you sign in, local and cloud projects are merged one project at a time, and the most recently edited version wins. On the first sign-in, local projects are uploaded to the account; untouched sample projects are not uploaded to an account that already has data.
 - **Persistent offline queue**: every create, edit or delete goes into a queue saved on the device. Offline, changes wait and go out on their own when the connection comes back, even after the app is closed.
 - **Batched uploads**: typing is grouped and sent 1.5s after the last keystroke (at most every 10s) instead of one request per key.
@@ -207,6 +208,8 @@ Operator is a **static SPA (single page application)**, so any static host works
    VITE_SUPABASE_ANON_KEY="your-anon-key"
    ```
 5. Done. Click `[SIGN IN]` in the app, create an account and your projects start syncing.
+
+> 📧 **Emails (sign-up confirmation and password recovery)**: Supabase's built-in email service only sends a few emails per hour and is meant for testing. Before opening the app to the public, set up your own SMTP under **Authentication > Emails > SMTP Settings** (Resend, Brevo, Amazon SES and others have free tiers). The email text can be edited under **Authentication > Emails > Templates**. Recovery links go back to the site URL, so it must be listed under **Authentication > URL Configuration**.
 
 ### 2. Turn on Google sign-in (OAuth)
 

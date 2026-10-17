@@ -54,7 +54,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] p-1"
+            className="text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)] p-1"
           >
             <X size={14} />
           </button>
@@ -63,14 +63,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="p-4 space-y-5 max-h-[80vh] overflow-y-auto">
           {/* Aesthetic Controls */}
           <div className="space-y-3">
-            <div className="text-[10px] text-[color:var(--t-15803d)] uppercase tracking-widest border-b border-[color:var(--t-0f2a13)] pb-1">
+            <div className="text-[10px] text-[color:var(--t-21a04d)] uppercase tracking-widest border-b border-[color:var(--t-0f2a13)] pb-1">
               {t.settings.aestheticsSection}
             </div>
 
             {/* Accent Color Theme */}
             <div className="py-1">
               <div className="font-medium text-[color:var(--t-86efac)]">{t.settings.colorTitle}</div>
-              <div className="text-[10px] text-[color:var(--t-15803d)] mb-2">{t.settings.colorHint}</div>
+              <div className="text-[10px] text-[color:var(--t-21a04d)] mb-2">{t.settings.colorHint}</div>
               <div className="grid grid-cols-4 gap-1.5" role="radiogroup" aria-label={t.settings.colorTitle}>
                 {ACCENT_THEMES.map((theme) => {
                   const active = resolveAccentTheme(settings.accentTheme) === theme.id;
@@ -86,7 +86,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       className={`flex flex-col items-center gap-1 px-1 py-1.5 text-[10px] border transition-colors ${
                         active
                           ? 'border-[color:var(--t-22c55e)] bg-[color:var(--t-0e2c14)] text-[color:var(--t-22c55e)]'
-                          : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)] hover:border-[color:var(--t-15803d)]'
+                          : 'border-[color:var(--t-14351a)] text-[color:var(--t-21a04d)] hover:border-[color:var(--t-21a04d)]'
                       }`}
                     >
                       <span
@@ -107,7 +107,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* Language */}
             <div className="py-1">
               <div className="font-medium text-[color:var(--t-86efac)]">{t.settings.languageTitle}</div>
-              <div className="text-[10px] text-[color:var(--t-15803d)] mb-2">{t.settings.languageHint}</div>
+              <div className="text-[10px] text-[color:var(--t-21a04d)] mb-2">{t.settings.languageHint}</div>
               <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label={t.settings.languageTitle}>
                 {LANGS.map((l) => {
                   const active = lang === l.id;
@@ -124,7 +124,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       className={`px-2 py-1.5 text-[11px] border transition-colors ${
                         active
                           ? 'border-[color:var(--t-22c55e)] bg-[color:var(--t-0e2c14)] text-[color:var(--t-22c55e)]'
-                          : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)] hover:border-[color:var(--t-15803d)]'
+                          : 'border-[color:var(--t-14351a)] text-[color:var(--t-21a04d)] hover:border-[color:var(--t-21a04d)]'
                       }`}
                     >
                       {l.label}
@@ -138,7 +138,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="flex items-center justify-between py-1">
               <div>
                 <div className="font-medium text-[color:var(--t-86efac)]">{t.settings.rainTitle}</div>
-                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.settings.rainHint}</div>
+                <div className="text-[10px] text-[color:var(--t-21a04d)]">{t.settings.rainHint}</div>
               </div>
               <button
                 onClick={() => {
@@ -148,7 +148,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 className={`px-3 py-1 text-xs border ${
                   settings.rainEnabled
                     ? 'bg-[color:var(--t-0e2c14)] border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)]'
-                    : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)]'
+                    : 'border-[color:var(--t-14351a)] text-[color:var(--t-21a04d)]'
                 }`}
               >
                 {settings.rainEnabled ? t.settings.on : t.settings.off}
@@ -182,7 +182,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="flex items-center justify-between py-1">
               <div>
                 <div className="font-medium text-[color:var(--t-86efac)]">{t.settings.scanlinesTitle}</div>
-                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.settings.scanlinesHint}</div>
+                <div className="text-[10px] text-[color:var(--t-21a04d)]">{t.settings.scanlinesHint}</div>
               </div>
               <button
                 onClick={() => {
@@ -192,7 +192,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 className={`px-3 py-1 text-xs border ${
                   settings.scanlines
                     ? 'bg-[color:var(--t-0e2c14)] border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)]'
-                    : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)]'
+                    : 'border-[color:var(--t-14351a)] text-[color:var(--t-21a04d)]'
                 }`}
               >
                 {settings.scanlines ? t.settings.on : t.settings.off}
@@ -203,7 +203,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="flex items-center justify-between py-1">
               <div>
                 <div className="font-medium text-[color:var(--t-86efac)]">{t.settings.soundTitle}</div>
-                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.settings.soundHint}</div>
+                <div className="text-[10px] text-[color:var(--t-21a04d)]">{t.settings.soundHint}</div>
               </div>
               <button
                 onClick={() => {
@@ -215,7 +215,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 className={`px-3 py-1 text-xs border ${
                   settings.soundEnabled
                     ? 'bg-[color:var(--t-0e2c14)] border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)]'
-                    : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)]'
+                    : 'border-[color:var(--t-14351a)] text-[color:var(--t-21a04d)]'
                 }`}
               >
                 {settings.soundEnabled ? t.settings.soundOn : t.settings.soundOff}
@@ -225,11 +225,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Backup & Persistence */}
           <div className="space-y-3 pt-2">
-            <div className="text-[10px] text-[color:var(--t-15803d)] uppercase tracking-widest border-b border-[color:var(--t-0f2a13)] pb-1">
+            <div className="text-[10px] text-[color:var(--t-21a04d)] uppercase tracking-widest border-b border-[color:var(--t-0f2a13)] pb-1">
               {t.settings.backupSection(totalProjects)}
             </div>
 
-            <p className="text-[11px] text-[color:var(--t-15803d)] leading-normal">
+            <p className="text-[11px] text-[color:var(--t-21a04d)] leading-normal">
               {t.settings.backupHint}
             </p>
 
@@ -286,7 +286,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               ) : (
                 <button
                   onClick={() => setConfirmReset(true)}
-                  className="text-[11px] text-[color:var(--t-15803d)] hover:text-red-400 flex items-center gap-1.5 transition-colors"
+                  className="text-[11px] text-[color:var(--t-21a04d)] hover:text-red-400 flex items-center gap-1.5 transition-colors"
                 >
                   <RotateCcw size={12} />
                   <span>{t.settings.resetButton}</span>
@@ -297,7 +297,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 bg-[color:var(--t-020603)] border-t border-[color:var(--t-0d2212)] flex items-center justify-between text-[10px] text-[color:var(--t-15803d)]">
+        <div className="px-4 py-2 bg-[color:var(--t-020603)] border-t border-[color:var(--t-0d2212)] flex items-center justify-between text-[10px] text-[color:var(--t-21a04d)]">
           <a
             href={SOURCE_CODE_URL}
             target="_blank"

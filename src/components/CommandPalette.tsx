@@ -294,14 +294,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 }
               }}
               placeholder={t.palette.placeholder}
-              className="w-full bg-transparent text-[color:var(--t-22c55e)] placeholder-[color:var(--t-15803d)] font-mono text-xs focus:outline-hidden"
+              className="w-full bg-transparent text-[color:var(--t-22c55e)] placeholder-[color:var(--t-21a04d)] font-mono text-xs focus:outline-hidden"
             />
             <span className="terminal-block-cursor"></span>
           </div>
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="text-[10px] text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] px-1 font-mono transition-colors"
+              className="text-[10px] text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)] px-1 font-mono transition-colors"
             >
               {t.palette.clear}
             </button>
@@ -320,14 +320,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 <span className="text-[color:var(--t-22c55e)] font-mono">[+]</span>
                 <span>{t.palette.addTask} <strong className="text-white">“{taskText}”</strong></span>
               </div>
-              <span className="text-[10px] text-[color:var(--t-15803d)] group-hover:text-[color:var(--t-22c55e)] font-mono">ENTER</span>
+              <span className="text-[10px] text-[color:var(--t-21a04d)] group-hover:text-[color:var(--t-22c55e)] font-mono">ENTER</span>
             </button>
           )}
 
           {/* Quick-Find: Task and Tag Matches */}
           {matchingTasks.length > 0 && (
             <div className="py-1">
-              <div className="text-[10px] font-mono text-[color:var(--t-15803d)] px-2 py-1 uppercase tracking-widest flex items-center justify-between">
+              <div className="text-[10px] font-mono text-[color:var(--t-21a04d)] px-2 py-1 uppercase tracking-widest flex items-center justify-between">
                 <span className="text-[color:var(--t-22c55e)] font-bold">
                   {t.palette.found(matchingTasks.length)}
                 </span>
@@ -346,7 +346,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         {task.done ? '[x]' : '[ ]'}
                       </span>
                       <div className="min-w-0">
-                        <div className={`text-xs font-mono font-medium truncate ${task.done ? 'line-through text-[color:var(--t-15803d)]' : 'text-[color:var(--t-86efac)] group-hover:text-white'}`}>
+                        <div className={`text-xs font-mono font-medium truncate ${task.done ? 'line-through text-[color:var(--t-21a04d)]' : 'text-[color:var(--t-86efac)] group-hover:text-white'}`}>
                           {task.text}
                         </div>
                         {/* Parent project indicator and tags */}
@@ -379,7 +379,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                           )}
 
                           {task.subtasks.length > 0 && (
-                            <span className="text-[9px] font-mono text-[color:var(--t-15803d)]">
+                            <span className="text-[9px] font-mono text-[color:var(--t-21a04d)]">
                               [{task.subtasks.filter((s) => s.done).length}/{task.subtasks.length} sub]
                             </span>
                           )}
@@ -387,7 +387,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-[10px] text-[color:var(--t-15803d)] group-hover:text-[color:var(--t-22c55e)] font-mono shrink-0 flex items-center gap-1 pt-1">
+                    <div className="text-[10px] text-[color:var(--t-21a04d)] group-hover:text-[color:var(--t-22c55e)] font-mono shrink-0 flex items-center gap-1 pt-1">
                       <span className="hidden sm:inline">{t.palette.jump}</span>
                       <ArrowRight size={11} />
                     </div>
@@ -400,7 +400,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           {/* Quick Actions (only when query is empty) */}
           {lower.length === 0 && (
             <div className="py-1">
-              <div className="text-[10px] font-mono text-[color:var(--t-15803d)] px-2 py-1 uppercase tracking-widest flex items-center justify-between">
+              <div className="text-[10px] font-mono text-[color:var(--t-21a04d)] px-2 py-1 uppercase tracking-widest flex items-center justify-between">
                 <span>{t.palette.systemCommands}</span>
                 <span className="text-[color:var(--t-22c55e)]">{t.palette.manualHint}</span>
               </div>
@@ -468,7 +468,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 className="w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-[color:var(--t-0c2612)] text-[color:var(--t-86efac)] transition-colors"
               >
                 <div className="flex items-center gap-2">
-                  {settings.soundEnabled ? <Volume2 size={13} className="text-[color:var(--t-22c55e)]" /> : <VolumeX size={13} className="text-[color:var(--t-15803d)]" />}
+                  {settings.soundEnabled ? <Volume2 size={13} className="text-[color:var(--t-22c55e)]" /> : <VolumeX size={13} className="text-[color:var(--t-21a04d)]" />}
                   <span>{t.palette.sound(settings.soundEnabled)}</span>
                 </div>
                 <span className="text-[10px] text-[color:var(--t-16a34a)] font-mono">[S]</span>
@@ -514,7 +514,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           {/* Projects Navigation */}
           {(filteredProjects.length > 0 || lower.length === 0) && (
             <div className="py-1">
-              <div className="text-[10px] font-mono text-[color:var(--t-15803d)] px-2 py-1 uppercase tracking-widest">
+              <div className="text-[10px] font-mono text-[color:var(--t-21a04d)] px-2 py-1 uppercase tracking-widest">
                 {t.palette.projects(filteredProjects.length)}
               </div>
 
@@ -536,7 +536,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     }`}
                   >
                     <div className="flex items-center gap-2 overflow-hidden">
-                      <span className="text-[10px] text-[color:var(--t-15803d)] shrink-0 font-mono">
+                      <span className="text-[10px] text-[color:var(--t-21a04d)] shrink-0 font-mono">
                         {isCurrent ? '&gt;' : '·'}
                       </span>
                       <span className="truncate">{proj.title}</span>
@@ -554,10 +554,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           {/* Empty state when nothing matched */}
           {lower.length > 0 && matchingTasks.length === 0 && filteredProjects.length === 0 && (
             <div className="p-6 text-center text-xs font-mono space-y-2">
-              <div className="text-[color:var(--t-15803d)]">
+              <div className="text-[color:var(--t-21a04d)]">
                 {t.palette.noMatch} <strong className="text-[color:var(--t-86efac)]">“{query}”</strong>
               </div>
-              <div className="text-[11px] text-[color:var(--t-166534)]">
+              <div className="text-[11px] text-[color:var(--t-21a04d)]">
                 {t.palette.enterAddBefore} <kbd className="text-[color:var(--t-22c55e)]">Enter</kbd> {t.palette.enterAddAfter}
               </div>
             </div>

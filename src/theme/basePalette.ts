@@ -80,7 +80,7 @@ export const BASE_PALETTE: readonly string[] = [
   '12421e',
   '14351a',
   '14421d',
-  '15803d',
+  '21a04d',
   '166534',
   '16a34a',
   '1b4b23',

@@ -3,6 +3,7 @@ import type { Dict } from './index';
 
 export const en: Dict = {
   app: {
+    authLinkError: (reason: string) => `Invalid or expired email link (${reason}). Request a new one.`,
     backupDownloaded: 'Backup file downloaded!',
     cacheFailed: 'Could not save to localStorage.',
     cacheSaved: '[GIT SYNC] Local cache checked and saved.',
@@ -106,6 +107,23 @@ export const en: Dict = {
     zoom: 'ZOOM',
   },
   auth: {
+    forgotLink: 'Forgot my password',
+    forgotTitle: 'RESET PASSWORD',
+    forgotBody: 'Enter your account email. We will send you a link to create a new password.',
+    forgotSubmit: 'SEND LINK',
+    forgotSent: (email: string) => `If an account exists for ${email}, the link will arrive in a few minutes. Check your spam folder too.`,
+    forgotFailed: 'Could not send the recovery email.',
+    backToLogin: '[ Back to sign in ]',
+    emailRequired: 'Enter your email.',
+    resetTitle: 'NEW PASSWORD',
+    resetBody: 'You signed in with a recovery link. Choose a new password for your account.',
+    newPasswordLabel: 'New password',
+    confirmPasswordLabel: 'Repeat the new password',
+    passwordMismatch: 'The passwords do not match.',
+    passwordTooShort: 'The password needs at least 6 characters.',
+    resetSubmit: 'SAVE NEW PASSWORD',
+    resetDone: 'Password changed. You are signed in.',
+    resetFailed: 'Could not change the password.',
     checkEmail: 'Account created! Confirm it through the email we sent.',
     continueLocal: '[ Continue in local / offline mode ]',
     created: 'Account created and signed in!',

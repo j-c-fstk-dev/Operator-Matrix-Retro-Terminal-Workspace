@@ -89,14 +89,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 OPERATOR // SYS
               </span>
             </div>
-            <span className="text-[10px] text-[color:var(--t-15803d)] font-mono tracking-widest">
+            <span className="text-[10px] text-[color:var(--t-21a04d)] font-mono tracking-widest">
               V.01.NODE
             </span>
           </div>
 
           <div className="mt-2 text-[11px] text-[color:var(--t-4ade80)]/80 font-mono flex items-center justify-between">
             <span>{t.sidebar.terminalLabel}</span>
-            <span className="text-[color:var(--t-15803d)] font-mono text-[10px]">// DEV</span>
+            <span className="text-[color:var(--t-21a04d)] font-mono text-[10px]">// DEV</span>
           </div>
 
           {/* Auth / Cloud Status Indicator */}
@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title={user ? t.sidebar.signedInAs(user.email ?? '') : t.sidebar.signInHint}
           >
             <div className="flex items-center gap-1.5 truncate">
-              <span className={`w-1.5 h-1.5 rounded-full ${user ? 'bg-[color:var(--t-22c55e)] shadow-[0_0_6px_var(--t-22c55e)]' : 'bg-[color:var(--t-15803d)]'}`} />
+              <span className={`w-1.5 h-1.5 rounded-full ${user ? 'bg-[color:var(--t-22c55e)] shadow-[0_0_6px_var(--t-22c55e)]' : 'bg-[color:var(--t-21a04d)]'}`} />
               <span className="truncate text-[color:var(--t-86efac)] group-hover:text-white">
                 {user ? user.email : t.sidebar.localMode}
               </span>
@@ -123,18 +123,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Quick Search & Command Bar Trigger */}
         <div className="p-3 border-b border-[color:var(--t-0e2413)] space-y-2">
           <div className="relative flex items-center">
-            <Search className="absolute left-2.5 top-2.5 text-[color:var(--t-15803d)]" size={13} />
+            <Search className="absolute left-2.5 top-2.5 text-[color:var(--t-21a04d)]" size={13} />
             <input
               type="text"
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
               placeholder={t.sidebar.filterPlaceholder}
-              className="w-full bg-[color:var(--t-030704)] border border-[color:var(--t-14351a)] pl-8 pr-7 py-1.5 text-xs text-[color:var(--t-22c55e)] placeholder-[color:var(--t-15803d)] font-mono focus:outline-hidden focus:border-[color:var(--t-22c55e)]"
+              className="w-full bg-[color:var(--t-030704)] border border-[color:var(--t-14351a)] pl-8 pr-7 py-1.5 text-xs text-[color:var(--t-22c55e)] placeholder-[color:var(--t-21a04d)] font-mono focus:outline-hidden focus:border-[color:var(--t-22c55e)]"
             />
             {filterQuery ? (
               <button
                 onClick={() => setFilterQuery('')}
-                className="absolute right-2 top-2 text-[10px] text-[color:var(--t-15803d)] hover:text-[color:var(--t-4ade80)]"
+                className="absolute right-2 top-2 text-[10px] text-[color:var(--t-21a04d)] hover:text-[color:var(--t-4ade80)]"
               >
                 ×
               </button>
@@ -155,7 +155,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <Terminal size={12} className="text-[color:var(--t-22c55e)]" />
               <span>{t.sidebar.commandPrompt}</span>
             </div>
-            <span className="text-[10px] text-[color:var(--t-15803d)]">Ctrl+K</span>
+            <span className="text-[10px] text-[color:var(--t-21a04d)]">Ctrl+K</span>
           </button>
         </div>
 
@@ -171,7 +171,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={`flex-1 py-1 text-[10px] font-mono uppercase tracking-wider transition-colors ${
                 statusFilter === filter
                   ? 'bg-[color:var(--t-0f2e15)] text-[color:var(--t-22c55e)] border-b border-[color:var(--t-22c55e)]'
-                  : 'text-[color:var(--t-166534)] hover:text-[color:var(--t-4ade80)]'
+                  : 'text-[color:var(--t-21a04d)] hover:text-[color:var(--t-4ade80)]'
               }`}
             >
               {t.sidebar.filters[filter]}
@@ -181,7 +181,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Project List */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          <div className="flex items-center justify-between px-2 py-1 text-[10px] font-mono text-[color:var(--t-15803d)] uppercase tracking-wider">
+          <div className="flex items-center justify-between px-2 py-1 text-[10px] font-mono text-[color:var(--t-21a04d)] uppercase tracking-wider">
             <span>{t.sidebar.directory(filteredProjects.length)}</span>
             <button
               onClick={() => {
@@ -196,7 +196,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {filteredProjects.length === 0 ? (
-            <div className="p-4 text-center text-xs font-mono text-[color:var(--t-15803d)] border border-dashed border-[color:var(--t-14351a)] my-2">
+            <div className="p-4 text-center text-xs font-mono text-[color:var(--t-21a04d)] border border-dashed border-[color:var(--t-14351a)] my-2">
               {t.sidebar.noProjects}
             </div>
           ) : (
@@ -224,7 +224,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <div className="flex items-center gap-1.5 overflow-hidden">
                       <span
                         className={`text-xs ${
-                          isSelected ? 'text-[color:var(--t-22c55e)]' : 'text-[color:var(--t-15803d)] group-hover:text-[color:var(--t-4ade80)]'
+                          isSelected ? 'text-[color:var(--t-22c55e)]' : 'text-[color:var(--t-21a04d)] group-hover:text-[color:var(--t-4ade80)]'
                         }`}
                       >
                         {isSelected ? '▶' : '▷'}
@@ -247,7 +247,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             sound.playClick(400);
                           }
                         }}
-                        className="opacity-0 group-hover:opacity-100 text-[color:var(--t-15803d)] hover:text-red-400 p-0.5 transition-opacity"
+                        className="opacity-0 group-hover:opacity-100 text-[color:var(--t-21a04d)] hover:text-red-400 p-0.5 transition-opacity"
                         title={t.sidebar.deleteProject}
                       >
                         <Trash2 size={11} />
@@ -256,7 +256,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
 
                   {/* Metadata and Mini Progress */}
-                  <div className="mt-2 flex items-center justify-between text-[10px] text-[color:var(--t-166534)]">
+                  <div className="mt-2 flex items-center justify-between text-[10px] text-[color:var(--t-21a04d)]">
                     <span className="truncate max-w-[120px]">{p.category}</span>
                     <span className="tabular-nums">
                       {t.sidebar.doneCount(done, total, percent)}
@@ -267,7 +267,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <div className="mt-1.5 w-full bg-[color:var(--t-051107)] h-1 overflow-hidden">
                     <div
                       className={`h-full transition-all duration-300 ${
-                        percent === 100 ? 'bg-[color:var(--t-22c55e)]' : 'bg-[color:var(--t-15803d)]'
+                        percent === 100 ? 'bg-[color:var(--t-22c55e)]' : 'bg-[color:var(--t-21a04d)]'
                       }`}
                       style={{ width: `${percent}%` }}
                     />
@@ -280,7 +280,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Global System Stats */}
         <div className="p-3 border-t border-[color:var(--t-14351a)] bg-[color:var(--t-030704)] text-[10px] font-mono space-y-2">
-          <div className="flex items-center justify-between text-[color:var(--t-15803d)]">
+          <div className="flex items-center justify-between text-[color:var(--t-21a04d)]">
             <span>{t.sidebar.systemStatus}</span>
             <span className="text-[color:var(--t-22c55e)] flex items-center gap-1">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--t-22c55e)]"></span>
@@ -301,7 +301,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           {/* Quick Control Toggles */}
-          <div className="pt-2 border-t border-[color:var(--t-0d2212)] flex items-center justify-between text-[color:var(--t-15803d)]">
+          <div className="pt-2 border-t border-[color:var(--t-0d2212)] flex items-center justify-between text-[color:var(--t-21a04d)]">
             <button
               onClick={() => {
                 onToggleRain();

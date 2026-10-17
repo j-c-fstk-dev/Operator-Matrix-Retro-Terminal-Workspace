@@ -156,7 +156,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] p-1"
+            className="text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)] p-1"
           >
             <X size={15} />
           </button>
@@ -171,26 +171,26 @@ export const BackupModal: React.FC<BackupModalProps> = ({
                 <Database size={13} />
                 <span>{t.backup.current}</span>
               </span>
-              <span className="text-[10px] text-[color:var(--t-15803d)]">{t.backup.size(approximateSizeKb)}</span>
+              <span className="text-[10px] text-[color:var(--t-21a04d)]">{t.backup.size(approximateSizeKb)}</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px]">
               <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
-                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.backup.statProjects}</div>
+                <div className="text-[10px] text-[color:var(--t-21a04d)]">{t.backup.statProjects}</div>
                 <div className="text-base font-bold text-[color:var(--t-22c55e)]">{totalProjects}</div>
               </div>
               <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
-                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.backup.statTasks}</div>
+                <div className="text-[10px] text-[color:var(--t-21a04d)]">{t.backup.statTasks}</div>
                 <div className="text-base font-bold text-[color:var(--t-22c55e)]">
-                  {totalTasks} <span className="text-[10px] font-normal text-[color:var(--t-15803d)]">{t.backup.statDone(totalDoneTasks)}</span>
+                  {totalTasks} <span className="text-[10px] font-normal text-[color:var(--t-21a04d)]">{t.backup.statDone(totalDoneTasks)}</span>
                 </div>
               </div>
               <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
-                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.backup.statTags}</div>
+                <div className="text-[10px] text-[color:var(--t-21a04d)]">{t.backup.statTags}</div>
                 <div className="text-base font-bold text-[color:var(--t-22c55e)]">{allTags.length}</div>
               </div>
               <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
-                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.backup.statNotes}</div>
+                <div className="text-[10px] text-[color:var(--t-21a04d)]">{t.backup.statNotes}</div>
                 <div className="text-base font-bold text-[color:var(--t-22c55e)]">{totalObservations + totalSnippets}</div>
               </div>
             </div>
@@ -242,7 +242,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
 
             {/* Mode selection: Replace or Merge */}
             <div className="flex items-center gap-3 pt-1 text-[11px]">
-              <span className="text-[color:var(--t-15803d)]">{t.backup.importMode}</span>
+              <span className="text-[color:var(--t-21a04d)]">{t.backup.importMode}</span>
               <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="radio"
@@ -289,7 +289,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
               <div className="text-xs font-bold text-[color:var(--t-22c55e)]">
                 {t.backup.pickFile}
               </div>
-              <div className="text-[10px] text-[color:var(--t-15803d)] mt-1">
+              <div className="text-[10px] text-[color:var(--t-21a04d)] mt-1">
                 {t.backup.dropHint}
               </div>
               <input
@@ -306,7 +306,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
           <div className="pt-2 border-t border-[color:var(--t-0e2513)]">
             <button
               onClick={() => setPasteMode(!pasteMode)}
-              className="text-[11px] text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] flex items-center gap-1 transition-colors"
+              className="text-[11px] text-[color:var(--t-21a04d)] hover:text-[color:var(--t-22c55e)] flex items-center gap-1 transition-colors"
             >
               <span>{pasteMode ? t.backup.pasteHide : t.backup.pasteShow}</span>
             </button>
@@ -336,7 +336,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2.5 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-15803d)] shrink-0">
+        <div className="px-4 py-2.5 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-21a04d)] shrink-0">
           <div className="flex items-center gap-1.5 text-[color:var(--t-22c55e)]">
             <ShieldCheck size={13} />
             <span>{t.backup.footer}</span>

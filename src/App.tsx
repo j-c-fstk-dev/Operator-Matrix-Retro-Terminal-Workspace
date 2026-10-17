@@ -18,7 +18,7 @@ import { AuthModal } from './components/AuthModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { sound } from './utils/audio';
 import { applyAccentTheme, resolveAccentTheme } from './theme/themes';
-import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { supabase, isSupabaseConfigured, openedFromRecoveryLink, authLinkError } from './lib/supabase';
 import { useCloudSync } from './sync/useCloudSync';
 import { User } from '@supabase/supabase-js';
 
@@ -66,7 +66,10 @@ export default function App() {
   const t = DICTS[lang];
 
   const [user, setUser] = useState<User | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(openedFromRecoveryLink && isSupabaseConfigured);
+  // Link de e-mail expirado: o modal de login abre mostrando o motivo.
+  const [authLinkErrorMsg, setAuthLinkErrorMsg] = useState(isSupabaseConfigured ? authLinkError : null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState((openedFromRecoveryLink || Boolean(authLinkError)) && isSupabaseConfigured);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
@@ -107,15 +110,21 @@ export default function App() {
   useEffect(() => {
     if (!supabase || !isSupabaseConfigured) return;
 
+    if (authLinkError) window.history.replaceState(null, '', window.location.pathname);
+
     supabase.auth.getSession().then(({ data }) => {
       const currentUser = data.session?.user ?? null;
       setUser(currentUser);
     });
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
+        if (event === 'PASSWORD_RECOVERY') {
+          setIsPasswordRecovery(true);
+          setIsAuthModalOpen(true);
+        }
       }
     );
 
@@ -663,11 +672,17 @@ export default function App() {
         {/* Retro Matrix Auth Modal (Supabase Cloud) */}
         <AuthModal
           isOpen={isAuthModalOpen}
-          onClose={() => setIsAuthModalOpen(false)}
+          onClose={() => {
+            setIsAuthModalOpen(false);
+            setAuthLinkErrorMsg(null);
+          }}
           user={user}
           onSyncLocalToCloud={handleSyncLocalToCloud}
           onShowToast={showToast}
           localProjectsCount={projects.length}
+          isPasswordRecovery={isPasswordRecovery}
+          linkError={authLinkErrorMsg ? t.app.authLinkError(authLinkErrorMsg) : null}
+          onPasswordRecoveryDone={() => setIsPasswordRecovery(false)}
         />
 
         {/* Offline Connectivity Indicator */}

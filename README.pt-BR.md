@@ -35,6 +35,7 @@ Quando você quiser usar o mesmo workspace no PC e no celular, basta **entrar co
 
 ### 3. ☁️ Conta & Sincronização na Nuvem (Supabase) — opcional
 - **Login com E-mail/Senha ou Google (OAuth)** pelo botão `[ENTRAR]` ou pelo comando `login` no prompt (`Ctrl+K`).
+- **Esqueci minha senha**: o modal de login envia um link de recuperação por e-mail; ao abrir o link, o app pede a senha nova. Se o link estiver expirado, o motivo aparece no modal de login.
 - **Merge sem perda de dados**: ao entrar, os projetos locais e os da nuvem são mesclados projeto a projeto, e vence a versão editada por último. No primeiro login, os projetos locais sobem para a conta; os projetos de exemplo intocados não são enviados para uma conta que já tem dados.
 - **Fila offline persistente**: cada criação, edição ou exclusão entra numa fila salva no aparelho. Sem internet, as alterações esperam e são enviadas sozinhas quando a conexão volta, mesmo depois de fechar o app.
 - **Envio agrupado**: a digitação é agrupada e enviada 1,5s depois da última tecla (no máximo a cada 10s), em vez de uma requisição por tecla.
@@ -206,6 +207,8 @@ O suporte ao [Supabase](https://supabase.com) é opcional. Se as variáveis não
    VITE_SUPABASE_ANON_KEY="sua-chave-anon"
    ```
 5. Pronto! Clique em `[ENTRAR]` no app, crie uma conta e seus projetos passam a ser sincronizados com a nuvem.
+
+> 📧 **E-mails (confirmação de cadastro e recuperação de senha)**: o serviço de e-mail embutido do Supabase envia poucos e-mails por hora e serve só para testes. Antes de abrir o app ao público, configure um SMTP próprio em **Authentication > Emails > SMTP Settings** (Resend, Brevo, Amazon SES e outros têm plano grátis). O texto dos e-mails fica em **Authentication > Emails > Templates**. O link de recuperação volta para o endereço do site, que precisa estar em **Authentication > URL Configuration**.
 
 ### 2. Ativar Login com Google (OAuth)
 
