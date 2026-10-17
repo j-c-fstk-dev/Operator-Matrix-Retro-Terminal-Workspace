@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { ProjectAttachment } from '../types';
 import { BUCKET_NAME } from './storageService';
+import { getT } from '../i18n';
 
 // Com o bucket privado, os arquivos só abrem por URLs assinadas e temporárias,
 // geradas para o usuário logado (dono da pasta). Funciona também com bucket público.
@@ -13,21 +14,21 @@ const cache = new Map<string, { url: string; expiresAt: number }>();
 /** Traduz erros do Supabase Storage em instruções para o usuário. */
 export function storageErrorHint(message: string): string {
   if (/bucket not found|nosuchbucket/i.test(message)) {
-    return 'Bucket "project-attachments" não encontrado ou sem permissão de leitura. Rode supabase/storage.sql no SQL Editor do Supabase e recarregue o app.';
+    return getT().storage.bucketMissing;
   }
   if (/row-level security|unauthorized|not authorized|permission|403/i.test(message)) {
-    return 'Sem permissão no Supabase Storage. Rode supabase/storage.sql para criar as políticas de acesso.';
+    return getT().storage.noPermission;
   }
   return message;
 }
 
 /** Gera um link assinado na hora (ex.: botão Baixar). Lança erro com mensagem amigável. */
 export async function createSignedUrlNow(path: string, downloadName?: string): Promise<string> {
-  if (!supabase || !isSupabaseConfigured) throw new Error('Supabase não configurado.');
+  if (!supabase || !isSupabaseConfigured) throw new Error(getT().storage.notConfigured);
   const { data, error } = await supabase.storage
     .from(BUCKET_NAME)
     .createSignedUrl(path, 60, downloadName ? { download: downloadName } : undefined);
-  if (error || !data?.signedUrl) throw new Error(storageErrorHint(error?.message || 'Falha ao gerar link.'));
+  if (error || !data?.signedUrl) throw new Error(storageErrorHint(error?.message || getT().storage.linkFailed));
   return data.signedUrl;
 }
 
@@ -39,7 +40,7 @@ async function signPaths(paths: string[]): Promise<string | null> {
   const { data, error } = await supabase.storage.from(BUCKET_NAME).createSignedUrls(missing, SIGNED_URL_TTL_S);
   if (error || !data) {
     console.warn('[Storage] Falha ao gerar URLs assinadas:', error?.message);
-    return error?.message || 'Falha ao gerar URLs assinadas.';
+    return error?.message || getT().storage.signFailed;
   }
   let itemError: string | null = null;
   data.forEach((item, i) => {

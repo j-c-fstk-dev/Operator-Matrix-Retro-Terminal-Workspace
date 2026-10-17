@@ -1,325 +1,343 @@
 # OPERATOR // MATRIX RETRO TERMINAL WORKSPACE
 
-> **Ambiente de produtividade e gerenciador de projetos pessoais com estética de terminal retrô Cyberpunk/Matrix (verde fósforo #22c55e), navegação 100% orientada a teclado (Vim/Linux), Quick-Find global, persistência local-first, sincronização opcional na nuvem via Supabase, anexos de arquivos e instalação como PWA.**
+🇧🇷 [Leia em português](README.pt-BR.md)
+
+> **A personal project workspace that looks like a green-phosphor terminal (#22c55e). Keyboard-first (Vim/Linux style), global Quick-Find, local-first storage, optional cloud sync through Supabase, file attachments, and installable as a PWA.**
 
 ---
 
-## ⚡ Visão Geral
+## ⚡ Overview
 
-O **Operator** é um espaço de trabalho pessoal criado sob medida para desenvolvedores, engenheiros de infraestrutura e entusiastas do ecossistema Linux/Unix que preferem uma interface rápida, limpa, sem distrações e com foco extremo em execução.
+**Operator** is a personal workspace for developers, infrastructure engineers and anyone who lives in Linux/Unix and wants a fast, clean interface with nothing in the way of getting things done.
 
-Inspirado no visual clássico dos monitores monocromáticos CRT e terminais dos anos 90, o sistema funciona em modo **Local-First**: seus projetos, tarefas com `#tags`, notas de arquitetura, snippets de código e anexos ficam salvos no `localStorage` do navegador e funcionam sem internet e sem conta.
+It borrows the look of 90s monochrome CRT monitors and terminals, and it works **local-first**: your projects, tasks with `#tags`, architecture notes, code snippets and attachments are saved in the browser's `localStorage`. It works offline and without an account.
 
-Quando você quiser usar o mesmo workspace no PC e no celular, basta **entrar com e-mail/senha ou Google**: os projetos passam a ser sincronizados com um banco **Supabase** (Postgres com Row Level Security) e os arquivos vão para o **Supabase Storage**. Sem Supabase configurado, o app continua 100% local.
+When you want the same workspace on your computer and your phone, **sign in with email/password or Google**: projects then sync with a **Supabase** database (Postgres with Row Level Security) and files go to **Supabase Storage**. Without Supabase configured, the app stays 100% local.
 
 ---
 
-## 🚀 Principais Funcionalidades
+## 🚀 Features
 
-### 1. 🟢 Estética Monocromática Matrix & Terminal CRT
-- **8 Cores de Terminal**: Matrix (verde, padrão), Verde-água, Azul Profundo, Roxo, Rosa Neon, Vermelho, Âmbar e Mono, escolhidas em **Preferências > Cor do Terminal**. Cada tema recalcula toda a paleta em OKLCH mantendo o contraste original.
-- **Chuva Digital (Matrix Rain)** em segundo plano renderizada em Canvas de alta performance com controle de opacidade e toggle instantâneo.
-- **Filtro de Scanlines CRT** simulando a textura de monitores fósforo verde vintage.
-- **Sintetizador de Áudio Terminal**: beeps e cliques mecânicos sintetizados em tempo real via **Web Audio API** (sem carregar arquivos de áudio externos).
-- **Fontes Monospaced & Cursores Piscantes** para reproduzir a sensação autêntica de um terminal Unix.
+### 1. 🟢 Monochrome Matrix look & CRT terminal
+- **8 terminal colors**: Matrix (green, default), Aqua, Deep Blue, Purple, Neon Pink, Red, Amber and Mono, picked in **Preferences > Terminal Color**. Each theme recomputes the whole palette in OKLCH and keeps the original contrast.
+- **Digital rain (Matrix Rain)** in the background, drawn on a fast Canvas, with an opacity slider and an instant toggle.
+- **CRT scanlines** that mimic an old green-phosphor monitor.
+- **Terminal sound**: beeps and mechanical clicks synthesized live with the **Web Audio API** (no audio files to download).
+- **Monospaced fonts and blinking cursors** for that real Unix terminal feel.
+- **English and Portuguese**: the app opens in your browser's language (Portuguese for `pt-*`, English for everything else). Switch in **Preferences > Language** or with `lang en` / `lang pt` in the prompt. Sample projects you haven't edited switch language too.
 
-### 2. 📁 Gestão Completa de Projetos & Tarefas
-- **Hierarquia de Tarefas & Subtarefas**: adicione tarefas com checklist encadeado, notas técnicas e níveis de prioridade (`CRIT`, `MED`, `LOW`).
-- **Sistema de `#tags` Coloridas Determinísticas**: tags como `#api`, `#docker`, `#security`, `#infra` e `#db` recebem automaticamente paletas de cores de terminal baseadas em hash.
-- **Filtros Rápidos**: visualize tarefas por status (*Todas*, *Pendentes*, *Concluídas*) ou clique em qualquer tag para filtrar em tempo real.
-- **Notas Técnicas & Snippets de Código**: armazene observações de arquitetura e comandos de terminal/código com cópia rápida para o clipboard em 1 clique.
-- **Abas por Bloco**: *Todos os Blocos*, *Tarefas*, *Observações*, *Snippets* e *Arquivos*.
+### 2. 📁 Projects & tasks
+- **Tasks and subtasks**: add tasks with nested checklists, technical notes and priority levels (`CRIT`, `MED`, `LOW`).
+- **Color-coded `#tags`**: tags like `#api`, `#docker`, `#security`, `#infra` and `#db` get a terminal color picked from a hash, so the same tag always has the same color.
+- **Quick filters**: show *All*, *Pending* or *Done* tasks, or click any tag to filter instantly.
+- **Technical notes & code snippets**: keep architecture notes and terminal commands or code, copied to the clipboard in one click.
+- **Block tabs**: *All Blocks*, *Tasks*, *Notes*, *Snippets* and *Files*.
 
-### 3. ☁️ Conta & Sincronização na Nuvem (Supabase) — opcional
-- **Login com E-mail/Senha ou Google (OAuth)** pelo botão `[ENTRAR]` ou pelo comando `login` no prompt (`Ctrl+K`).
-- **Merge sem perda de dados**: ao entrar, os projetos locais e os da nuvem são mesclados projeto a projeto, e vence a versão editada por último. No primeiro login, os projetos locais sobem para a conta; os projetos de exemplo intocados não são enviados para uma conta que já tem dados.
-- **Fila offline persistente**: cada criação, edição ou exclusão entra numa fila salva no aparelho. Sem internet, as alterações esperam e são enviadas sozinhas quando a conexão volta, mesmo depois de fechar o app.
-- **Envio agrupado**: a digitação é agrupada e enviada 1,5s depois da última tecla (no máximo a cada 10s), em vez de uma requisição por tecla.
-- **Retentativa automática**: se o Supabase falhar, o botão do topo mostra `Sync falhou (N)`, os dados continuam salvos localmente e o app tenta de novo com espera crescente.
-- **Atualização entre aparelhos**: ao voltar para a aba ou reconectar, o app busca as mudanças feitas nos outros aparelhos. Exclusões também são propagadas.
-- **Troca de conta segura**: se outra pessoa entrar no mesmo aparelho, os dados locais da conta anterior não são enviados para a nova conta.
-- **Status visível**: o botão do topo mostra `Nuvem OK`, `Sincronizando...`, `Pendente (N)` ou `Sync falhou (N)`.
-- **Envio manual**: o botão `ENVIAR PROJETOS PARA SUPABASE` (no modal da conta) força o envio de todos os projetos.
-- **Isolamento por usuário**: a tabela `projects` usa Row Level Security, então cada usuário só lê e altera os próprios projetos.
+### 3. ☁️ Account & cloud sync (Supabase), optional
+- **Email/password or Google (OAuth) sign-in** from the `[SIGN IN]` button or the `login` command in the prompt (`Ctrl+K`).
+- **Merge without data loss**: when you sign in, local and cloud projects are merged one project at a time, and the most recently edited version wins. On the first sign-in, local projects are uploaded to the account; untouched sample projects are not uploaded to an account that already has data.
+- **Persistent offline queue**: every create, edit or delete goes into a queue saved on the device. Offline, changes wait and go out on their own when the connection comes back, even after the app is closed.
+- **Batched uploads**: typing is grouped and sent 1.5s after the last keystroke (at most every 10s) instead of one request per key.
+- **Automatic retry**: if Supabase fails, the top button shows `Sync failed (N)`, your data stays saved locally and the app retries with growing delays.
+- **Cross-device updates**: when you come back to the tab or reconnect, the app pulls changes made on your other devices. Deletes are synced too.
+- **Safe account switching**: if someone else signs in on the same device, the previous account's local data is not uploaded to the new account.
+- **Visible status**: the top button shows `Cloud OK`, `Syncing...`, `Pending (N)` or `Sync failed (N)`.
+- **Manual upload**: the upload button in the account dialog forces every project to the cloud.
+- **Per-user isolation**: the `projects` table uses Row Level Security, so each user only reads and changes their own projects.
 
-> ℹ️ O merge é por projeto: se dois aparelhos editarem o **mesmo projeto** antes de sincronizar, vale a edição mais recente daquele projeto inteiro.
+> ℹ️ Merging is per project: if two devices edit the **same project** before syncing, the latest edit of that whole project wins.
 
-### 4. 📎 Anexos, Mídias & Arquivos de Código (Aba Arquivos)
-- **Upload Multiformato**: arraste e solte (Drag & Drop) ou selecione imagens, vídeos, PDFs, arquivos de código (`.ts`, `.py`, `.json`, `.sql`, `Dockerfile`, etc.), textos e arquivos compactados.
-- **Filtros por Tipo**: *Todos*, *Imagens*, *Vídeos*, *PDFs* e *Código/Texto*.
-- **Visualizadores Embutidos**:
-  - **Imagens**: miniaturas com lightbox para visualização em alta resolução.
-  - **Vídeos**: player integrado estilo terminal.
-  - **Documentos PDF**: leitor e download direto em 1 clique.
-  - **Código & Texto**: inspetor com pré-visualização monoespaçada e botão de cópia para o clipboard.
-- **Armazenamento Híbrido**:
-  - **Logado + bucket configurado**: o arquivo vai para o bucket privado `project-attachments` do Supabase Storage e fica disponível em todos os seus aparelhos (indicador de nuvem no card), até 50 MB por arquivo.
-  - **Sem login, offline ou bucket ausente**: o arquivo é salvo localmente neste navegador (indicador âmbar *"salvo apenas neste aparelho"*), até 2 MB por arquivo.
-- **Sincronizar Anexos Locais com 1 Clique**: quando existem anexos salvos só no aparelho, aparece um aviso com o botão `SINCRONIZAR COM A NUVEM`, que os envia ao Storage depois que você fizer login.
-- **Persistência Dupla dos Metadados**: a lista de anexos é gravada na coluna `attachments` e também embutida nas observações do projeto, então os anexos sincronizam mesmo em bancos criados antes dessa coluna existir.
+### 4. 📎 Attachments, media & code files (Files tab)
+- **Any format**: drag and drop or pick images, videos, PDFs, code files (`.ts`, `.py`, `.json`, `.sql`, `Dockerfile`, etc.), text and archives.
+- **Type filters**: *All*, *Images*, *Videos*, *PDFs* and *Code/Text*.
+- **Built-in viewers**:
+  - **Images**: thumbnails with a full-size lightbox.
+  - **Videos**: built-in player.
+  - **PDFs**: open or download in one click.
+  - **Code & text**: inspector with a monospaced preview and a copy button.
+- **Hybrid storage**:
+  - **Signed in + bucket set up**: the file goes to the private `project-attachments` bucket in Supabase Storage and shows up on all your devices (cloud badge on the card), up to 50 MB per file.
+  - **Signed out, offline or no bucket**: the file is saved locally in this browser (amber *"this device only"* badge), up to 2 MB per file.
+- **One-click upload of local files**: when some attachments only live on this device, a notice appears with a `SYNC TO CLOUD` button that uploads them once you sign in.
+- **Metadata saved twice**: the attachment list is stored in the `attachments` column and also embedded in the project's notes, so attachments sync even on databases created before that column existed.
 
-> ⚠️ Arquivos salvos localmente ficam no `localStorage`, que tem limite de poucos MB por site. Para vídeos e arquivos grandes, use o Supabase Storage.
+> ⚠️ Local files live in `localStorage`, which only holds a few MB per site. Use Supabase Storage for videos and big files.
 
-### 5. ⌨️ Navegação Rápida Orientada a Teclado (Vim & Linux)
-Opere o sistema sem tirar as mãos do teclado:
+### 5. ⌨️ Keyboard-first navigation (Vim & Linux)
+Run everything without leaving the keyboard:
 
-| Tecla / Atalho | Ação no Sistema | Analogia Linux / Git |
+| Key / shortcut | What it does | Linux / Git analogy |
 | :--- | :--- | :--- |
-| **`?`** ou **`F1`** | Abre o **Manual do Sistema (`MAN OPERATOR`)** | `man operator` / `:help` |
-| **`T`** | Foca no campo de **Nova Tarefa** imediatamente | `touch task.md` |
-| **`J` / `K`** (ou setas) | Navega entre as tarefas na lista | Vim cursor `j`/`k` |
-| **`X`** ou **`Espaço`** | Marca / desmarca a tarefa selecionada | `git commit -m "done"` |
-| **`Delete`** | Remove a tarefa selecionada | `git rm` |
-| **`1, 2, 3, 4, 5`** | Alterna entre as abas (*Todos*, *Tarefas*, *Observações*, *Snippets*, *Arquivos*) | Workspaces do i3 / tmux |
-| **`N`** | Cria um novo projeto | `git init <proj>` |
-| **`M`** | Exporta o projeto ativo como **Markdown** formatado | `git log > README.md` |
-| **`Ctrl + S`** | Força a gravação do cache local (`localStorage`) | `sync` |
-| **`Ctrl + K`** | Abre o **Prompt de Comandos CLI & Quick-Find** | Terminal / Shell |
-| **`B`** | Liga / desliga a Chuva Digital (Matrix Rain) | Background toggle |
-| **`S`** | Liga / muta o feedback sonoro do terminal | Audio bell toggle |
-| **`Esc`** | Fecha modais ou sai de campos de texto | Vim `<Esc>` / `:q` |
+| **`?`** or **`F1`** | Opens the **system manual (`MAN OPERATOR`)** | `man operator` / `:help` |
+| **`T`** | Focuses the **new task** field | `touch task.md` |
+| **`J` / `K`** (or arrows) | Moves between tasks | Vim cursor `j`/`k` |
+| **`X`** or **`Space`** | Checks / unchecks the selected task | `git commit -m "done"` |
+| **`Delete`** | Deletes the selected task | `git rm` |
+| **`1, 2, 3, 4, 5`** | Switches tabs (*All*, *Tasks*, *Notes*, *Snippets*, *Files*) | i3 / tmux workspaces |
+| **`N`** | Creates a new project | `git init <proj>` |
+| **`M`** | Copies the active project as **Markdown** | `git log > README.md` |
+| **`Ctrl + S`** | Forces a save of the local cache (`localStorage`) | `sync` |
+| **`Ctrl + K`** | Opens the **CLI command prompt & Quick-Find** | Terminal / shell |
+| **`B`** | Turns the digital rain on / off | Background toggle |
+| **`S`** | Turns terminal sound on / off | Audio bell toggle |
+| **`Esc`** | Closes dialogs or leaves text fields | Vim `<Esc>` / `:q` |
 
-### 6. 🔍 Quick-Find no Prompt de Comandos (`Cmd+K` / `Ctrl+K`)
-- **Busca Simultânea**: pesquise instantaneamente em títulos de tarefas, `#tags`, subtarefas e nomes, categorias e descrições de projetos.
-- **Salto Direto com Auto-Scroll**: ao selecionar uma tarefa nos resultados (via clique ou `Enter`), o workspace pula para o projeto pai, rola até a tarefa e a destaca com efeito fosforescente.
-- **Comandos Executáveis no Prompt**:
-  - `git checkout <nome>` (ou `switch <nome>`): troca para o projeto informado.
-  - `git init <nome>` (ou `new <nome>`): cria um projeto já com o título informado.
-  - `git commit`, `export` ou `md`: copia o projeto em Markdown para o clipboard.
-  - `git status` (ou `status`): exibe o resumo de tarefas concluídas e pendentes.
-  - `+ <tarefa> #tag` (ou `task: <tarefa>`): cadastra uma tarefa rápida com tags.
-  - `#<tag>`: filtra tarefas de todos os projetos pela tag.
-  - `login`, `auth`, `nuvem`, `entrar` ou `sair`: abre o modal de conta / sincronização.
-  - `pwa`, `instalar` ou `install`: instala o app no dispositivo.
-  - `man`, `help`, `:help` ou `?`: abre o manual.
+### 6. 🔍 Quick-Find in the command prompt (`Cmd+K` / `Ctrl+K`)
+- **Searches everything at once**: task titles, `#tags`, subtasks, and project names, categories and descriptions.
+- **Jumps straight to the task**: pick a task in the results (click or `Enter`) and the workspace opens its project, scrolls to it and highlights it with a phosphor glow.
+- **Commands you can run**:
+  - `git checkout <name>` (or `switch <name>`): switches to that project.
+  - `git init <name>` (or `new <name>`): creates a project with that title.
+  - `git commit`, `export` or `md`: copies the project as Markdown.
+  - `git status` (or `status`): shows done and pending task counts.
+  - `+ <task> #tag` (or `task: <task>`): adds a quick task with tags.
+  - `#<tag>`: filters tasks across every project by tag.
+  - `login`, `signin`, `cloud` or `logout`: opens the account / sync dialog.
+  - `pwa` or `install`: installs the app on the device.
+  - `man`, `help`, `:help` or `?`: opens the manual.
+  - `lang en` or `lang pt` (also `language`): switches the interface language.
 
-### 7. 💾 Central de Backup & Migração (.JSON)
-- **Download em 1 Clique**: baixe um arquivo com todos os seus projetos, tarefas, tags, anotações, metadados de anexos e preferências (ex: `operator_backup_2026-10-05.json`).
-- **Restauração em Outro Dispositivo**: faça upload do `.json` escolhendo **Substituir Tudo** ou **Mesclar com Atuais**. A gravação no `localStorage` é imediata e, se você estiver logado, os projetos importados também são enviados para a nuvem.
-- Funciona sem conta: é a forma de migrar dados entre aparelhos sem usar o Supabase.
+### 7. 💾 Backup & migration (.JSON)
+- **One-click download**: a file with every project, task, tag, note, attachment metadata and preference (e.g. `operator_backup_2026-10-05.json`).
+- **Restore on another device**: upload the `.json` and choose **Replace everything** or **Merge with current**. It is written to `localStorage` right away and, if you are signed in, the imported projects are also uploaded to the cloud.
+- Works without an account: it's how you move data between devices without Supabase.
 
-### 8. 📱 PWA Instalável (Offline & Standalone)
-- **Instalação Nativa**: instale no Android, Windows, macOS e Linux pelo botão `[Instalar App]` ou pelo menu do navegador. Quando o navegador não oferece a instalação automática, o botão mostra o passo a passo certo para cada navegador (Chrome, Edge, Samsung Internet, Firefox e Safari no iPhone/iPad) e avisa quando o link foi aberto dentro de apps como Instagram ou Facebook, que não instalam PWA.
-- **Janela Standalone**: roda sem barra de URL, com ícone próprio na tela de início/desktop.
-- **Atualização automática**: ao abrir o app e sempre que ele volta para a tela, o app procura uma versão nova e recarrega sozinho, sem precisar fechar e reabrir. A versão em execução (commit · data) aparece no rodapé do Manual e das Preferências.
-- **Funciona Offline**: assets, fontes e scripts ficam em cache. Um indicador âmbar `MODO OFFLINE` aparece quando a conexão cai, e o app continua operando no cache local.
+### 8. 📱 Installable PWA (offline & standalone)
+- **Native install**: install on Android, Windows, macOS and Linux from the `[Install App]` button or the browser menu. When the browser doesn't offer automatic install, the button shows the right steps for each browser (Chrome, Edge, Samsung Internet, Firefox and Safari on iPhone/iPad) and warns you when the link was opened inside apps like Instagram or Facebook, which can't install PWAs.
+- **Standalone window**: runs without the URL bar, with its own icon on the home screen or desktop.
+- **Automatic updates**: when the app opens and whenever it comes back to the screen, it checks for a new version and reloads by itself. The running version (commit · date) is shown at the bottom of the Manual and Preferences.
+- **Works offline**: assets, fonts and scripts are cached. An amber `OFFLINE MODE` badge appears when the connection drops, and the app keeps running on the local cache.
 
-### 9. 📄 Exportação para Markdown
-- Com um clique no botão **`Exportar MD`** (ou tecla `M`), tarefas, observações e snippets do projeto ativo são compilados em Markdown limpo e copiados para a área de transferência, prontos para virar um `README.md` ou documentação no GitHub.
+### 9. 📄 Markdown export
+- One click on **`Export MD`** (or the `M` key) turns the active project's tasks, notes and snippets into clean Markdown on your clipboard, ready to become a `README.md` or GitHub docs.
 
 ---
 
-## 🛠️ Stack Tecnológica
+## 🛠️ Tech stack
 
 - **Framework**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- **Bundler & Dev Server**: [Vite](https://vite.dev/)
-- **Estilização**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **Backend opcional**: [Supabase](https://supabase.com) (Auth, Postgres com RLS e Storage) via `@supabase/supabase-js`
+- **Bundler & dev server**: [Vite](https://vite.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Optional backend**: [Supabase](https://supabase.com) (Auth, Postgres with RLS and Storage) via `@supabase/supabase-js`
 - **PWA**: [vite-plugin-pwa](https://vite-pwa-org.netlify.app/) (Workbox)
-- **Ícones**: [Lucide React](https://lucide.dev/)
-- **Áudio**: Web Audio API com sintetizador oscilador customizado (sem assets externos)
-- **Animações Canvas**: HTML5 Canvas para a chuva digital Matrix
-- **Testes Automatizados**: Node.js assert nativo + tsx runner
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Audio**: Web Audio API with a custom oscillator synth (no external assets)
+- **Canvas animation**: HTML5 Canvas for the Matrix digital rain
+- **Languages**: typed dictionaries in `src/i18n` (Portuguese and English, no extra library)
+- **Tests**: native Node.js assert + tsx runner
 
 ---
 
-## 📦 Como Instalar e Rodar Localmente
+## 📦 Install and run locally
 
-### Pré-requisitos
-- Node.js 20.19 ou superior (exigido pelo Vite 8)
-- npm (ou bun / pnpm)
+### Requirements
+- Node.js 20.19 or newer (required by Vite 8)
+- npm (or bun / pnpm)
 
-### 1. Clonar o repositório
+### 1. Clone the repository
 ```bash
 git clone https://github.com/j-c-fstk-dev/Operator-Matrix-Retro-Terminal-Workspace.git
 cd Operator-Matrix-Retro-Terminal-Workspace
 ```
 
-### 2. Instalar dependências
+### 2. Install dependencies
 ```bash
 npm install
 ```
 
-### 3. (Opcional) Configurar o Supabase
-Copie o arquivo de exemplo e preencha as chaves (veja a seção [Configuração do Supabase](#️-configuração-do-supabase-autenticação-banco--storage)):
+### 3. (Optional) Configure Supabase
+Copy the example file and fill in the keys (see [Supabase setup](#️-supabase-setup-auth-database--storage)):
 ```bash
 cp .env.example .env
 ```
-Sem essas variáveis, o app roda em modo 100% local.
+Without these variables, the app runs 100% locally.
 
-### 4. Iniciar o servidor de desenvolvimento
+### 4. Start the dev server
 ```bash
 npm run dev
 ```
-O aplicativo estará disponível em: `http://localhost:3000`
+The app runs at `http://localhost:3000`.
 
-### 5. Verificar tipos e executar os testes
+### 5. Type-check and run the tests
 ```bash
-npm run lint   # checagem de tipos com tsc
-npm test       # suíte de testes automatizados
+npm run lint   # type check with tsc
+npm test       # automated test suite
 ```
 
-### 6. Compilar para produção
+### 6. Build for production
 ```bash
 npm run build
-npm run preview   # opcional: testa o build localmente
+npm run preview   # optional: try the build locally
 ```
-Os arquivos prontos para deploy estático serão gerados no diretório `/dist`.
+The static files ready to deploy go to `/dist`.
 
 ---
 
-## 🌐 Deploy em Produção (Netlify, Vercel ou GitHub Pages)
+## 🌐 Deploying (Netlify, Vercel or GitHub Pages)
 
-Como o Operator é uma **SPA estática (Single Page Application)**, o deploy pode ser feito gratuitamente em qualquer hospedagem estática. O arquivo `public/_redirects` já redireciona todas as rotas para o `index.html` no Netlify.
+Operator is a **static SPA (single page application)**, so any static host works, including free tiers. `public/_redirects` already sends every route to `index.html` on Netlify.
 
-### No Netlify:
-1. Conecte o repositório Git ou arraste a pasta `dist` gerada pelo comando `npm run build`.
-2. Configure as opções de Build:
-   - **Build Command**: `npm run build`
-   - **Publish Directory**: `dist`
-3. Se estiver usando o Supabase, adicione as variáveis em **Site configuration > Environment variables**:
-   - `VITE_SUPABASE_URL`: URL do projeto Supabase
-   - `VITE_SUPABASE_ANON_KEY`: chave pública `anon` do Supabase
+### On Netlify
+1. Connect the Git repository, or drag the `dist` folder produced by `npm run build`.
+2. Build settings:
+   - **Build command**: `npm run build`
+   - **Publish directory**: `dist`
+3. If you use Supabase, add these under **Site configuration > Environment variables**:
+   - `VITE_SUPABASE_URL`: your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY`: your Supabase public `anon` key
 
-> As variáveis `VITE_*` são embutidas no bundle durante o build. Depois de adicioná-las ou alterá-las, faça um novo deploy.
+> `VITE_*` variables are baked into the bundle at build time. After adding or changing them, deploy again.
 
 ---
 
-## 🗄️ Configuração do Supabase (Autenticação, Banco & Storage)
+## 🗄️ Supabase setup (auth, database & storage)
 
-O suporte ao [Supabase](https://supabase.com) é opcional. Se as variáveis não estiverem configuradas, o app continua funcionando em modo 100% local (offline).
+[Supabase](https://supabase.com) is optional. Without the variables, the app keeps working 100% locally (offline).
 
-### 1. Criar o projeto e o banco de dados
+### 1. Create the project and database
 
-1. **Crie um projeto gratuito no [Supabase](https://supabase.com)**.
-2. Acesse **Project Settings > API** e copie:
+1. **Create a free project on [Supabase](https://supabase.com)**.
+2. Open **Project Settings > API** and copy:
    - `Project URL`
    - `anon public key`
-3. Abra o **SQL Editor**, cole o conteúdo de `supabase/schema.sql` e clique em **RUN**. O script cria a tabela `projects` (com a coluna `attachments`), ativa o **Row Level Security** para que cada usuário só acesse os próprios projetos e cria os índices. Ele pode ser executado de novo com segurança para migrar bancos antigos.
-4. Adicione as variáveis no seu `.env` local ou no painel do Netlify:
+3. Open the **SQL Editor**, paste `supabase/schema.sql` and click **RUN**. The script creates the `projects` table (with the `attachments` column), turns on **Row Level Security** so each user only sees their own projects, and adds the indexes. It is safe to run again to migrate older databases.
+4. Add the variables to your local `.env` or to Netlify:
    ```env
-   VITE_SUPABASE_URL="https://seu-projeto.supabase.co"
-   VITE_SUPABASE_ANON_KEY="sua-chave-anon"
+   VITE_SUPABASE_URL="https://your-project.supabase.co"
+   VITE_SUPABASE_ANON_KEY="your-anon-key"
    ```
-5. Pronto! Clique em `[ENTRAR]` no app, crie uma conta e seus projetos passam a ser sincronizados com a nuvem.
+5. Done. Click `[SIGN IN]` in the app, create an account and your projects start syncing.
 
-### 2. Ativar Login com Google (OAuth)
+### 2. Turn on Google sign-in (OAuth)
 
-1. No painel do **Supabase**, vá em **Authentication** > **Providers** > **Google** e marque como habilitado.
-2. Copie o **Callback URL (for OAuth)** exibido ali (ex: `https://<seu-projeto>.supabase.co/auth/v1/callback`).
-3. Acesse o [Google Cloud Console](https://console.cloud.google.com/):
-   - Crie ou selecione um projeto.
-   - Configure a **OAuth consent screen** (tipo *External*).
-   - Vá em **Credentials** > **Create Credentials** > **OAuth client ID** > Tipo: **Web application**.
-   - Em **Authorized redirect URIs**, adicione a URL copiada do Supabase.
-   - Copie o **Client ID** e o **Client Secret** gerados.
-4. Volte ao provider do Google no Supabase, cole o **Client ID** e o **Client Secret** e clique em **Save**.
-5. Em **Authentication** > **URL Configuration**, adicione a URL do seu site (ex: `https://seu-app.netlify.app`) e, para desenvolvimento, `http://localhost:3000` em **Redirect URLs**. Após o login, o Google redireciona de volta para a origem onde o app está aberto.
+1. In **Supabase**, go to **Authentication** > **Providers** > **Google** and enable it.
+2. Copy the **Callback URL (for OAuth)** shown there (e.g. `https://<your-project>.supabase.co/auth/v1/callback`).
+3. In the [Google Cloud Console](https://console.cloud.google.com/):
+   - Create or pick a project.
+   - Set up the **OAuth consent screen** (type *External*).
+   - Go to **Credentials** > **Create Credentials** > **OAuth client ID** > type **Web application**.
+   - Under **Authorized redirect URIs**, add the URL you copied from Supabase.
+   - Copy the generated **Client ID** and **Client Secret**.
+4. Back in the Google provider in Supabase, paste the **Client ID** and **Client Secret** and click **Save**.
+5. In **Authentication** > **URL Configuration**, add your site URL (e.g. `https://your-app.netlify.app`) and, for development, `http://localhost:3000` under **Redirect URLs**. After signing in, Google sends you back to the origin where the app is open.
 
-### 3. Ativar o Upload de Arquivos (Supabase Storage)
+### 3. Turn on file uploads (Supabase Storage)
 
-1. No **SQL Editor**, cole o conteúdo de `supabase/storage.sql` e clique em **RUN**. O script cria o bucket **privado** `project-attachments` com limite de 50 MB por arquivo e as políticas que deixam cada usuário acessar só a própria pasta. Se o bucket já existir como público, ele vira privado.
-2. Pronto! Os arquivos abrem por **links temporários assinados** (válidos por 1 hora e renovados automaticamente), gerados só para o dono.
+1. In the **SQL Editor**, paste `supabase/storage.sql` and click **RUN**. The script creates the **private** `project-attachments` bucket with a 50 MB per-file limit and the policies that let each user reach only their own folder. If the bucket already exists as public, it becomes private.
+2. Done. Files open through **temporary signed links** (valid for 1 hour and renewed automatically), created only for their owner.
 
-> Se o bucket ou as políticas estiverem faltando, o app salva o arquivo localmente (até 2 MB) e depois você pode enviá-lo com `SINCRONIZAR COM A NUVEM`.
+> If the bucket or policies are missing, the app saves the file locally (up to 2 MB) and you can upload it later with `SYNC TO CLOUD`.
 
-**Limites de tamanho**: até 50 MB por arquivo na nuvem (máximo do plano grátis do Supabase) e até 2 MB por arquivo salvo só no aparelho.
+**Size limits**: up to 50 MB per file in the cloud (the Supabase free plan maximum) and up to 2 MB per file kept on the device only.
 
-Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_<nome-do-arquivo>`.
+Files are stored in the bucket as `<user_id>/<project_id>/<timestamp>_<file-name>`.
 
 ---
 
-## 🛰️ Landing Page (`landing/`)
+## 🛰️ Landing page (`landing/`)
 
-Página de apresentação estática (HTML, CSS e JS sem build) com um prompt Ctrl+K que funciona, os 8 temas, a chuva Matrix e a lista de espera do Sync Pro. O plano de design e as verificações estão em `landing/DESIGN.md`.
+A static page (HTML, CSS and JS with no build step) with a working Ctrl+K prompt, the 8 themes, the Matrix rain and the Sync Pro waitlist. The design plan and checks are in `landing/DESIGN.md`.
 
-### Publicar no Netlify (segundo site, mesmo repositório)
+Two languages: English at the root (`/`) and Portuguese at `/pt/`. Browsers set to Portuguese are redirected to `/pt/`, and the EN/PT switch at the top remembers the choice.
 
-1. No Netlify: **Add new site > Import an existing project** e escolha este repositório.
-2. Em **Base directory**, coloque `landing`. O resto vem do `landing/netlify.toml` (build `node build-config.mjs`, publicação da própria pasta, cabeçalhos de segurança).
-3. Em **Site configuration > Environment variables**, adicione `VITE_SUPABASE_URL` e `VITE_SUPABASE_ANON_KEY` (os mesmos valores do app).
-4. No Supabase, rode `supabase/waitlist.sql` no SQL Editor. Os inscritos aparecem em **Table Editor > waitlist**.
+### Publish on Netlify (second site, same repository)
 
-Sem as variáveis, a página funciona e a lista de espera avisa que está desligada.
+1. In Netlify: **Add new site > Import an existing project** and pick this repository.
+2. Set **Base directory** to `landing`. Everything else comes from `landing/netlify.toml` (build `node build-config.mjs`, publish the folder itself, security headers).
+3. Under **Site configuration > Environment variables**, add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` (same values as the app).
+4. In Supabase, run `supabase/waitlist.sql` in the SQL Editor. Sign-ups show up in **Table Editor > waitlist**.
 
+Without the variables, the page still works and the waitlist says it is turned off.
 
+---
+
+## 📂 Project structure
 
 ```
 ├── public/
-│   ├── _redirects                 # Fallback de rotas SPA para o Netlify
-│   └── icon.svg, pwa-*.png, ...   # Ícones do PWA, favicon e apple-touch-icon
+│   ├── _redirects                 # SPA route fallback for Netlify
+│   └── icon.svg, pwa-*.png, ...   # PWA icons, favicon and apple-touch-icon
 ├── scripts/
-│   └── generate-png-icons.js      # Gera os ícones PNG do PWA
-├── landing/                   # Landing page estática (ver landing/DESIGN.md)
+│   └── generate-png-icons.js      # Generates the PWA PNG icons
+├── landing/                       # Static landing page (see landing/DESIGN.md)
 ├── supabase/
-│   ├── schema.sql                 # Tabela projects, RLS e índices no Supabase
-│   ├── storage.sql                # Bucket privado de anexos e políticas de acesso
-│   └── waitlist.sql               # Lista de espera do Sync Pro (só INSERT pela chave pública)
+│   ├── schema.sql                 # projects table, RLS and indexes
+│   ├── storage.sql                # Private attachments bucket and access policies
+│   └── waitlist.sql               # Sync Pro waitlist (INSERT only with the public key)
 ├── src/
 │   ├── components/
-│   │   ├── AuthModal.tsx          # Login (e-mail/senha e Google) e envio de projetos para a nuvem
-│   │   ├── BackupModal.tsx        # Central de backup, download e upload JSON
-│   │   ├── CommandPalette.tsx     # Prompt de comandos CLI (Ctrl+K) & Quick-Find
-│   │   ├── ManualModal.tsx        # Manual completo de atalhos e comandos Unix (man)
-│   │   ├── MatrixRainCanvas.tsx   # Canvas de chuva digital Matrix em segundo plano
-│   │   ├── OfflineIndicator.tsx   # Aviso de modo offline
-│   │   ├── ProjectAttachments.tsx # Aba de arquivos: upload, visualizadores e sync de anexos
-│   │   ├── ProjectWorkspace.tsx   # Painel principal do projeto com tarefas e abas
-│   │   ├── PWAInstallButton.tsx   # Botão de instalação do PWA e guia para iOS
-│   │   ├── SettingsModal.tsx      # Preferências de áudio, scanlines e reset
-│   │   └── Sidebar.tsx            # Barra lateral retrô com projetos e controles
-│   ├── hooks/
-│   │   ├── useOnlineStatus.ts     # Detecta conexão online/offline
-│   │   └── usePWAInstall.ts       # Captura o prompt de instalação do PWA
-│   ├── lib/
-│   │   ├── appInfo.ts             # Link do código-fonte e licença exibidos no app
-│   │   └── supabase.ts            # Cliente do Supabase (desativado sem variáveis de ambiente)
-│   ├── pwa/
-│   │   └── installPrompt.ts       # Captura antecipada do prompt de instalação e detecção de navegador
-│   ├── theme/
-│   │   ├── themes.ts              # Temas de cor e conversão OKLCH
-│   │   ├── basePalette.ts         # Tons base do tema Matrix (gerado)
-│   │   └── palette.css            # Variáveis CSS --t-<hex> padrão (gerado)
-│   ├── sync/
-│   │   ├── merge.ts               # Merge local x nuvem sem perda de dados (função pura)
-│   │   ├── syncState.ts           # Fila offline e metadados de sincronização
-│   │   └── useCloudSync.ts        # Envio agrupado, retentativas e atualização entre aparelhos
-│   ├── services/
-│   │   ├── attachmentUrls.ts      # URLs assinadas e temporárias dos anexos
-│   │   ├── supabaseService.ts     # CRUD e mapeamento dos projetos no Postgres
-│   │   └── storageService.ts      # Upload/remoção de anexos no Storage com fallback local
+│   │   ├── AuthModal.tsx          # Sign-in (email/password and Google) and project upload
+│   │   ├── BackupModal.tsx        # Backup center, JSON download and upload
+│   │   ├── CommandPalette.tsx     # CLI command prompt (Ctrl+K) & Quick-Find
+│   │   ├── ManualModal.tsx        # Full manual of shortcuts and commands (man)
+│   │   ├── MatrixRainCanvas.tsx   # Matrix digital rain canvas in the background
+│   │   ├── OfflineIndicator.tsx   # Offline mode notice
+│   │   ├── ProjectAttachments.tsx # Files tab: upload, viewers and attachment sync
+│   │   ├── ProjectWorkspace.tsx   # Main project panel with tasks and tabs
+│   │   ├── PWAInstallButton.tsx   # PWA install button and per-browser guide
+│   │   ├── SettingsModal.tsx      # Preferences: color, language, rain, sound, reset
+│   │   └── Sidebar.tsx            # Retro sidebar with projects and controls
 │   ├── data/
-│   │   └── initialData.ts         # Dados de exemplo pré-carregados
+│   │   ├── initialData.ts         # Sample projects (Portuguese) and untouched-sample detection
+│   │   └── initialData.en.ts      # Sample projects in English (same ids)
+│   ├── hooks/
+│   │   ├── useOnlineStatus.ts     # Online/offline detection
+│   │   └── usePWAInstall.ts       # Captures the PWA install prompt
+│   ├── i18n/
+│   │   ├── pt.ts / en.ts          # Interface text in Portuguese and English (same keys)
+│   │   ├── index.tsx              # useT(), getT(), browser language detection
+│   │   └── Rich.tsx               # Bold text and icons inside translated sentences
+│   ├── lib/
+│   │   ├── appInfo.ts             # Source code link and license shown in the app
+│   │   └── supabase.ts            # Supabase client (off without environment variables)
+│   ├── pwa/
+│   │   └── installPrompt.ts       # Early install prompt capture and browser detection
+│   ├── services/
+│   │   ├── attachmentUrls.ts      # Temporary signed URLs for attachments
+│   │   ├── storageService.ts      # Attachment upload/removal with local fallback
+│   │   └── supabaseService.ts     # Project CRUD and mapping in Postgres
+│   ├── sync/
+│   │   ├── merge.ts               # Local vs cloud merge without data loss (pure function)
+│   │   ├── syncState.ts           # Offline queue and sync metadata
+│   │   └── useCloudSync.ts        # Batched uploads, retries and cross-device updates
+│   ├── theme/
+│   │   ├── themes.ts              # Color themes and OKLCH conversion
+│   │   ├── basePalette.ts         # Base Matrix theme shades (generated)
+│   │   └── palette.css            # Default --t-<hex> CSS variables (generated)
 │   ├── utils/
-│   │   ├── audio.ts               # Sintetizador Web Audio para feedback sonoro
-│   │   └── tagColors.ts           # Gerador determinístico de cores de terminal para #tags
-│   ├── types.ts                   # Definições de tipos TypeScript
-│   ├── App.tsx                    # Componente raiz, estado global, sync e atalhos
-│   └── main.tsx                   # Ponto de entrada da aplicação
+│   │   ├── audio.ts               # Web Audio synth for sound feedback
+│   │   └── tagColors.ts           # Deterministic terminal colors for #tags
+│   ├── types.ts                   # TypeScript types
+│   ├── App.tsx                    # Root component, global state, sync and shortcuts
+│   └── main.tsx                   # App entry point
 ├── tests/
-│   └── suite.test.ts              # Suíte de testes automatizados
-├── index.html                     # Entrypoint HTML com meta tags do PWA
-├── vite.config.ts                 # Configuração do Vite, Tailwind e PWA
-└── package.json                   # Dependências e scripts
+│   └── suite.test.ts              # Automated test suite
+├── index.html                     # HTML entry with PWA meta tags
+├── vite.config.ts                 # Vite, Tailwind and PWA config
+└── package.json                   # Dependencies and scripts
 ```
 
----
+### Adding or changing text
 
-## 🔒 Privacidade & Segurança
-
-- **Modo Local (sem login)**: nenhum dado de projeto ou arquivo sai do seu navegador.
-- **Aviso de armazenamento cheio**: se o `localStorage` do navegador lotar, o app avisa em vez de falhar em silêncio.
-- **Modo Nuvem (com login)**: projetos ficam no seu projeto Supabase, protegidos por Row Level Security (cada usuário só acessa as próprias linhas).
-- **Anexos privados**: o bucket `project-attachments` é privado. Os arquivos só abrem por links temporários (1 hora) gerados para o dono da conta.
-- **Seus Dados Pertencem a Você**: baixe seu backup em `.json` a qualquer momento para garantir a custódia das suas informações.
+Every piece of interface text lives in `src/i18n/pt.ts` and `src/i18n/en.ts`. `en.ts` is typed against `pt.ts`, so a missing key or a different parameter fails `npm run lint`, and the test suite checks both files have the same shape. In components use `const t = useT()`; outside React (sync and storage messages) use `getT()`.
 
 ---
 
-## 📄 Licença
+## 🔒 Privacy & security
 
-Distribuído sob a **GNU Affero General Public License v3.0** (`AGPL-3.0-only`). Veja o arquivo [LICENSE](LICENSE).
+- **Local mode (signed out)**: no project data or file leaves your browser.
+- **Storage full warning**: if the browser's `localStorage` fills up, the app tells you instead of failing silently.
+- **Cloud mode (signed in)**: projects live in your Supabase project, protected by Row Level Security (each user only reaches their own rows).
+- **Private attachments**: the `project-attachments` bucket is private. Files only open through temporary links (1 hour) created for the account owner.
+- **Your data is yours**: download a `.json` backup at any time to keep custody of your information.
 
-Em resumo:
-- Você pode usar, estudar, modificar e hospedar o Operator, inclusive para uso próprio ou da sua empresa.
-- Se você distribuir uma versão modificada **ou oferecê-la como serviço pela internet**, precisa disponibilizar o código-fonte dessas modificações sob a mesma licença.
-- O app exibe um link para o código-fonte nas Preferências e no Manual, conforme a seção 13 da AGPL.
+---
+
+## 📄 License
+
+Released under the **GNU Affero General Public License v3.0** (`AGPL-3.0-only`). See [LICENSE](LICENSE).
+
+In short:
+- You can use, study, change and host Operator, including for yourself or your company.
+- If you distribute a modified version **or offer it as a service over the internet**, you must make the source code of those changes available under the same license.
+- The app links to its source code in Preferences and in the Manual, as required by section 13 of the AGPL.

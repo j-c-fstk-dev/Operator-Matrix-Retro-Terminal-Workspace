@@ -1,4 +1,6 @@
 import { Project, WorkspaceSettings } from '../types';
+import type { Lang } from '../i18n';
+import { SEED_PROJECTS_EN } from './initialData.en';
 
 export const DEFAULT_SETTINGS: WorkspaceSettings = {
   rainEnabled: true,
@@ -10,7 +12,8 @@ export const DEFAULT_SETTINGS: WorkspaceSettings = {
   rainScale: 2,
 };
 
-export const INITIAL_PROJECTS: Project[] = [
+// Projetos de exemplo em português (a versão em inglês fica em initialData.en.ts).
+export const SEED_PROJECTS_PT: Project[] = [
   {
     id: 'proj-nebu-relay',
     title: 'Nebuchadnezzar: Relay de Telemetria e Logs',
@@ -343,10 +346,31 @@ function contentSignature(p: Project): string {
   });
 }
 
-const SEED_SIGNATURES = new Map(INITIAL_PROJECTS.map((p) => [p.id, contentSignature(p)]));
+/** Exemplos iniciais no idioma pedido. */
+export function getInitialProjects(lang: Lang): Project[] {
+  return lang === 'en' ? SEED_PROJECTS_EN : SEED_PROJECTS_PT;
+}
 
-/** true se o projeto é um dos exemplos iniciais e nunca foi editado. */
+// Um exemplo intocado pode estar em qualquer um dos idiomas (o usuário pode ter trocado depois).
+const SEED_SIGNATURES = new Set([...SEED_PROJECTS_PT, ...SEED_PROJECTS_EN].map((p) => `${p.id}|${contentSignature(p)}`));
+
+/** true se o projeto é um dos exemplos iniciais (em português ou inglês) e nunca foi editado. */
 export function isPristineSeedProject(p: Project): boolean {
-  const seed = SEED_SIGNATURES.get(p.id);
-  return seed !== undefined && seed === contentSignature(p);
+  return SEED_SIGNATURES.has(`${p.id}|${contentSignature(p)}`);
+}
+
+/**
+ * Troca os exemplos nunca editados pela versão no idioma pedido (mantendo as datas).
+ * Devolve a mesma lista quando não há nada para trocar, para não disparar gravações à toa.
+ */
+export function localizeSeedProjects(projects: Project[], lang: Lang): Project[] {
+  const target = new Map(getInitialProjects(lang).map((p) => [p.id, p]));
+  let changed = false;
+  const next = projects.map((p) => {
+    const seed = target.get(p.id);
+    if (!seed || !isPristineSeedProject(p) || contentSignature(seed) === contentSignature(p)) return p;
+    changed = true;
+    return { ...seed, createdAt: p.createdAt, updatedAt: p.updatedAt };
+  });
+  return changed ? next : projects;
 }

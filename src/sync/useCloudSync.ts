@@ -3,7 +3,8 @@ import { User } from '@supabase/supabase-js';
 import { Project } from '../types';
 import { supabaseService } from '../services/supabaseService';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { INITIAL_PROJECTS, isPristineSeedProject } from '../data/initialData';
+import { getInitialProjects, isPristineSeedProject } from '../data/initialData';
+import { getLang, getT } from '../i18n';
 import { mergeProjects } from './merge';
 import {
   Outbox,
@@ -106,7 +107,7 @@ export function useCloudSync({ user, projects, setProjects, showToast }: UseClou
       metaRef.current = { ownerId: u.id, syncedIds: [...synced] };
       saveSyncMeta(metaRef.current);
 
-      if (t.errorNotified) showToastRef.current('[NUVEM] Conexão restabelecida. Alterações sincronizadas.');
+      if (t.errorNotified) showToastRef.current(getT().sync.reconnected);
       t.retryDelay = 0;
       t.errorNotified = false;
       setPhase('idle');
@@ -115,7 +116,7 @@ export function useCloudSync({ user, projects, setProjects, showToast }: UseClou
       console.error('[Sync] Falha ao enviar alterações:', err);
       setPhase('error');
       if (!t.errorNotified) {
-        showToastRef.current(`[NUVEM] Falha ao sincronizar (${err?.message || 'erro'}). Dados salvos localmente; nova tentativa em breve.`);
+        showToastRef.current(getT().sync.pushFailed(err?.message || getT().sync.error));
         t.errorNotified = true;
       }
       t.retryDelay = Math.min(Math.max(t.retryDelay * 2, RETRY_MIN_MS), RETRY_MAX_MS);
@@ -180,7 +181,7 @@ export function useCloudSync({ user, projects, setProjects, showToast }: UseClou
           isPristineSeed: isPristineSeedProject,
         };
         const result = mergeProjects({ ...input, local: projectsRef.current });
-        const withFallback = (list: Project[]) => (list.length > 0 ? list : INITIAL_PROJECTS);
+        const withFallback = (list: Project[]) => (list.length > 0 ? list : getInitialProjects(getLang()));
 
         if (result.foreignDataDiscarded) commitOutbox({});
         metaRef.current = result.meta;
@@ -198,17 +199,17 @@ export function useCloudSync({ user, projects, setProjects, showToast }: UseClou
 
         if (reason === 'login') {
           if (result.foreignDataDiscarded) {
-            showToastRef.current(`[NUVEM] Conta trocada: ${cloud.length} projetos carregados da nuvem.`);
+            showToastRef.current(getT().sync.accountSwitched(cloud.length));
           } else if (result.toUpload.length > 0 && cloud.length === 0) {
-            showToastRef.current(`[NUVEM] ${result.toUpload.length} projetos locais enviados para sua conta!`);
+            showToastRef.current(getT().sync.uploaded(result.toUpload.length));
           } else {
-            showToastRef.current(`[NUVEM] ${result.projects.length} projetos sincronizados via Supabase!`);
+            showToastRef.current(getT().sync.synced(result.projects.length));
           }
         }
       } catch (err: any) {
         console.error('[Sync] Erro ao buscar projetos da nuvem:', err);
         if (reason === 'login') {
-          showToastRef.current(`[NUVEM] Não foi possível carregar a nuvem (${err?.message || 'erro'}). Usando dados locais.`);
+          showToastRef.current(getT().sync.loadFailed(err?.message || getT().sync.error));
         }
       }
     },
@@ -218,11 +219,11 @@ export function useCloudSync({ user, projects, setProjects, showToast }: UseClou
 
   /** Envia todos os projetos agora (botão manual). Lança erro se falhar. */
   const syncAllNow = useCallback(async () => {
-    if (!userRef.current) throw new Error('Faça login primeiro.');
-    if (!navigator.onLine) throw new Error('Sem conexão com a internet.');
+    if (!userRef.current) throw new Error(getT().sync.loginFirst);
+    if (!navigator.onLine) throw new Error(getT().sync.offline);
     queueUpserts(projectsRef.current.map((p) => p.id));
     const ok = await flush();
-    if (!ok) throw new Error('Falha ao enviar para o Supabase.');
+    if (!ok) throw new Error(getT().sync.uploadFailed);
   }, [flush, queueUpserts]);
 
   // Login, troca de conta ou sessão restaurada.

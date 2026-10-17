@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Project, WorkspaceSettings, Task } from '../types';
 import { Search, FolderPlus, Terminal, Volume2, VolumeX, Eye, FileDown, FileUp, Copy, Check, BookOpen, ArrowRight, CheckSquare, Square, Tag as TagIcon, Sparkles, Cloud } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { useT, Lang } from '../i18n';
 import { getTerminalTagStyle } from '../utils/tagColors';
 
 interface TaskSearchResult {
@@ -48,6 +49,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onOpenAuth,
   onShowToast,
 }) => {
+  const t = useT();
   const [query, setQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -82,12 +84,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   // Recognize Git & Linux commands
   const isHelpCommand = lower === 'man' || lower === 'help' || lower === ':help' || lower === '?';
-  const isAuthCommand = lower === 'login' || lower === 'auth' || lower === 'supabase' || lower === 'nuvem' || lower === 'entrar' || lower === 'sair';
+  const isAuthCommand = ['login', 'auth', 'supabase', 'nuvem', 'entrar', 'sair', 'signin', 'cloud', 'logout'].includes(lower);
   const isPwaCommand = lower === 'pwa' || lower === 'instalar' || lower === 'install';
   const isGitCommit = lower === 'git commit' || lower === 'export' || lower === 'md';
   const isGitStatus = lower === 'git status' || lower === 'status';
   const isGitCheckout = lower.startsWith('git checkout ') || lower.startsWith('switch ');
   const isGitInit = lower.startsWith('git init ') || lower.startsWith('new ');
+  const langMatch = lower.match(/^(lang|idioma|language)\s+(\S+)$/);
+  const langTarget: Lang | null = langMatch
+    ? (/^(pt|pt-br|portugu[eê]s|portuguese)$/.test(langMatch[2]) ? 'pt' : /^(en|en-us|english|ingl[eê]s)$/.test(langMatch[2]) ? 'en' : null)
+    : null;
 
   const isAddTaskCommand = query.startsWith('+') || lower.startsWith('task:');
   const taskText = isAddTaskCommand 
@@ -101,21 +107,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   const matchingTasks: TaskSearchResult[] = [];
   if (lower.length > 0 && !isAddTaskCommand && !isGitCheckout && !isGitInit) {
     for (const proj of projects) {
-      for (const t of proj.tasks) {
-        const titleMatch = t.text.toLowerCase().includes(lower);
-        const matchedTag = (t.tags || []).find((tg) =>
+      for (const task of proj.tasks) {
+        const titleMatch = task.text.toLowerCase().includes(lower);
+        const matchedTag = (task.tags || []).find((tg) =>
           tg.toLowerCase().includes(targetTagQuery)
         );
-        const subtaskMatch = (t.subtasks || []).some((s) =>
+        const subtaskMatch = (task.subtasks || []).some((s) =>
           s.text.toLowerCase().includes(lower)
         );
 
         if (titleMatch) {
-          matchingTasks.push({ project: proj, task: t, matchedBy: 'title' });
+          matchingTasks.push({ project: proj, task, matchedBy: 'title' });
         } else if (matchedTag) {
-          matchingTasks.push({ project: proj, task: t, matchedBy: 'tag', matchedTag });
+          matchingTasks.push({ project: proj, task, matchedBy: 'tag', matchedTag });
         } else if (subtaskMatch) {
-          matchingTasks.push({ project: proj, task: t, matchedBy: 'subtask' });
+          matchingTasks.push({ project: proj, task, matchedBy: 'subtask' });
         }
       }
     }
@@ -153,7 +159,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       onSelectProject(projectId);
     }
     sound.playClick(750);
-    onShowToast(`Pular para projeto "${projTitle}"`);
+    onShowToast(t.palette.jumpTo(projTitle));
     onClose();
   };
 
@@ -161,6 +167,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (isHelpCommand) {
       onClose();
       onOpenManual();
+      return;
+    }
+
+    if (langMatch) {
+      if (langTarget) {
+        onUpdateSettings({ language: langTarget });
+        sound.playClick(800);
+        onShowToast(langTarget === 'pt' ? 'Idioma: Português' : 'Language: English');
+      } else {
+        onShowToast(t.palette.langUsage);
+      }
+      onClose();
       return;
     }
 
@@ -172,8 +190,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
     if (isPwaCommand) {
       onClose();
-      onShowToast('Disparando modal de instalação do app...');
-      const installBtn = document.querySelector('button[title*="Instalar"]') as HTMLButtonElement | null;
+      onShowToast(t.palette.installing);
+      const installBtn = document.querySelector('[data-pwa-install]') as HTMLButtonElement | null;
       if (installBtn) installBtn.click();
       return;
     }
@@ -186,8 +204,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (isGitStatus) {
       const active = projects.find((p) => p.id === activeProjectId);
       if (active) {
-        const done = active.tasks.filter((t) => t.done).length;
-        onShowToast(`STATUS [${active.title}]: ${done}/${active.tasks.length} tarefas concluídas`);
+        const done = active.tasks.filter((task) => task.done).length;
+        onShowToast(t.palette.status(active.title, done, active.tasks.length));
       }
       onClose();
       return;
@@ -198,7 +216,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       const match = projects.find((p) => p.title.toLowerCase().includes(targetName));
       if (match) {
         onSelectProject(match.id);
-        onShowToast(`Switched to project "${match.title}"`);
+        onShowToast(t.palette.switched(match.title));
         sound.playClick(700);
         onClose();
         return;
@@ -252,12 +270,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           <div className="flex items-center gap-2">
             <span className="inline-block w-2.5 h-2.5 bg-[color:var(--t-22c55e)] animate-pulse"></span>
             <span className="font-bold text-[color:var(--t-22c55e)]">
-              OPERATOR // QUICK-FIND & COMANDOS
+              {t.palette.title}
             </span>
           </div>
           <div className="flex items-center gap-2 font-mono text-[10px] text-[color:var(--t-16a34a)]">
-            <span>[ENTER PULA / EXECUTA]</span>
-            <span>[ESC SAIR]</span>
+            <span>{t.palette.enterHint}</span>
+            <span>{t.palette.escHint}</span>
           </div>
         </div>
 
@@ -275,7 +293,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   handleCommandSubmit();
                 }
               }}
-              placeholder="Quick-Find: busque por tarefas, #tags ou projetos..."
+              placeholder={t.palette.placeholder}
               className="w-full bg-transparent text-[color:var(--t-22c55e)] placeholder-[color:var(--t-15803d)] font-mono text-xs focus:outline-hidden"
             />
             <span className="terminal-block-cursor"></span>
@@ -285,7 +303,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               onClick={() => setQuery('')}
               className="text-[10px] text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] px-1 font-mono transition-colors"
             >
-              [LIMPAR]
+              {t.palette.clear}
             </button>
           )}
         </div>
@@ -300,7 +318,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             >
               <div className="flex items-center gap-2">
                 <span className="text-[color:var(--t-22c55e)] font-mono">[+]</span>
-                <span>Adicionar Tarefa: <strong className="text-white">"{taskText}"</strong></span>
+                <span>{t.palette.addTask} <strong className="text-white">“{taskText}”</strong></span>
               </div>
               <span className="text-[10px] text-[color:var(--t-15803d)] group-hover:text-[color:var(--t-22c55e)] font-mono">ENTER</span>
             </button>
@@ -311,9 +329,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             <div className="py-1">
               <div className="text-[10px] font-mono text-[color:var(--t-15803d)] px-2 py-1 uppercase tracking-widest flex items-center justify-between">
                 <span className="text-[color:var(--t-22c55e)] font-bold">
-                  Tarefas & Tags Encontradas ({matchingTasks.length})
+                  {t.palette.found(matchingTasks.length)}
                 </span>
-                <span className="text-[color:var(--t-16a34a)]">Pressione ENTER para pular para a 1ª</span>
+                <span className="text-[color:var(--t-16a34a)]">{t.palette.enterFirst}</span>
               </div>
 
               <div className="space-y-1 mt-1">
@@ -337,19 +355,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                             → {project.title}
                           </span>
 
-                          {(task.tags || []).map((t) => {
-                            const style = getTerminalTagStyle(t);
-                            const isMatch = matchedBy === 'tag' && t.toLowerCase() === matchedTag?.toLowerCase();
+                          {(task.tags || []).map((tag) => {
+                            const style = getTerminalTagStyle(tag);
+                            const isMatch = matchedBy === 'tag' && tag.toLowerCase() === matchedTag?.toLowerCase();
                             return (
                               <span
-                                key={t}
+                                key={tag}
                                 className={`text-[9px] font-mono px-1.5 py-0.2 border ${
                                   isMatch
                                     ? 'bg-[color:var(--t-22c55e)]/20 text-[color:var(--t-22c55e)] border-[color:var(--t-22c55e)] font-bold shadow-[0_0_6px_color-mix(in_srgb,var(--t-22c55e)_30%,transparent)]'
                                     : `${style.bg} ${style.text} ${style.border}`
                                 }`}
                               >
-                                #{t}
+                                #{tag}
                               </span>
                             );
                           })}
@@ -370,7 +388,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     </div>
 
                     <div className="text-[10px] text-[color:var(--t-15803d)] group-hover:text-[color:var(--t-22c55e)] font-mono shrink-0 flex items-center gap-1 pt-1">
-                      <span className="hidden sm:inline">PULAR</span>
+                      <span className="hidden sm:inline">{t.palette.jump}</span>
                       <ArrowRight size={11} />
                     </div>
                   </button>
@@ -383,8 +401,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           {lower.length === 0 && (
             <div className="py-1">
               <div className="text-[10px] font-mono text-[color:var(--t-15803d)] px-2 py-1 uppercase tracking-widest flex items-center justify-between">
-                <span>Comandos do Sistema & Manual</span>
-                <span className="text-[color:var(--t-22c55e)]">Tecle '?' para manual</span>
+                <span>{t.palette.systemCommands}</span>
+                <span className="text-[color:var(--t-22c55e)]">{t.palette.manualHint}</span>
               </div>
 
               <button
@@ -396,7 +414,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               >
                 <div className="flex items-center gap-2">
                   <BookOpen size={13} className="text-[color:var(--t-22c55e)]" />
-                  <span>MAN OPERATOR(1) - Manual & Guia de Atalhos</span>
+                  <span>{t.palette.manual}</span>
                 </div>
                 <span className="text-[10px] text-[color:var(--t-16a34a)] font-mono">[?]</span>
               </button>
@@ -410,7 +428,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               >
                 <div className="flex items-center gap-2">
                   <FolderPlus size={13} className="text-[color:var(--t-22c55e)]" />
-                  <span>Criar Novo Projeto (git init)</span>
+                  <span>{t.palette.newProject}</span>
                 </div>
                 <span className="text-[10px] text-[color:var(--t-16a34a)] font-mono">[N]</span>
               </button>
@@ -421,7 +439,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               >
                 <div className="flex items-center gap-2">
                   {copied ? <Check size={13} className="text-[color:var(--t-22c55e)]" /> : <Copy size={13} className="text-[color:var(--t-22c55e)]" />}
-                  <span>{copied ? 'Copiado em Markdown!' : 'Exportar Projeto como Markdown (git commit)'}</span>
+                  <span>{copied ? t.palette.copiedMd : t.palette.exportMd}</span>
                 </div>
                 <span className="text-[10px] text-[color:var(--t-16a34a)] font-mono">[M]</span>
               </button>
@@ -435,7 +453,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               >
                 <div className="flex items-center gap-2">
                   <Eye size={13} className="text-[color:var(--t-22c55e)]" />
-                  <span>Chuva Digital (Matrix Rain): {settings.rainEnabled ? 'ATIVADA' : 'DESATIVADA'}</span>
+                  <span>{t.palette.rain(settings.rainEnabled)}</span>
                 </div>
                 <span className="text-[10px] text-[color:var(--t-16a34a)] font-mono">[B]</span>
               </button>
@@ -451,7 +469,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               >
                 <div className="flex items-center gap-2">
                   {settings.soundEnabled ? <Volume2 size={13} className="text-[color:var(--t-22c55e)]" /> : <VolumeX size={13} className="text-[color:var(--t-15803d)]" />}
-                  <span>Efeitos Sonoros (Terminal Audio): {settings.soundEnabled ? 'LIGADO' : 'MUTADO'}</span>
+                  <span>{t.palette.sound(settings.soundEnabled)}</span>
                 </div>
                 <span className="text-[10px] text-[color:var(--t-16a34a)] font-mono">[S]</span>
               </button>
@@ -465,7 +483,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   className="flex items-center gap-1.5 text-xs text-[color:var(--t-86efac)] hover:text-[color:var(--t-22c55e)] transition-colors"
                 >
                   <FileDown size={13} />
-                  <span>Exportar Backup JSON</span>
+                  <span>{t.palette.exportJson}</span>
                 </button>
                 <span className="text-[color:var(--t-14351a)]">·</span>
                 <button
@@ -476,7 +494,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   className="flex items-center gap-1.5 text-xs text-[color:var(--t-86efac)] hover:text-[color:var(--t-22c55e)] transition-colors"
                 >
                   <FileUp size={13} />
-                  <span>Importar JSON</span>
+                  <span>{t.palette.importJson}</span>
                 </button>
                 <span className="text-[color:var(--t-14351a)]">·</span>
                 <button
@@ -497,12 +515,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           {(filteredProjects.length > 0 || lower.length === 0) && (
             <div className="py-1">
               <div className="text-[10px] font-mono text-[color:var(--t-15803d)] px-2 py-1 uppercase tracking-widest">
-                Projetos ({filteredProjects.length})
+                {t.palette.projects(filteredProjects.length)}
               </div>
 
               {filteredProjects.map((proj) => {
                 const totalTasks = proj.tasks.length;
-                const doneTasks = proj.tasks.filter((t) => t.done).length;
+                const doneTasks = proj.tasks.filter((task) => task.done).length;
                 const isCurrent = proj.id === activeProjectId;
 
                 return (
@@ -537,10 +555,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           {lower.length > 0 && matchingTasks.length === 0 && filteredProjects.length === 0 && (
             <div className="p-6 text-center text-xs font-mono space-y-2">
               <div className="text-[color:var(--t-15803d)]">
-                Nenhuma tarefa, tag ou projeto encontrado para: <strong className="text-[color:var(--t-86efac)]">"{query}"</strong>
+                {t.palette.noMatch} <strong className="text-[color:var(--t-86efac)]">“{query}”</strong>
               </div>
               <div className="text-[11px] text-[color:var(--t-166534)]">
-                Pressione <kbd className="text-[color:var(--t-22c55e)]">Enter</kbd> para adicionar como nova tarefa no projeto ativo.
+                {t.palette.enterAddBefore} <kbd className="text-[color:var(--t-22c55e)]">Enter</kbd> {t.palette.enterAddAfter}
               </div>
             </div>
           )}

@@ -1,7 +1,11 @@
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
-import { INITIAL_PROJECTS, DEFAULT_SETTINGS, isPristineSeedProject } from '../src/data/initialData';
+import { SEED_PROJECTS_PT, DEFAULT_SETTINGS, isPristineSeedProject, getInitialProjects, localizeSeedProjects } from '../src/data/initialData';
+import { SEED_PROJECTS_EN } from '../src/data/initialData.en';
+import { pt } from '../src/i18n/pt';
+import { en } from '../src/i18n/en';
+import { detectLang, resolveLang, setCurrentLang, getT } from '../src/i18n';
 import { mergeProjects } from '../src/sync/merge';
 import { enqueue, acknowledge, Outbox } from '../src/sync/syncState';
 import { getTerminalTagStyle } from '../src/utils/tagColors';
@@ -33,10 +37,10 @@ function test(name: string, fn: () => void) {
 // TEST GROUP 1: Initial Data Integrity & Types
 // --------------------------------------------------------------------------
 test('Projetos iniciais devem estar definidos e conter estrutura válida', () => {
-  assert(Array.isArray(INITIAL_PROJECTS), 'INITIAL_PROJECTS deve ser um array');
-  assert(INITIAL_PROJECTS.length > 0, 'Deve haver ao menos um projeto inicial');
+  assert(Array.isArray(SEED_PROJECTS_PT), 'SEED_PROJECTS_PT deve ser um array');
+  assert(SEED_PROJECTS_PT.length > 0, 'Deve haver ao menos um projeto inicial');
 
-  INITIAL_PROJECTS.forEach((p, idx) => {
+  SEED_PROJECTS_PT.forEach((p, idx) => {
     assert(typeof p.id === 'string' && p.id.length > 0, `Projeto [${idx}] deve ter ID válido`);
     assert(typeof p.title === 'string' && p.title.length > 0, `Projeto [${idx}] deve ter título`);
     assert(typeof p.category === 'string', `Projeto [${idx}] deve ter categoria`);
@@ -47,7 +51,7 @@ test('Projetos iniciais devem estar definidos e conter estrutura válida', () =>
 });
 
 test('Tarefas e subtarefas devem possuir IDs e status booleanos válidos', () => {
-  INITIAL_PROJECTS.forEach((p) => {
+  SEED_PROJECTS_PT.forEach((p) => {
     p.tasks.forEach((t) => {
       assert(typeof t.id === 'string', 'Tarefa deve ter id');
       assert(typeof t.text === 'string' && t.text.length > 0, 'Tarefa deve ter texto');
@@ -92,8 +96,8 @@ test('Serialização e Exportação de Backup JSON deve conter schema completo',
     version: 1,
     app: 'operator-matrix-workspace',
     exportedAt: new Date().toISOString(),
-    totalProjects: INITIAL_PROJECTS.length,
-    projects: INITIAL_PROJECTS,
+    totalProjects: SEED_PROJECTS_PT.length,
+    projects: SEED_PROJECTS_PT,
     settings: DEFAULT_SETTINGS,
   };
 
@@ -103,8 +107,8 @@ test('Serialização e Exportação de Backup JSON deve conter schema completo',
 
   const reParsed = JSON.parse(jsonString);
   assert.strictEqual(reParsed.version, 1);
-  assert.strictEqual(reParsed.projects.length, INITIAL_PROJECTS.length);
-  assert.strictEqual(reParsed.projects[0].id, INITIAL_PROJECTS[0].id);
+  assert.strictEqual(reParsed.projects.length, SEED_PROJECTS_PT.length);
+  assert.strictEqual(reParsed.projects[0].id, SEED_PROJECTS_PT[0].id);
 });
 
 test('Importação e Validação de Backup deve aceitar tanto Objeto quanto Array direto', () => {
@@ -291,7 +295,7 @@ test('Quick-Find deve buscar simultaneamente por títulos de tarefas e tags em t
 
   // Busca 1: texto
   const results1: any[] = [];
-  INITIAL_PROJECTS.forEach((proj) => {
+  SEED_PROJECTS_PT.forEach((proj) => {
     proj.tasks.forEach((t) => {
       if (t.text.toLowerCase().includes(query1)) {
         results1.push({ proj, task: t });
@@ -303,7 +307,7 @@ test('Quick-Find deve buscar simultaneamente por títulos de tarefas e tags em t
   // Busca 2: tag com hashtag
   const cleanTag2 = query2.slice(1);
   const results2: any[] = [];
-  INITIAL_PROJECTS.forEach((proj) => {
+  SEED_PROJECTS_PT.forEach((proj) => {
     proj.tasks.forEach((t) => {
       if (t.tags && t.tags.some((tg) => tg.toLowerCase().includes(cleanTag2))) {
         results2.push({ proj, task: t });
@@ -314,7 +318,7 @@ test('Quick-Find deve buscar simultaneamente por títulos de tarefas e tags em t
 
   // Busca 3: correspondência simultânea (por título ou tag)
   const results3: any[] = [];
-  INITIAL_PROJECTS.forEach((proj) => {
+  SEED_PROJECTS_PT.forEach((proj) => {
     proj.tasks.forEach((t) => {
       const matchTitle = t.text.toLowerCase().includes(query3);
       const matchTag = t.tags && t.tags.some((tg) => tg.toLowerCase().includes(query3));
@@ -331,7 +335,7 @@ test('Quick-Find deve buscar simultaneamente por títulos de tarefas e tags em t
 // TEST GROUP 6: Supabase Data Mapping & Offline Fallback
 // --------------------------------------------------------------------------
 test('Mapeamento de modelo de Projeto para formato Postgres/Supabase deve ser idempotente', () => {
-  const p = INITIAL_PROJECTS[0];
+  const p = SEED_PROJECTS_PT[0];
   const userId = '00000000-0000-0000-0000-000000000001';
 
   // Simula conversão para linha de tabela Supabase
@@ -520,7 +524,7 @@ test('Sync: projeto criado offline e nunca enviado sobe para a nuvem', () => {
 });
 
 test('Sync: exemplos intocados não poluem conta com dados, mas sobem para conta vazia', () => {
-  const seeds = JSON.parse(JSON.stringify(INITIAL_PROJECTS)) as Project[];
+  const seeds = JSON.parse(JSON.stringify(SEED_PROJECTS_PT)) as Project[];
   assert(seeds.every(isPristineSeedProject), 'exemplos devem ser detectados como intocados');
   const fresh = { ...baseMerge, meta: { ownerId: null, syncedIds: [] } };
   const comDados = mergeProjects({ ...fresh, local: seeds, cloud: [mkProject('real', 1)] });
@@ -533,7 +537,7 @@ test('Sync: exemplos intocados não poluem conta com dados, mas sobem para conta
 });
 
 test('Sync: exemplo intocado com data recalculada não sobrescreve edição real na nuvem', () => {
-  const seed = { ...(JSON.parse(JSON.stringify(INITIAL_PROJECTS[0])) as Project), updatedAt: 9_999_999_999_999 };
+  const seed = { ...(JSON.parse(JSON.stringify(SEED_PROJECTS_PT[0])) as Project), updatedAt: 9_999_999_999_999 };
   const editadoNaNuvem = { ...seed, title: 'Editado em outro aparelho', updatedAt: 1000 };
   const r = mergeProjects({ ...baseMerge, local: [seed], cloud: [editadoNaNuvem] });
   assert.strictEqual(r.projects[0].title, 'Editado em outro aparelho');
@@ -568,6 +572,76 @@ test('Storage: limites de tamanho (50 MB na nuvem, 2 MB só no aparelho)', () =>
   assert.doesNotThrow(() => assertFileSize(MAX_LOCAL_FILE_BYTES, false));
   assert.throws(() => assertFileSize(MAX_LOCAL_FILE_BYTES + 1, false), /Faça login/);
   assert.doesNotThrow(() => assertFileSize(10 * 1024 * 1024, true), 'arquivo de 10 MB pode ir para a nuvem');
+});
+
+// --------------------------------------------------------------------------
+// Idiomas (pt/en)
+// --------------------------------------------------------------------------
+function dictShape(node: unknown, prefix = ''): string[] {
+  if (typeof node === 'function') return [`${prefix}()${node.length}`];
+  if (node && typeof node === 'object') {
+    return Object.keys(node).sort().flatMap((k) => dictShape((node as Record<string, unknown>)[k], prefix ? `${prefix}.${k}` : k));
+  }
+  return [prefix];
+}
+
+test('i18n: inglês e português têm as mesmas chaves e os mesmos parâmetros', () => {
+  assert.deepStrictEqual(dictShape(en), dictShape(pt));
+});
+
+test('i18n: nenhum texto vazio e placeholders preenchidos nos dois idiomas', () => {
+  for (const dict of [pt, en]) {
+    const walk = (node: unknown, key: string) => {
+      if (typeof node === 'string') assert(node.trim().length > 0, `texto vazio em ${key}`);
+      else if (typeof node === 'function') {
+        const out = (node as (...a: unknown[]) => unknown)(...Array.from({ length: node.length }, () => 7));
+        if (typeof out === 'string') assert(!/\$\{|\{[a-z]+\}/.test(out), `placeholder sobrando em ${key}: ${out}`);
+      } else if (node && typeof node === 'object') {
+        for (const [k, v] of Object.entries(node)) walk(v, `${key}.${k}`);
+      }
+    };
+    walk(dict, 'dict');
+  }
+});
+
+test('i18n: idioma do navegador escolhe pt ou en', () => {
+  assert.strictEqual(detectLang(['pt-BR', 'en']), 'pt');
+  assert.strictEqual(detectLang(['pt-PT']), 'pt');
+  assert.strictEqual(detectLang(['en-US', 'pt-BR']), 'en');
+  assert.strictEqual(detectLang(['es-ES']), 'en');
+  assert.strictEqual(detectLang([]), 'en');
+  assert.strictEqual(resolveLang('pt'), 'pt');
+  assert.strictEqual(resolveLang('en'), 'en');
+});
+
+test('i18n: exemplos em inglês têm os mesmos ids e estrutura dos em português', () => {
+  const ids = (list: Project[]) =>
+    list.map((p) => [p.id, p.tasks.map((t) => [t.id, t.done, t.subtasks.map((s) => s.id)]), p.observations.map((o) => o.id), p.codeSnippets.map((c) => c.id)]);
+  assert.deepStrictEqual(ids(SEED_PROJECTS_EN), ids(SEED_PROJECTS_PT));
+  assert.strictEqual(getInitialProjects('en'), SEED_PROJECTS_EN);
+  assert.strictEqual(getInitialProjects('pt'), SEED_PROJECTS_PT);
+});
+
+test('i18n: exemplos intocados são reconhecidos nos dois idiomas e trocam de idioma', () => {
+  const ptSeeds = JSON.parse(JSON.stringify(SEED_PROJECTS_PT)) as Project[];
+  const enSeeds = JSON.parse(JSON.stringify(SEED_PROJECTS_EN)) as Project[];
+  assert(enSeeds.every(isPristineSeedProject), 'exemplos em inglês devem contar como intocados');
+  const editado = { ...ptSeeds[1], title: 'Meu homelab' };
+  const local = [ptSeeds[0], editado, ptSeeds[2]];
+  const emIngles = localizeSeedProjects(local, 'en');
+  assert.strictEqual(emIngles[0].title, SEED_PROJECTS_EN[0].title);
+  assert.strictEqual(emIngles[0].updatedAt, ptSeeds[0].updatedAt, 'mantém as datas');
+  assert.strictEqual(emIngles[1], editado, 'projeto editado não muda');
+  assert.strictEqual(localizeSeedProjects(local, 'pt'), local, 'sem troca, devolve a mesma lista');
+  assert.strictEqual(localizeSeedProjects(emIngles, 'pt')[0].title, SEED_PROJECTS_PT[0].title);
+});
+
+test('i18n: mensagens fora do React seguem o idioma atual', () => {
+  setCurrentLang('en');
+  assert.throws(() => assertFileSize(MAX_CLOUD_FILE_BYTES + 1, true), /limit is 50 MB/);
+  assert.strictEqual(getT(), en);
+  setCurrentLang('pt');
+  assert.strictEqual(getT(), pt);
 });
 
 console.log(`\n========================================`);

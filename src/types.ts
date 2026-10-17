@@ -72,4 +72,6 @@ export interface WorkspaceSettings {
   soundEnabled: boolean;
   glowEffect: boolean;
   accentTheme?: string;
+  /** Idioma da interface. Sem valor, o app usa o idioma do navegador. */
+  language?: 'pt' | 'en';
 }

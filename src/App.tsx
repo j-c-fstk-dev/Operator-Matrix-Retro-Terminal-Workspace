@@ -5,7 +5,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Project, WorkspaceSettings, Task } from './types';
-import { INITIAL_PROJECTS, DEFAULT_SETTINGS } from './data/initialData';
+import { getInitialProjects, localizeSeedProjects, DEFAULT_SETTINGS } from './data/initialData';
+import { I18nProvider, DICTS, resolveLang } from './i18n';
 import { MatrixRainCanvas } from './components/MatrixRainCanvas';
 import { Sidebar } from './components/Sidebar';
 import { ProjectWorkspace } from './components/ProjectWorkspace';
@@ -26,23 +27,6 @@ const STORAGE_SETTINGS_KEY = 'operator_matrix_settings_v1';
 
 export default function App() {
   // Load initial state
-  const [projects, setProjects] = useState<Project[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_PROJECTS_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {
-      // fallback
-    }
-    return INITIAL_PROJECTS;
-  });
-
-  const [activeProjectId, setActiveProjectId] = useState<string>(() => {
-    return projects[0]?.id || 'proj-nebu-relay';
-  });
-
   const [settings, setSettings] = useState<WorkspaceSettings>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_SETTINGS_KEY);
@@ -60,6 +44,26 @@ export default function App() {
     }
     return DEFAULT_SETTINGS;
   });
+
+  const [projects, setProjects] = useState<Project[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_PROJECTS_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // fallback
+    }
+    return getInitialProjects(resolveLang(settings.language));
+  });
+
+  const [activeProjectId, setActiveProjectId] = useState<string>(() => {
+    return projects[0]?.id || 'proj-nebu-relay';
+  });
+
+  const lang = resolveLang(settings.language);
+  const t = DICTS[lang];
 
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -83,6 +87,11 @@ export default function App() {
 
   // Sincronização com a nuvem: fila offline, envio agrupado e merge sem sobrescrever.
   const cloudSync = useCloudSync({ user, projects, setProjects, showToast });
+
+  // Exemplos nunca editados acompanham o idioma escolhido.
+  useEffect(() => {
+    setProjects((prev) => localizeSeedProjects(prev, lang));
+  }, [lang]);
 
   const accentTheme = resolveAccentTheme(settings.accentTheme);
   useEffect(() => {
@@ -117,14 +126,14 @@ export default function App() {
 
   const handleSyncLocalToCloud = async () => {
     if (!user) {
-      showToast('Faça login primeiro para sincronizar com a nuvem.');
+      showToast(t.app.loginToSync);
       return;
     }
     try {
       await cloudSync.syncAllNow();
-      showToast(`Sucesso: ${projects.length} projetos enviados para o Supabase!`);
+      showToast(t.app.syncedAll(projects.length));
     } catch (err: any) {
-      showToast(`Falha ao sincronizar: ${err.message || 'Erro'}`);
+      showToast(t.app.syncFailed(err.message || t.app.error));
       throw err;
     }
   };
@@ -138,7 +147,7 @@ export default function App() {
       console.error('Falha ao salvar projetos no localStorage', e);
       if (!storageWarnedRef.current) {
         storageWarnedRef.current = true;
-        showToast('[ALERTA] Armazenamento local cheio: as últimas alterações não foram salvas neste aparelho. Remova anexos grandes ou faça login para usar a nuvem.');
+        showToast(t.app.storageFull);
       }
     }
   }, [projects]);
@@ -168,9 +177,9 @@ export default function App() {
           localStorage.setItem(STORAGE_PROJECTS_KEY, JSON.stringify(projects));
           localStorage.setItem(STORAGE_SETTINGS_KEY, JSON.stringify(settings));
           sound.playCommand();
-          showToast('[GIT SYNC] Cache local validado e sincronizado.');
+          showToast(t.app.cacheSaved);
         } catch {
-          showToast('Erro ao sincronizar com o localStorage.');
+          showToast(t.app.cacheFailed);
         }
         return;
       }
@@ -231,7 +240,7 @@ export default function App() {
 
   // Active Project resolution
   const activeProject =
-    projects.find((p) => p.id === activeProjectId) || projects[0] || INITIAL_PROJECTS[0];
+    projects.find((p) => p.id === activeProjectId) || projects[0] || getInitialProjects(lang)[0];
 
   const handleUpdateProject = (updated: Project) => {
     setProjects((prev) =>
@@ -244,20 +253,20 @@ export default function App() {
     const newId = `proj-${Date.now()}`;
     const newProject: Project = {
       id: newId,
-      title: customTitle || 'Novo Projeto Pessoal',
-      slug: (customTitle || 'novo-projeto').toLowerCase().replace(/\s+/g, '-'),
+      title: customTitle || t.app.newProject.title,
+      slug: (customTitle || t.app.newProject.slug).toLowerCase().replace(/\s+/g, '-'),
       category: 'DEV',
-      description: 'Defina aqui o escopo e objetivos deste projeto...',
+      description: t.app.newProject.description,
       status: 'active',
       tasks: [
         {
           id: `task-${Date.now()}`,
-          text: 'Definir escopo inicial do projeto',
+          text: t.app.newProject.task,
           done: false,
           priority: 'high',
-          tags: ['planejamento'],
+          tags: [t.app.newProject.tag],
           subtasks: [
-            { id: `sub-${Date.now()}`, text: 'Listar requisitos essenciais', done: false, createdAt: Date.now() },
+            { id: `sub-${Date.now()}`, text: t.app.newProject.subtask, done: false, createdAt: Date.now() },
           ],
           createdAt: Date.now(),
         },
@@ -272,12 +281,12 @@ export default function App() {
     setActiveProjectId(newId);
     cloudSync.queueUpsert(newId);
     sound.playCommand();
-    showToast(`Projeto "${newProject.title}" inicializado (git init).`);
+    showToast(t.app.projectCreated(newProject.title));
   };
 
   const handleDeleteProject = (id: string) => {
     if (projects.length <= 1) {
-      showToast('O workspace precisa ter pelo menos um projeto ativo.');
+      showToast(t.app.needOneProject);
       return;
     }
     const filtered = projects.filter((p) => p.id !== id);
@@ -286,14 +295,14 @@ export default function App() {
       setActiveProjectId(filtered[0].id);
     }
     cloudSync.queueDelete(id);
-    showToast('Projeto removido.');
+    showToast(t.app.projectDeleted);
   };
 
   const handleQuickAddTask = (text: string) => {
     if (!text.trim() || !activeProject) return;
 
-    const hashtags = (text.match(/#([a-zA-Z0-9_-]+)/g) || []).map((t) =>
-      t.slice(1).toLowerCase()
+    const hashtags = (text.match(/#([a-zA-Z0-9_-]+)/g) || []).map((tg) =>
+      tg.slice(1).toLowerCase()
     );
 
     const newTask: Task = {
@@ -311,7 +320,7 @@ export default function App() {
       updatedAt: Date.now(),
     };
     handleUpdateProject(updated);
-    showToast(`Tarefa adicionada em "${activeProject.title}"`);
+    showToast(t.app.taskAdded(activeProject.title));
   };
 
   const handleSelectTaskFromQuickFind = (projectId: string, taskId: string) => {
@@ -327,18 +336,18 @@ export default function App() {
     if (!activeProject) return;
 
     let md = `# ${activeProject.title}\n\n`;
-    md += `> ${activeProject.description || 'Sem descrição'}\n\n`;
-    md += `**Status:** ${activeProject.status.toUpperCase()} | **Categoria:** ${activeProject.category}\n\n`;
+    md += `> ${activeProject.description || t.app.md.noDescription}\n\n`;
+    md += `**Status:** ${activeProject.status.toUpperCase()} | **${t.app.md.category}:** ${activeProject.category}\n\n`;
 
-    md += `## Tarefas\n\n`;
+    md += `## ${t.app.md.tasks}\n\n`;
     if (activeProject.tasks.length === 0) {
-      md += `*Nenhuma tarefa registrada.*\n\n`;
+      md += `*${t.app.md.noTasks}*\n\n`;
     } else {
-      activeProject.tasks.forEach((t) => {
-        const tagStr = t.tags && t.tags.length > 0 ? ` [${t.tags.map((tg) => `#${tg}`).join(' ')}]` : '';
-        md += `- [${t.done ? 'x' : ' '}] **${t.text}**${t.priority === 'high' ? ' [CRIT]' : ''}${tagStr}\n`;
-        if (t.notes) md += `  - *Nota:* ${t.notes}\n`;
-        t.subtasks.forEach((sub) => {
+      activeProject.tasks.forEach((task) => {
+        const tagStr = task.tags && task.tags.length > 0 ? ` [${task.tags.map((tg) => `#${tg}`).join(' ')}]` : '';
+        md += `- [${task.done ? 'x' : ' '}] **${task.text}**${task.priority === 'high' ? ' [CRIT]' : ''}${tagStr}\n`;
+        if (task.notes) md += `  - *${t.app.md.note}:* ${task.notes}\n`;
+        task.subtasks.forEach((sub) => {
           md += `  - [${sub.done ? 'x' : ' '}] ${sub.text}\n`;
         });
       });
@@ -346,15 +355,15 @@ export default function App() {
     }
 
     if (activeProject.observations.length > 0) {
-      md += `## Observações & Anotações\n\n`;
+      md += `## ${t.app.md.notes}\n\n`;
       activeProject.observations.forEach((obs) => {
-        md += `### ${obs.title} [${obs.tag || 'GERAL'}]\n\n`;
+        md += `### ${obs.title} [${obs.tag || t.app.md.general}]\n\n`;
         md += `${obs.content}\n\n`;
       });
     }
 
     if (activeProject.codeSnippets.length > 0) {
-      md += `## Snippets & Configurações\n\n`;
+      md += `## ${t.app.md.snippets}\n\n`;
       activeProject.codeSnippets.forEach((snip) => {
         md += `### ${snip.title}\n\n`;
         md += `\`\`\`${snip.language}\n${snip.code}\n\`\`\`\n\n`;
@@ -362,7 +371,7 @@ export default function App() {
     }
 
     navigator.clipboard.writeText(md);
-    showToast('Projeto copiado para a área de transferência em Markdown!');
+    showToast(t.app.mdCopied);
   };
 
   // Full JSON Workspace Export
@@ -382,7 +391,7 @@ export default function App() {
     link.click();
     URL.revokeObjectURL(url);
     sound.playCommand();
-    showToast('Arquivo de backup baixado com sucesso!');
+    showToast(t.app.backupDownloaded);
   };
 
   // Robust JSON Workspace Import with sanitization and immediate persistence
@@ -394,36 +403,36 @@ export default function App() {
     try {
       const validated: Project[] = importedProjects.map((p, idx) => ({
         id: p.id || `proj-imported-${Date.now()}-${idx}`,
-        title: p.title || 'Projeto Importado',
-        slug: p.slug || (p.title || 'projeto').toLowerCase().replace(/\s+/g, '-'),
-        category: p.category || 'GERAL',
+        title: p.title || t.app.import.project,
+        slug: p.slug || (p.title || t.app.import.slug).toLowerCase().replace(/\s+/g, '-'),
+        category: p.category || t.app.md.general,
         description: p.description || '',
         status: p.status || 'active',
         tasks: Array.isArray(p.tasks)
-          ? p.tasks.map((t, tIdx) => ({
-              id: t.id || `task-${Date.now()}-${tIdx}`,
-              text: t.text || 'Tarefa sem título',
-              done: Boolean(t.done),
-              priority: t.priority || 'med',
-              tags: Array.isArray(t.tags) ? t.tags : undefined,
-              notes: t.notes || undefined,
-              subtasks: Array.isArray(t.subtasks)
-                ? t.subtasks.map((s, sIdx) => ({
+          ? p.tasks.map((task, tIdx) => ({
+              id: task.id || `task-${Date.now()}-${tIdx}`,
+              text: task.text || t.app.import.task,
+              done: Boolean(task.done),
+              priority: task.priority || 'med',
+              tags: Array.isArray(task.tags) ? task.tags : undefined,
+              notes: task.notes || undefined,
+              subtasks: Array.isArray(task.subtasks)
+                ? task.subtasks.map((s, sIdx) => ({
                     id: s.id || `sub-${Date.now()}-${sIdx}`,
                     text: s.text || '',
                     done: Boolean(s.done),
                     createdAt: s.createdAt || Date.now(),
                   }))
                 : [],
-              createdAt: t.createdAt || Date.now(),
+              createdAt: task.createdAt || Date.now(),
             }))
           : [],
         observations: Array.isArray(p.observations)
           ? p.observations.map((o, oIdx) => ({
               id: o.id || `obs-${Date.now()}-${oIdx}`,
-              title: o.title || 'Nota',
+              title: o.title || t.app.md.note,
               content: o.content || '',
-              tag: o.tag || 'GERAL',
+              tag: o.tag || t.app.md.general,
               updatedAt: o.updatedAt || Date.now(),
             }))
           : [],
@@ -439,7 +448,7 @@ export default function App() {
         attachments: Array.isArray(p.attachments)
           ? p.attachments.map((a, aIdx) => ({
               id: a.id || `att-${Date.now()}-${aIdx}`,
-              name: a.name || 'arquivo',
+              name: a.name || t.app.import.file,
               type: a.type || 'other',
               mimeType: a.mimeType || 'application/octet-stream',
               size: Number(a.size) || 0,
@@ -494,10 +503,10 @@ export default function App() {
       cloudSync.queueUpserts(validated.map((p) => p.id));
 
       const totalTasksCount = finalProjects.reduce((acc, p) => acc + p.tasks.length, 0);
-      showToast(`[RESTAURAÇÃO CONCLUÍDA] ${finalProjects.length} projetos e ${totalTasksCount} tarefas carregados!`);
+      showToast(t.app.importDone(finalProjects.length, totalTasksCount));
     } catch (err) {
       console.error('Erro na importação', err);
-      showToast('Falha ao processar e salvar projetos importados.');
+      showToast(t.app.importFailed);
     }
   };
 
@@ -516,10 +525,10 @@ export default function App() {
         } else if (parsed && Array.isArray(parsed.projects)) {
           handleImportProjects(parsed.projects, parsed.settings);
         } else {
-          showToast('Formato de arquivo JSON inválido.');
+          showToast(t.app.invalidJson);
         }
       } catch {
-        showToast('Erro ao ler ou processar arquivo JSON.');
+        showToast(t.app.readJsonFailed);
       }
     };
     reader.readAsText(file);
@@ -527,148 +536,152 @@ export default function App() {
   };
 
   const handleResetData = () => {
-    setProjects(INITIAL_PROJECTS);
-    setActiveProjectId(INITIAL_PROJECTS[0].id);
-    setSettings(DEFAULT_SETTINGS);
+    const seeds = getInitialProjects(lang);
+    setProjects(seeds);
+    setActiveProjectId(seeds[0].id);
+    // Mantém o idioma escolhido ao restaurar o resto das preferências.
+    setSettings({ ...DEFAULT_SETTINGS, language: settings.language });
     sound.playCommand();
-    showToast('Workspace restaurado para os dados iniciais.');
+    showToast(t.app.resetDone);
   };
 
   return (
-    <div className="relative w-screen h-screen flex overflow-hidden bg-[color:var(--t-030704)] text-[color:var(--t-86efac)] font-mono select-none">
-      {/* Background Matrix Rain */}
-      <MatrixRainCanvas
-        enabled={settings.rainEnabled}
-        opacity={settings.rainOpacity}
-        accentTheme={accentTheme}
-      />
+    <I18nProvider lang={lang}>
+      <div className="relative w-screen h-screen flex overflow-hidden bg-[color:var(--t-030704)] text-[color:var(--t-86efac)] font-mono select-none">
+        {/* Background Matrix Rain */}
+        <MatrixRainCanvas
+          enabled={settings.rainEnabled}
+          opacity={settings.rainOpacity}
+          accentTheme={accentTheme}
+        />
 
-      {/* CRT Scanline Overlay */}
-      {settings.scanlines && (
-        <div className="crt-scanlines fixed inset-0 pointer-events-none z-50 opacity-60" />
-      )}
+        {/* CRT Scanline Overlay */}
+        {settings.scanlines && (
+          <div className="crt-scanlines fixed inset-0 pointer-events-none z-50 opacity-60" />
+        )}
 
-      {/* Top Level App Container */}
-      <div className="relative z-10 flex w-full h-full">
-        {/* Left Sidebar */}
-        <Sidebar
+        {/* Top Level App Container */}
+        <div className="relative z-10 flex w-full h-full">
+          {/* Left Sidebar */}
+          <Sidebar
+            projects={projects}
+            activeProjectId={activeProject.id}
+            onSelectProject={(id) => setActiveProjectId(id)}
+            onNewProject={() => handleCreateNewProject()}
+            onDeleteProject={handleDeleteProject}
+            settings={settings}
+            onToggleSound={() =>
+              setSettings((s) => ({ ...s, soundEnabled: !s.soundEnabled }))
+            }
+            onToggleRain={() =>
+              setSettings((s) => ({ ...s, rainEnabled: !s.rainEnabled }))
+            }
+            onOpenSettings={() => setIsSettingsOpen(true)}
+            onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+            onOpenManual={() => setIsManualOpen(true)}
+            onOpenBackup={() => setIsBackupModalOpen(true)}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+            user={user}
+            isMobileOpen={isMobileSidebarOpen}
+            onCloseMobile={() => setIsMobileSidebarOpen(false)}
+          />
+
+          {/* Central Workspace Area */}
+          <ProjectWorkspace
+            project={activeProject}
+            onUpdateProject={handleUpdateProject}
+            onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
+            onCopyMarkdown={handleCopyMarkdown}
+            onOpenManual={() => setIsManualOpen(true)}
+            onOpenBackup={() => setIsBackupModalOpen(true)}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
+            user={user}
+            onShowToast={showToast}
+            highlightedTaskId={highlightedTaskId}
+            syncStatus={cloudSync.status}
+            pendingSyncCount={cloudSync.pendingCount}
+          />
+        </div>
+
+        {/* Hidden File Input for Import */}
+        <input
+          ref={hiddenImportRef}
+          type="file"
+          accept=".json"
+          onChange={handleImportFile}
+          className="hidden"
+        />
+
+        {/* Command Palette Modal */}
+        <CommandPalette
+          isOpen={isCommandPaletteOpen}
+          onClose={() => setIsCommandPaletteOpen(false)}
           projects={projects}
           activeProjectId={activeProject.id}
           onSelectProject={(id) => setActiveProjectId(id)}
-          onNewProject={() => handleCreateNewProject()}
-          onDeleteProject={handleDeleteProject}
+          onSelectTask={handleSelectTaskFromQuickFind}
+          onNewProject={handleCreateNewProject}
+          onQuickAddTask={handleQuickAddTask}
           settings={settings}
-          onToggleSound={() =>
-            setSettings((s) => ({ ...s, soundEnabled: !s.soundEnabled }))
-          }
-          onToggleRain={() =>
-            setSettings((s) => ({ ...s, rainEnabled: !s.rainEnabled }))
-          }
-          onOpenSettings={() => setIsSettingsOpen(true)}
-          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-          onOpenManual={() => setIsManualOpen(true)}
-          onOpenBackup={() => setIsBackupModalOpen(true)}
-          onOpenAuth={() => setIsAuthModalOpen(true)}
-          user={user}
-          isMobileOpen={isMobileSidebarOpen}
-          onCloseMobile={() => setIsMobileSidebarOpen(false)}
-        />
-
-        {/* Central Workspace Area */}
-        <ProjectWorkspace
-          project={activeProject}
-          onUpdateProject={handleUpdateProject}
-          onOpenMobileMenu={() => setIsMobileSidebarOpen(true)}
+          onUpdateSettings={(newSet) => setSettings((s) => ({ ...s, ...newSet }))}
+          onExportData={() => setIsBackupModalOpen(true)}
+          onImportClick={() => setIsBackupModalOpen(true)}
           onCopyMarkdown={handleCopyMarkdown}
           onOpenManual={() => setIsManualOpen(true)}
-          onOpenBackup={() => setIsBackupModalOpen(true)}
           onOpenAuth={() => setIsAuthModalOpen(true)}
-          user={user}
           onShowToast={showToast}
-          highlightedTaskId={highlightedTaskId}
-          syncStatus={cloudSync.status}
-          pendingSyncCount={cloudSync.pendingCount}
         />
+
+        {/* Settings & Backup Modal */}
+        <SettingsModal
+          isOpen={isSettingsOpen}
+          onClose={() => setIsSettingsOpen(false)}
+          settings={settings}
+          onUpdateSettings={(newSet) => setSettings((s) => ({ ...s, ...newSet }))}
+          onExportData={() => setIsBackupModalOpen(true)}
+          onImportFile={handleImportFile}
+          onResetData={handleResetData}
+          totalProjects={projects.length}
+        />
+
+        {/* System Manual Modal (man operator) */}
+        <ManualModal
+          isOpen={isManualOpen}
+          onClose={() => setIsManualOpen(false)}
+        />
+
+        {/* Dedicated Backup & Cross-Device Migration Modal */}
+        <BackupModal
+          isOpen={isBackupModalOpen}
+          onClose={() => setIsBackupModalOpen(false)}
+          projects={projects}
+          settings={settings}
+          onImportProjects={handleImportProjects}
+          onShowToast={showToast}
+        />
+
+        {/* Retro Matrix Auth Modal (Supabase Cloud) */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          user={user}
+          onSyncLocalToCloud={handleSyncLocalToCloud}
+          onShowToast={showToast}
+          localProjectsCount={projects.length}
+        />
+
+        {/* Offline Connectivity Indicator */}
+        <OfflineIndicator />
+
+        {/* Feedback Toast Notification */}
+        {toastMessage && (
+          <div className="fixed bottom-9 right-5 z-50 bg-[color:var(--t-061408)] border border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] text-xs font-mono px-4 py-2 shadow-[0_0_15px_color-mix(in_srgb,var(--t-22c55e)_30%,transparent)] flex items-center gap-2">
+            <span className="w-2 h-2 bg-[color:var(--t-22c55e)] animate-ping"></span>
+            <span>{toastMessage}</span>
+          </div>
+        )}
       </div>
-
-      {/* Hidden File Input for Import */}
-      <input
-        ref={hiddenImportRef}
-        type="file"
-        accept=".json"
-        onChange={handleImportFile}
-        className="hidden"
-      />
-
-      {/* Command Palette Modal */}
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-        projects={projects}
-        activeProjectId={activeProject.id}
-        onSelectProject={(id) => setActiveProjectId(id)}
-        onSelectTask={handleSelectTaskFromQuickFind}
-        onNewProject={handleCreateNewProject}
-        onQuickAddTask={handleQuickAddTask}
-        settings={settings}
-        onUpdateSettings={(newSet) => setSettings((s) => ({ ...s, ...newSet }))}
-        onExportData={() => setIsBackupModalOpen(true)}
-        onImportClick={() => setIsBackupModalOpen(true)}
-        onCopyMarkdown={handleCopyMarkdown}
-        onOpenManual={() => setIsManualOpen(true)}
-        onOpenAuth={() => setIsAuthModalOpen(true)}
-        onShowToast={showToast}
-      />
-
-      {/* Settings & Backup Modal */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        settings={settings}
-        onUpdateSettings={(newSet) => setSettings((s) => ({ ...s, ...newSet }))}
-        onExportData={() => setIsBackupModalOpen(true)}
-        onImportFile={handleImportFile}
-        onResetData={handleResetData}
-        totalProjects={projects.length}
-      />
-
-      {/* System Manual Modal (man operator) */}
-      <ManualModal
-        isOpen={isManualOpen}
-        onClose={() => setIsManualOpen(false)}
-      />
-
-      {/* Dedicated Backup & Cross-Device Migration Modal */}
-      <BackupModal
-        isOpen={isBackupModalOpen}
-        onClose={() => setIsBackupModalOpen(false)}
-        projects={projects}
-        settings={settings}
-        onImportProjects={handleImportProjects}
-        onShowToast={showToast}
-      />
-
-      {/* Retro Matrix Auth Modal (Supabase Cloud) */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        user={user}
-        onSyncLocalToCloud={handleSyncLocalToCloud}
-        onShowToast={showToast}
-        localProjectsCount={projects.length}
-      />
-
-      {/* Offline Connectivity Indicator */}
-      <OfflineIndicator />
-
-      {/* Feedback Toast Notification */}
-      {toastMessage && (
-        <div className="fixed bottom-9 right-5 z-50 bg-[color:var(--t-061408)] border border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] text-xs font-mono px-4 py-2 shadow-[0_0_15px_color-mix(in_srgb,var(--t-22c55e)_30%,transparent)] flex items-center gap-2">
-          <span className="w-2 h-2 bg-[color:var(--t-22c55e)] animate-ping"></span>
-          <span>{toastMessage}</span>
-        </div>
-      )}
-    </div>
+    </I18nProvider>
   );
 }
 

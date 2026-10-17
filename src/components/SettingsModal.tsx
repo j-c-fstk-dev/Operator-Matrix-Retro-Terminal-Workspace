@@ -3,6 +3,7 @@ import { WorkspaceSettings, Project } from '../types';
 import { X, Volume2, VolumeX, Eye, Download, Upload, RotateCcw, Monitor } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { SOURCE_CODE_URL, LICENSE_NAME, APP_VERSION } from '../lib/appInfo';
+import { useT, useLang, LANGS } from '../i18n';
 import { ACCENT_THEMES, resolveAccentTheme, themeColor } from '../theme/themes';
 
 interface SettingsModalProps {
@@ -26,6 +27,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onResetData,
   totalProjects,
 }) => {
+  const t = useT();
+  const lang = useLang();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [confirmReset, setConfirmReset] = React.useState(false);
@@ -46,7 +49,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 bg-[color:var(--t-22c55e)]"></span>
             <span className="font-bold text-[color:var(--t-22c55e)] tracking-wider">
-              OPERATOR // PREFERÊNCIAS & BACKUP
+              {t.settings.title}
             </span>
           </div>
           <button
@@ -61,23 +64,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Aesthetic Controls */}
           <div className="space-y-3">
             <div className="text-[10px] text-[color:var(--t-15803d)] uppercase tracking-widest border-b border-[color:var(--t-0f2a13)] pb-1">
-              Estética & Som
+              {t.settings.aestheticsSection}
             </div>
 
             {/* Accent Color Theme */}
             <div className="py-1">
-              <div className="font-medium text-[color:var(--t-86efac)]">Cor do Terminal</div>
-              <div className="text-[10px] text-[color:var(--t-15803d)] mb-2">Cor primária do fósforo em toda a interface</div>
-              <div className="grid grid-cols-4 gap-1.5" role="radiogroup" aria-label="Cor do terminal">
-                {ACCENT_THEMES.map((t) => {
-                  const active = resolveAccentTheme(settings.accentTheme) === t.id;
+              <div className="font-medium text-[color:var(--t-86efac)]">{t.settings.colorTitle}</div>
+              <div className="text-[10px] text-[color:var(--t-15803d)] mb-2">{t.settings.colorHint}</div>
+              <div className="grid grid-cols-4 gap-1.5" role="radiogroup" aria-label={t.settings.colorTitle}>
+                {ACCENT_THEMES.map((theme) => {
+                  const active = resolveAccentTheme(settings.accentTheme) === theme.id;
                   return (
                     <button
-                      key={t.id}
+                      key={theme.id}
                       role="radio"
                       aria-checked={active}
                       onClick={() => {
-                        onUpdateSettings({ accentTheme: t.id });
+                        onUpdateSettings({ accentTheme: theme.id });
                         sound.playClick(700);
                       }}
                       className={`flex flex-col items-center gap-1 px-1 py-1.5 text-[10px] border transition-colors ${
@@ -89,12 +92,42 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <span
                         className="w-4 h-4 border"
                         style={{
-                          backgroundColor: themeColor('22c55e', t.id),
-                          borderColor: themeColor('14351a', t.id),
-                          boxShadow: `0 0 8px ${themeColor('22c55e', t.id)}66`,
+                          backgroundColor: themeColor('22c55e', theme.id),
+                          borderColor: themeColor('14351a', theme.id),
+                          boxShadow: `0 0 8px ${themeColor('22c55e', theme.id)}66`,
                         }}
                       />
-                      <span className="truncate max-w-full">{t.label}</span>
+                      <span className="truncate max-w-full">{t.themes[theme.id]}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Language */}
+            <div className="py-1">
+              <div className="font-medium text-[color:var(--t-86efac)]">{t.settings.languageTitle}</div>
+              <div className="text-[10px] text-[color:var(--t-15803d)] mb-2">{t.settings.languageHint}</div>
+              <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label={t.settings.languageTitle}>
+                {LANGS.map((l) => {
+                  const active = lang === l.id;
+                  return (
+                    <button
+                      key={l.id}
+                      role="radio"
+                      aria-checked={active}
+                      lang={l.id === 'pt' ? 'pt-BR' : 'en'}
+                      onClick={() => {
+                        onUpdateSettings({ language: l.id });
+                        sound.playClick(700);
+                      }}
+                      className={`px-2 py-1.5 text-[11px] border transition-colors ${
+                        active
+                          ? 'border-[color:var(--t-22c55e)] bg-[color:var(--t-0e2c14)] text-[color:var(--t-22c55e)]'
+                          : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)] hover:border-[color:var(--t-15803d)]'
+                      }`}
+                    >
+                      {l.label}
                     </button>
                   );
                 })}
@@ -104,8 +137,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* Matrix Rain */}
             <div className="flex items-center justify-between py-1">
               <div>
-                <div className="font-medium text-[color:var(--t-86efac)]">Chuva Digital (Matrix Rain)</div>
-                <div className="text-[10px] text-[color:var(--t-15803d)]">Caracteres caindo em segundo plano</div>
+                <div className="font-medium text-[color:var(--t-86efac)]">{t.settings.rainTitle}</div>
+                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.settings.rainHint}</div>
               </div>
               <button
                 onClick={() => {
@@ -118,14 +151,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)]'
                 }`}
               >
-                {settings.rainEnabled ? '[ATIVADO]' : '[DESLIGADO]'}
+                {settings.rainEnabled ? t.settings.on : t.settings.off}
               </button>
             </div>
 
             {/* Rain Opacity */}
             {settings.rainEnabled && (
               <div className="flex items-center justify-between py-1 pl-3 border-l-2 border-[color:var(--t-103016)]">
-                <div className="text-[11px] text-[color:var(--t-86efac)]">Opacidade da Chuva</div>
+                <div className="text-[11px] text-[color:var(--t-86efac)]">{t.settings.rainOpacity}</div>
                 <div className="flex items-center gap-2">
                   <input
                     type="range"
@@ -148,8 +181,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {/* CRT Scanlines */}
             <div className="flex items-center justify-between py-1">
               <div>
-                <div className="font-medium text-[color:var(--t-86efac)]">Linhas de Varredura (Scanlines CRT)</div>
-                <div className="text-[10px] text-[color:var(--t-15803d)]">Efeito visual de monitor vintage</div>
+                <div className="font-medium text-[color:var(--t-86efac)]">{t.settings.scanlinesTitle}</div>
+                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.settings.scanlinesHint}</div>
               </div>
               <button
                 onClick={() => {
@@ -162,15 +195,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)]'
                 }`}
               >
-                {settings.scanlines ? '[ATIVADO]' : '[DESLIGADO]'}
+                {settings.scanlines ? t.settings.on : t.settings.off}
               </button>
             </div>
 
             {/* Sound Feedback */}
             <div className="flex items-center justify-between py-1">
               <div>
-                <div className="font-medium text-[color:var(--t-86efac)]">Feedback Sonoro Terminal</div>
-                <div className="text-[10px] text-[color:var(--t-15803d)]">Clicks e beeps via Web Audio sintetizado</div>
+                <div className="font-medium text-[color:var(--t-86efac)]">{t.settings.soundTitle}</div>
+                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.settings.soundHint}</div>
               </div>
               <button
                 onClick={() => {
@@ -185,7 +218,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     : 'border-[color:var(--t-14351a)] text-[color:var(--t-15803d)]'
                 }`}
               >
-                {settings.soundEnabled ? '[LIGADO]' : '[MUTADO]'}
+                {settings.soundEnabled ? t.settings.soundOn : t.settings.soundOff}
               </button>
             </div>
           </div>
@@ -193,12 +226,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           {/* Backup & Persistence */}
           <div className="space-y-3 pt-2">
             <div className="text-[10px] text-[color:var(--t-15803d)] uppercase tracking-widest border-b border-[color:var(--t-0f2a13)] pb-1">
-              Persistência & Backup ({totalProjects} Projetos)
+              {t.settings.backupSection(totalProjects)}
             </div>
 
             <p className="text-[11px] text-[color:var(--t-15803d)] leading-normal">
-              Seus dados são salvos automaticamente no armazenamento local (localStorage) deste navegador.
-              Você pode exportar um arquivo JSON de backup ou importá-lo em outro dispositivo a qualquer momento.
+              {t.settings.backupHint}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
@@ -207,7 +239,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-[color:var(--t-071609)] hover:bg-[color:var(--t-0e2e14)] border border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] transition-colors"
               >
                 <Download size={13} />
-                <span>Exportar Backup (JSON)</span>
+                <span>{t.settings.exportBackup}</span>
               </button>
 
               <button
@@ -215,7 +247,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-[color:var(--t-071609)] hover:bg-[color:var(--t-0e2e14)] border border-[color:var(--t-14351a)] text-[color:var(--t-86efac)] transition-colors"
               >
                 <Upload size={13} />
-                <span>Importar Backup (JSON)</span>
+                <span>{t.settings.importBackup}</span>
               </button>
               <input
                 ref={fileInputRef}
@@ -230,7 +262,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {confirmReset ? (
                 <div className="p-2.5 bg-[#170a0a] border border-red-800 text-red-400 space-y-2">
                   <div className="text-[11px] font-bold">
-                    ATENÇÃO: Deseja redefinir para os projetos padrão iniciais?
+                    {t.settings.resetConfirm}
                   </div>
                   <div className="flex items-center gap-2">
                     <button
@@ -241,13 +273,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       }}
                       className="px-2.5 py-1 bg-red-950 border border-red-500 hover:bg-red-900 text-white text-[11px] font-bold"
                     >
-                      SIM, REDEFINIR TUDO
+                      {t.settings.resetYes}
                     </button>
                     <button
                       onClick={() => setConfirmReset(false)}
                       className="px-2.5 py-1 bg-[color:var(--t-061408)] border border-[color:var(--t-14351a)] text-[color:var(--t-86efac)] text-[11px]"
                     >
-                      CANCELAR
+                      {t.common.cancel}
                     </button>
                   </div>
                 </div>
@@ -257,7 +289,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   className="text-[11px] text-[color:var(--t-15803d)] hover:text-red-400 flex items-center gap-1.5 transition-colors"
                 >
                   <RotateCcw size={12} />
-                  <span>Restaurar dados de exemplo iniciais</span>
+                  <span>{t.settings.resetButton}</span>
                 </button>
               )}
             </div>
@@ -271,16 +303,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-[color:var(--t-22c55e)] hover:underline"
-            title="Código-fonte aberto sob a licença AGPL-3.0"
+            title={t.common.sourceTitle}
           >
-            CÓDIGO-FONTE ({LICENSE_NAME})
+            {t.common.sourceLink(LICENSE_NAME)}
           </a>
-          <span className="opacity-70" title="Versão em execução (commit · data do build)">v{APP_VERSION}</span>
+          <span className="opacity-70" title={t.common.versionTitle}>v{APP_VERSION}</span>
           <button
             onClick={onClose}
             className="text-[color:var(--t-22c55e)] hover:underline"
           >
-            [FECHAR]
+            {t.common.closeTag}
           </button>
         </div>
       </div>
