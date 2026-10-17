@@ -4,6 +4,7 @@ import { Plus, Search, Folder, CheckSquare, Terminal, Eye, Volume2, VolumeX, Tra
 import { sound } from '../utils/audio';
 import { User } from '@supabase/supabase-js';
 import { PWAInstallButton } from './PWAInstallButton';
+import { useT } from '../i18n';
 
 interface SidebarProps {
   projects: Project[];
@@ -42,6 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isMobileOpen,
   onCloseMobile,
 }) => {
+  const t = useT();
   const [filterQuery, setFilterQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
 
@@ -50,7 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       p.title.toLowerCase().includes(filterQuery.toLowerCase()) ||
       p.category.toLowerCase().includes(filterQuery.toLowerCase());
 
-    const isComplete = p.tasks.length > 0 && p.tasks.every((t) => t.done);
+    const isComplete = p.tasks.length > 0 && p.tasks.every((task) => task.done);
 
     if (statusFilter === 'active') return matchesQuery && !isComplete;
     if (statusFilter === 'completed') return matchesQuery && isComplete;
@@ -59,7 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const totalTasks = projects.reduce((acc, p) => acc + p.tasks.length, 0);
   const doneTasks = projects.reduce(
-    (acc, p) => acc + p.tasks.filter((t) => t.done).length,
+    (acc, p) => acc + p.tasks.filter((task) => task.done).length,
     0
   );
 
@@ -93,7 +95,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           <div className="mt-2 text-[11px] text-[color:var(--t-4ade80)]/80 font-mono flex items-center justify-between">
-            <span>TERMINAL DE PROJETOS</span>
+            <span>{t.sidebar.terminalLabel}</span>
             <span className="text-[color:var(--t-15803d)] font-mono text-[10px]">// DEV</span>
           </div>
 
@@ -104,16 +106,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
               sound.playClick(650);
             }}
             className="mt-3 w-full flex items-center justify-between px-2.5 py-1.5 bg-[color:var(--t-020502)] border border-[color:var(--t-14351a)] hover:border-[color:var(--t-22c55e)] text-[10px] font-mono transition-colors group cursor-pointer"
-            title={user ? `Conectado como ${user.email} (Supabase Cloud)` : 'Clique para fazer login ou criar conta no Supabase'}
+            title={user ? t.sidebar.signedInAs(user.email ?? '') : t.sidebar.signInHint}
           >
             <div className="flex items-center gap-1.5 truncate">
               <span className={`w-1.5 h-1.5 rounded-full ${user ? 'bg-[color:var(--t-22c55e)] shadow-[0_0_6px_var(--t-22c55e)]' : 'bg-[color:var(--t-15803d)]'}`} />
               <span className="truncate text-[color:var(--t-86efac)] group-hover:text-white">
-                {user ? user.email : 'MODO LOCAL (OFFLINE)'}
+                {user ? user.email : t.sidebar.localMode}
               </span>
             </div>
             <span className="text-[color:var(--t-22c55e)] shrink-0 font-bold ml-1">
-              {user ? '[NUVEM]' : '[ENTRAR]'}
+              {user ? t.sidebar.cloudTag : t.sidebar.signInTag}
             </span>
           </button>
         </div>
@@ -126,7 +128,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               type="text"
               value={filterQuery}
               onChange={(e) => setFilterQuery(e.target.value)}
-              placeholder="Filtrar projetos..."
+              placeholder={t.sidebar.filterPlaceholder}
               className="w-full bg-[color:var(--t-030704)] border border-[color:var(--t-14351a)] pl-8 pr-7 py-1.5 text-xs text-[color:var(--t-22c55e)] placeholder-[color:var(--t-15803d)] font-mono focus:outline-hidden focus:border-[color:var(--t-22c55e)]"
             />
             {filterQuery ? (
@@ -151,7 +153,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="flex items-center gap-1.5">
               <Terminal size={12} className="text-[color:var(--t-22c55e)]" />
-              <span>Prompt de Comandos</span>
+              <span>{t.sidebar.commandPrompt}</span>
             </div>
             <span className="text-[10px] text-[color:var(--t-15803d)]">Ctrl+K</span>
           </button>
@@ -172,7 +174,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : 'text-[color:var(--t-166534)] hover:text-[color:var(--t-4ade80)]'
               }`}
             >
-              {filter === 'all' ? 'Todos' : filter === 'active' ? 'Ativos' : 'Concluídos'}
+              {t.sidebar.filters[filter]}
             </button>
           ))}
         </div>
@@ -180,7 +182,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Project List */}
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           <div className="flex items-center justify-between px-2 py-1 text-[10px] font-mono text-[color:var(--t-15803d)] uppercase tracking-wider">
-            <span>Diretório ({filteredProjects.length})</span>
+            <span>{t.sidebar.directory(filteredProjects.length)}</span>
             <button
               onClick={() => {
                 sound.playClick(800);
@@ -189,19 +191,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="text-[color:var(--t-22c55e)] hover:text-[color:var(--t-86efac)] flex items-center gap-0.5"
             >
               <Plus size={11} />
-              <span>Novo</span>
+              <span>{t.sidebar.new}</span>
             </button>
           </div>
 
           {filteredProjects.length === 0 ? (
             <div className="p-4 text-center text-xs font-mono text-[color:var(--t-15803d)] border border-dashed border-[color:var(--t-14351a)] my-2">
-              Nenhum projeto encontrado.
+              {t.sidebar.noProjects}
             </div>
           ) : (
             filteredProjects.map((p) => {
               const isSelected = p.id === activeProjectId;
               const total = p.tasks.length;
-              const done = p.tasks.filter((t) => t.done).length;
+              const done = p.tasks.filter((task) => task.done).length;
               const percent = total > 0 ? Math.round((done / total) * 100) : 0;
 
               return (
@@ -240,13 +242,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (window.confirm(`Excluir o projeto "${p.title}"?`)) {
+                          if (window.confirm(t.sidebar.confirmDelete(p.title))) {
                             onDeleteProject(p.id);
                             sound.playClick(400);
                           }
                         }}
                         className="opacity-0 group-hover:opacity-100 text-[color:var(--t-15803d)] hover:text-red-400 p-0.5 transition-opacity"
-                        title="Excluir projeto"
+                        title={t.sidebar.deleteProject}
                       >
                         <Trash2 size={11} />
                       </button>
@@ -257,7 +259,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <div className="mt-2 flex items-center justify-between text-[10px] text-[color:var(--t-166534)]">
                     <span className="truncate max-w-[120px]">{p.category}</span>
                     <span className="tabular-nums">
-                      {done}/{total} done ({percent}%)
+                      {t.sidebar.doneCount(done, total, percent)}
                     </span>
                   </div>
 
@@ -279,7 +281,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Global System Stats */}
         <div className="p-3 border-t border-[color:var(--t-14351a)] bg-[color:var(--t-030704)] text-[10px] font-mono space-y-2">
           <div className="flex items-center justify-between text-[color:var(--t-15803d)]">
-            <span>STATUS DO SISTEMA</span>
+            <span>{t.sidebar.systemStatus}</span>
             <span className="text-[color:var(--t-22c55e)] flex items-center gap-1">
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--t-22c55e)]"></span>
               NOMINAL
@@ -287,7 +289,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
 
           <div className="flex items-center justify-between text-[color:var(--t-86efac)]/70">
-            <span>TAREFAS GLOBAIS</span>
+            <span>{t.sidebar.globalTasks}</span>
             <span className="tabular-nums text-[color:var(--t-22c55e)] font-semibold">
               {doneTasks}/{totalTasks} ({totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0}%)
             </span>
@@ -308,7 +310,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={`flex items-center gap-1 hover:text-[color:var(--t-4ade80)] transition-colors ${
                 settings.rainEnabled ? 'text-[color:var(--t-22c55e)]' : ''
               }`}
-              title="Ativar/Desativar chuva digital"
+              title={t.sidebar.rainTitle}
             >
               <Eye size={12} />
               <span>RAIN</span>
@@ -322,7 +324,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={`flex items-center gap-1 hover:text-[color:var(--t-4ade80)] transition-colors ${
                 settings.soundEnabled ? 'text-[color:var(--t-22c55e)]' : ''
               }`}
-              title="Som terminal"
+              title={t.sidebar.soundTitle}
             >
               {settings.soundEnabled ? <Volume2 size={12} /> : <VolumeX size={12} />}
               <span>{settings.soundEnabled ? 'AUDIO' : 'MUTE'}</span>
@@ -334,7 +336,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 sound.playClick(600);
               }}
               className="flex items-center gap-1 text-[color:var(--t-22c55e)] hover:text-white transition-colors"
-              title="Central de Backup JSON e Migração de Dispositivo"
+              title={t.sidebar.backupTitle}
             >
               <Database size={12} />
               <span>BACKUP</span>
@@ -346,7 +348,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 sound.playClick(600);
               }}
               className="flex items-center gap-1 hover:text-[color:var(--t-4ade80)] transition-colors"
-              title="Manual do Sistema e Teclas de Atalho [?]"
+              title={t.sidebar.manualTitle}
             >
               <BookOpen size={12} />
               <span>MAN [?]</span>
@@ -358,7 +360,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 sound.playClick(600);
               }}
               className="flex items-center gap-1 hover:text-[color:var(--t-4ade80)] transition-colors"
-              title="Configurações e Backup"
+              title={t.sidebar.settingsTitle}
             >
               <SlidersHorizontal size={12} />
               <span>CONFIG</span>

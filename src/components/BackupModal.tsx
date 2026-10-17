@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import { Project, WorkspaceSettings } from '../types';
 import { X, Download, Upload, Copy, Check, FileText, Database, ArrowRightLeft, ShieldCheck, AlertTriangle } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { useT } from '../i18n';
+import { Rich } from '../i18n/Rich';
 
 interface BackupModalProps {
   isOpen: boolean;
@@ -20,6 +22,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
   onImportProjects,
   onShowToast,
 }) => {
+  const t = useT();
   const [copied, setCopied] = useState(false);
   const [pasteMode, setPasteMode] = useState(false);
   const [pastedJson, setPastedJson] = useState('');
@@ -33,10 +36,10 @@ export const BackupModal: React.FC<BackupModalProps> = ({
   // Stats calculation
   const totalProjects = projects.length;
   const totalTasks = projects.reduce((acc, p) => acc + p.tasks.length, 0);
-  const totalDoneTasks = projects.reduce((acc, p) => acc + p.tasks.filter((t) => t.done).length, 0);
+  const totalDoneTasks = projects.reduce((acc, p) => acc + p.tasks.filter((task) => task.done).length, 0);
   const totalObservations = projects.reduce((acc, p) => acc + p.observations.length, 0);
   const totalSnippets = projects.reduce((acc, p) => acc + p.codeSnippets.length, 0);
-  const allTags = Array.from(new Set(projects.flatMap((p) => p.tasks.flatMap((t) => t.tags || []))));
+  const allTags = Array.from(new Set(projects.flatMap((p) => p.tasks.flatMap((task) => task.tags || []))));
 
   const currentPayload = {
     version: 1,
@@ -64,9 +67,9 @@ export const BackupModal: React.FC<BackupModalProps> = ({
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       sound.playCommand();
-      onShowToast(`Backup baixado com sucesso: ${totalProjects} projetos (${approximateSizeKb} KB)`);
+      onShowToast(t.backup.downloaded(totalProjects, approximateSizeKb));
     } catch {
-      onShowToast('Erro ao gerar o arquivo de download.');
+      onShowToast(t.backup.downloadFailed);
     }
   };
 
@@ -75,7 +78,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
     navigator.clipboard.writeText(jsonString);
     setCopied(true);
     sound.playClick(900);
-    onShowToast('JSON completo copiado para a área de transferência!');
+    onShowToast(t.backup.copiedToast);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -92,12 +95,12 @@ export const BackupModal: React.FC<BackupModalProps> = ({
         targetProjects = parsed.projects;
         if (parsed.settings) targetSettings = parsed.settings;
       } else {
-        onShowToast('Arquivo inválido: nenhum projeto encontrado no JSON.');
+        onShowToast(t.backup.noProjects);
         return;
       }
 
       if (targetProjects.length === 0) {
-        onShowToast('Aviso: o arquivo JSON continha 0 projetos.');
+        onShowToast(t.backup.zeroProjects);
         return;
       }
 
@@ -105,7 +108,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
       sound.playCommand();
       onClose();
     } catch {
-      onShowToast('Erro: o conteúdo não é um JSON válido.');
+      onShowToast(t.backup.invalidJson);
     }
   };
 
@@ -148,7 +151,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 bg-[color:var(--t-22c55e)] shadow-[0_0_8px_var(--t-22c55e)]"></span>
             <span className="font-bold text-[color:var(--t-22c55e)] tracking-wider text-xs">
-              SISTEMA // BACKUP & MIGRAÇÃO ENTRE DISPOSITIVOS (.JSON)
+              {t.backup.title}
             </span>
           </div>
           <button
@@ -166,28 +169,28 @@ export const BackupModal: React.FC<BackupModalProps> = ({
             <div className="flex items-center justify-between border-b border-[color:var(--t-0d2612)] pb-1.5 text-[11px] text-[color:var(--t-22c55e)] font-bold uppercase tracking-wider">
               <span className="flex items-center gap-1.5">
                 <Database size={13} />
-                <span>Estado Atual do seu Workspace</span>
+                <span>{t.backup.current}</span>
               </span>
-              <span className="text-[10px] text-[color:var(--t-15803d)]">TAMANHO: ~{approximateSizeKb} KB</span>
+              <span className="text-[10px] text-[color:var(--t-15803d)]">{t.backup.size(approximateSizeKb)}</span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-[11px]">
               <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
-                <div className="text-[10px] text-[color:var(--t-15803d)]">PROJETOS</div>
+                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.backup.statProjects}</div>
                 <div className="text-base font-bold text-[color:var(--t-22c55e)]">{totalProjects}</div>
               </div>
               <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
-                <div className="text-[10px] text-[color:var(--t-15803d)]">TAREFAS SALVAS</div>
+                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.backup.statTasks}</div>
                 <div className="text-base font-bold text-[color:var(--t-22c55e)]">
-                  {totalTasks} <span className="text-[10px] font-normal text-[color:var(--t-15803d)]">({totalDoneTasks} prontas)</span>
+                  {totalTasks} <span className="text-[10px] font-normal text-[color:var(--t-15803d)]">{t.backup.statDone(totalDoneTasks)}</span>
                 </div>
               </div>
               <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
-                <div className="text-[10px] text-[color:var(--t-15803d)]">TAGS DISTINTAS</div>
+                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.backup.statTags}</div>
                 <div className="text-base font-bold text-[color:var(--t-22c55e)]">{allTags.length}</div>
               </div>
               <div className="bg-[color:var(--t-020502)] p-2 border border-[color:var(--t-0d2212)]">
-                <div className="text-[10px] text-[color:var(--t-15803d)]">NOTAS & SNIPPETS</div>
+                <div className="text-[10px] text-[color:var(--t-15803d)]">{t.backup.statNotes}</div>
                 <div className="text-base font-bold text-[color:var(--t-22c55e)]">{totalObservations + totalSnippets}</div>
               </div>
             </div>
@@ -197,11 +200,11 @@ export const BackupModal: React.FC<BackupModalProps> = ({
           <div className="space-y-2">
             <div className="flex items-center gap-1.5 text-xs font-bold text-[color:var(--t-22c55e)] uppercase tracking-wider border-b border-[color:var(--t-14351a)] pb-1">
               <Download size={13} />
-              <span>1. Baixar Arquivo JSON (Salvar Backup)</span>
+              <span>{t.backup.step1}</span>
             </div>
 
             <p className="text-[11px] text-[color:var(--t-86efac)]/80 leading-relaxed">
-              Gera um arquivo <code className="text-[color:var(--t-22c55e)]">.json</code> completo com todos os projetos, subtarefas, tags coloridas, notas e snippets. Você pode guardar esse arquivo no seu Google Drive, pen-drive ou enviá-lo para si mesmo.
+              <Rich text={t.backup.step1Body} slots={{ json: <code className="text-[color:var(--t-22c55e)]">.json</code> }} />
             </p>
 
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
@@ -210,16 +213,16 @@ export const BackupModal: React.FC<BackupModalProps> = ({
                 className="flex-1 py-2.5 px-4 bg-[color:var(--t-0e2c14)] hover:bg-[color:var(--t-14421d)] border border-[color:var(--t-22c55e)] text-xs font-bold text-[color:var(--t-22c55e)] hover:text-white flex items-center justify-center gap-2 shadow-[0_0_10px_color-mix(in_srgb,var(--t-22c55e)_20%,transparent)] transition-all cursor-pointer"
               >
                 <Download size={14} />
-                <span>BAIXAR ARQUIVO DE BACKUP (.JSON)</span>
+                <span>{t.backup.downloadButton}</span>
               </button>
 
               <button
                 onClick={handleCopyClipboard}
                 className="py-2.5 px-3 bg-[color:var(--t-051107)] hover:bg-[color:var(--t-091f0e)] border border-[color:var(--t-14351a)] hover:border-[color:var(--t-22c55e)] text-xs text-[color:var(--t-86efac)] flex items-center justify-center gap-1.5 transition-colors shrink-0 cursor-pointer"
-                title="Copiar texto JSON para área de transferência"
+                title={t.backup.copyTitle}
               >
                 {copied ? <Check size={13} className="text-[color:var(--t-22c55e)]" /> : <Copy size={13} />}
-                <span>{copied ? 'COPIADO!' : 'COPIAR TEXTO'}</span>
+                <span>{copied ? t.backup.copied : t.backup.copyText}</span>
               </button>
             </div>
           </div>
@@ -229,17 +232,17 @@ export const BackupModal: React.FC<BackupModalProps> = ({
             <div className="flex items-center justify-between border-b border-[color:var(--t-14351a)] pb-1">
               <span className="flex items-center gap-1.5 text-xs font-bold text-[color:var(--t-22c55e)] uppercase tracking-wider">
                 <Upload size={13} />
-                <span>2. Fazer Upload de Arquivo JSON (Restaurar em Outro Aparelho)</span>
+                <span>{t.backup.step2}</span>
               </span>
             </div>
 
             <p className="text-[11px] text-[color:var(--t-86efac)]/80 leading-relaxed">
-              Abra este site em outro computador ou navegador (ex: subindo pelo Netlify), clique neste botão e selecione o arquivo que você baixou. Tudo será reconstruído exatamente como você deixou.
+              {t.backup.step2Body}
             </p>
 
             {/* Mode selection: Replace or Merge */}
             <div className="flex items-center gap-3 pt-1 text-[11px]">
-              <span className="text-[color:var(--t-15803d)]">MODO DE IMPORTAÇÃO:</span>
+              <span className="text-[color:var(--t-15803d)]">{t.backup.importMode}</span>
               <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="radio"
@@ -249,7 +252,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
                   className="accent-[color:var(--t-22c55e)]"
                 />
                 <span className={importMode === 'replace' ? 'text-[color:var(--t-22c55e)] font-bold' : 'text-[color:var(--t-86efac)]'}>
-                  Substituir Tudo (Recomendado)
+                  {t.backup.replace}
                 </span>
               </label>
 
@@ -262,7 +265,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
                   className="accent-[color:var(--t-22c55e)]"
                 />
                 <span className={importMode === 'merge' ? 'text-[color:var(--t-22c55e)] font-bold' : 'text-[color:var(--t-86efac)]'}>
-                  Mesclar com Atuais
+                  {t.backup.merge}
                 </span>
               </label>
             </div>
@@ -284,10 +287,10 @@ export const BackupModal: React.FC<BackupModalProps> = ({
             >
               <Upload size={24} className="mx-auto mb-2 text-[color:var(--t-22c55e)]" />
               <div className="text-xs font-bold text-[color:var(--t-22c55e)]">
-                CLIQUE PARA ESCOLHER ARQUIVO .JSON
+                {t.backup.pickFile}
               </div>
               <div className="text-[10px] text-[color:var(--t-15803d)] mt-1">
-                ou arraste e solte o arquivo de backup aqui
+                {t.backup.dropHint}
               </div>
               <input
                 ref={fileInputRef}
@@ -305,7 +308,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
               onClick={() => setPasteMode(!pasteMode)}
               className="text-[11px] text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] flex items-center gap-1 transition-colors"
             >
-              <span>{pasteMode ? '[-] Ocultar entrada de texto JSON' : '[+] Ou colar código JSON diretamente (sem arquivo)'}</span>
+              <span>{pasteMode ? t.backup.pasteHide : t.backup.pasteShow}</span>
             </button>
 
             {pasteMode && (
@@ -313,7 +316,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
                 <textarea
                   value={pastedJson}
                   onChange={(e) => setPastedJson(e.target.value)}
-                  placeholder="Cole aqui o conteúdo do seu arquivo .json..."
+                  placeholder={t.backup.pastePlaceholder}
                   rows={4}
                   className="w-full bg-[color:var(--t-020502)] border border-[color:var(--t-14351a)] text-xs font-mono text-[color:var(--t-86efac)] p-2 focus:outline-hidden focus:border-[color:var(--t-22c55e)] resize-y"
                 />
@@ -325,7 +328,7 @@ export const BackupModal: React.FC<BackupModalProps> = ({
                   }}
                   className="px-3 py-1.5 bg-[color:var(--t-092211)] hover:bg-[color:var(--t-0e2c14)] border border-[color:var(--t-22c55e)] text-xs text-[color:var(--t-22c55e)] transition-colors"
                 >
-                  APLICAR JSON COLADO
+                  {t.backup.applyPaste}
                 </button>
               </div>
             )}
@@ -336,13 +339,13 @@ export const BackupModal: React.FC<BackupModalProps> = ({
         <div className="px-4 py-2.5 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-15803d)] shrink-0">
           <div className="flex items-center gap-1.5 text-[color:var(--t-22c55e)]">
             <ShieldCheck size={13} />
-            <span>OPERATOR DATA VAULT // 100% OFFLINE & PRIVADO</span>
+            <span>{t.backup.footer}</span>
           </div>
           <button
             onClick={onClose}
             className="px-3 py-1 bg-[color:var(--t-051107)] border border-[color:var(--t-14351a)] text-[color:var(--t-86efac)] hover:text-white hover:border-[color:var(--t-22c55e)] transition-colors"
           >
-            FECHAR [ESC]
+            {t.common.closeEsc}
           </button>
         </div>
       </div>

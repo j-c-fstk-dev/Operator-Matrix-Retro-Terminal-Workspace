@@ -8,6 +8,8 @@ export const MAX_CLOUD_FILE_BYTES = 50 * 1024 * 1024;
 /** Limite por arquivo salvo só no aparelho (localStorage tem poucos MB no total). */
 export const MAX_LOCAL_FILE_BYTES = 2 * 1024 * 1024;
 
+import { getT } from '../i18n';
+
 export class AttachmentTooLargeError extends Error {}
 
 let lastCloudError: string | null = null;
@@ -17,11 +19,11 @@ export const getLastCloudError = () => lastCloudError;
 /** Valida o tamanho antes de enviar; lança erro com mensagem pronta para o usuário. */
 export function assertFileSize(size: number, cloud: boolean): void {
   if (size > MAX_CLOUD_FILE_BYTES) {
-    throw new AttachmentTooLargeError(`Arquivo com ${formatBytes(size)}: o limite é ${formatBytes(MAX_CLOUD_FILE_BYTES)} por arquivo.`);
+    throw new AttachmentTooLargeError(getT().storage.tooLargeCloud(formatBytes(size), formatBytes(MAX_CLOUD_FILE_BYTES)));
   }
   if (!cloud && size > MAX_LOCAL_FILE_BYTES) {
     throw new AttachmentTooLargeError(
-      `Arquivo com ${formatBytes(size)}: sem nuvem, o limite é ${formatBytes(MAX_LOCAL_FILE_BYTES)} por arquivo. Faça login para enviar arquivos maiores.`
+      getT().storage.tooLargeLocal(formatBytes(size), formatBytes(MAX_LOCAL_FILE_BYTES))
     );
   }
 }
@@ -140,7 +142,7 @@ export const storageService = {
           console.warn('[Supabase Storage] Fallback to local DataURL:', uploadError.message);
         }
       } catch (err: any) {
-        lastCloudError = err?.message || 'erro de rede';
+        lastCloudError = err?.message || getT().storage.networkError;
         console.warn('[Supabase Storage] Upload error, falling back to local:', err?.message);
       }
     }
@@ -148,7 +150,7 @@ export const storageService = {
     // Local / Offline fallback (read as DataURL)
     if (canUseCloud && file.size > MAX_LOCAL_FILE_BYTES) {
       throw new AttachmentTooLargeError(
-        `O envio para a nuvem falhou e o arquivo (${formatBytes(file.size)}) é grande demais para salvar só no aparelho. Tente novamente quando a conexão voltar.`
+        getT().storage.uploadFailedTooLarge(formatBytes(file.size))
       );
     }
     assertFileSize(file.size, false);
@@ -209,7 +211,7 @@ export const storageService = {
         console.warn('[Supabase Storage] sync error:', uploadError.message);
       }
     } catch (err) {
-      lastCloudError = (err as Error)?.message || 'erro de rede';
+      lastCloudError = (err as Error)?.message || getT().storage.networkError;
       console.error('[Supabase Storage] sync exception:', err);
     }
     return attachment;

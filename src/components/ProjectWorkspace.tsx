@@ -31,14 +31,7 @@ import { getTerminalTagStyle } from '../utils/tagColors';
 import { User } from '@supabase/supabase-js';
 import { PWAInstallButton } from './PWAInstallButton';
 import { SyncStatus } from '../sync/useCloudSync';
-
-const SYNC_LABELS: Record<SyncStatus, (n: number) => string> = {
-  local: () => 'Login / Nuvem',
-  synced: () => 'Nuvem OK',
-  syncing: () => 'Sincronizando...',
-  pending: (n) => `Pendente (${n})`,
-  error: (n) => `Sync falhou (${n})`,
-};
+import { useT, useLang, localeOf } from '../i18n';
 import { ProjectAttachments } from './ProjectAttachments';
 
 interface ProjectWorkspaceProps {
@@ -70,6 +63,12 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   syncStatus = 'local',
   pendingSyncCount = 0,
 }) => {
+  const t = useT();
+  const lang = useLang();
+  const syncLabel = (status: SyncStatus, n: number) => {
+    const s = t.workspace.sync;
+    return status === 'pending' ? s.pending(n) : status === 'error' ? s.error(n) : s[status];
+  };
   const [activeTab, setActiveTab] = useState<'all' | 'tasks' | 'notes' | 'code' | 'files'>('all');
   const [taskFilter, setTaskFilter] = useState<'all' | 'pending' | 'done'>('all');
   const [selectedTagFilter, setSelectedTagFilter] = useState<string | null>(null);
@@ -114,30 +113,30 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
   // Tasks math
   const totalTasks = project.tasks.length;
-  const doneTasks = project.tasks.filter((t) => t.done).length;
+  const doneTasks = project.tasks.filter((task) => task.done).length;
   const progressPercent = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
   // Task Operations
   const handleToggleTask = (taskId: string) => {
-    const updatedTasks = project.tasks.map((t) => {
-      if (t.id === taskId) {
-        const nextDone = !t.done;
+    const updatedTasks = project.tasks.map((task) => {
+      if (task.id === taskId) {
+        const nextDone = !task.done;
         sound.playCheck(nextDone);
         // Also toggle all subtasks if marking complete
         const updatedSubtasks = nextDone
-          ? t.subtasks.map((s) => ({ ...s, done: true }))
-          : t.subtasks;
-        return { ...t, done: nextDone, subtasks: updatedSubtasks };
+          ? task.subtasks.map((s) => ({ ...s, done: true }))
+          : task.subtasks;
+        return { ...task, done: nextDone, subtasks: updatedSubtasks };
       }
-      return t;
+      return task;
     });
     onUpdateProject({ ...project, tasks: updatedTasks, updatedAt: Date.now() });
   };
 
   const handleToggleSubtask = (taskId: string, subtaskId: string) => {
-    const updatedTasks = project.tasks.map((t) => {
-      if (t.id === taskId) {
-        const updatedSubs = t.subtasks.map((s) => {
+    const updatedTasks = project.tasks.map((task) => {
+      if (task.id === taskId) {
+        const updatedSubs = task.subtasks.map((s) => {
           if (s.id === subtaskId) {
             const nextDone = !s.done;
             sound.playCheck(nextDone);
@@ -147,12 +146,12 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
         });
         const allSubsDone = updatedSubs.length > 0 && updatedSubs.every((s) => s.done);
         return {
-          ...t,
+          ...task,
           subtasks: updatedSubs,
-          done: allSubsDone ? true : t.done,
+          done: allSubsDone ? true : task.done,
         };
       }
-      return t;
+      return task;
     });
     onUpdateProject({ ...project, tasks: updatedTasks, updatedAt: Date.now() });
   };
@@ -162,14 +161,14 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
     if (!newTaskText.trim()) return;
 
     // Extract hashtags from task text
-    const textHashtags = (newTaskText.match(/#([a-zA-Z0-9_-]+)/g) || []).map((t) =>
-      t.slice(1).toLowerCase()
+    const textHashtags = (newTaskText.match(/#([a-zA-Z0-9_-]+)/g) || []).map((tg) =>
+      tg.slice(1).toLowerCase()
     );
 
     // Extract tags from tags input field
     const explicitTags = newTaskTagsInput
       .split(/[,;\s]+/)
-      .map((t) => t.trim().toLowerCase().replace(/^#/, ''))
+      .map((tg) => tg.trim().toLowerCase().replace(/^#/, ''))
       .filter(Boolean);
 
     const mergedTags = Array.from(new Set([...textHashtags, ...explicitTags]));
@@ -198,14 +197,14 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
     const tag = (rawTag || newTagInputVal).trim().toLowerCase().replace(/^#/, '');
     if (!tag) return;
 
-    const updatedTasks = project.tasks.map((t) => {
-      if (t.id === taskId) {
-        const current = t.tags || [];
+    const updatedTasks = project.tasks.map((task) => {
+      if (task.id === taskId) {
+        const current = task.tags || [];
         if (!current.includes(tag)) {
-          return { ...t, tags: [...current, tag] };
+          return { ...task, tags: [...current, tag] };
         }
       }
-      return t;
+      return task;
     });
 
     sound.playClick(750);
@@ -215,12 +214,12 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   };
 
   const handleRemoveTag = (taskId: string, tagToRemove: string) => {
-    const updatedTasks = project.tasks.map((t) => {
-      if (t.id === taskId && t.tags) {
-        const remaining = t.tags.filter((tg) => tg !== tagToRemove);
-        return { ...t, tags: remaining.length > 0 ? remaining : undefined };
+    const updatedTasks = project.tasks.map((task) => {
+      if (task.id === taskId && task.tags) {
+        const remaining = task.tags.filter((tg) => tg !== tagToRemove);
+        return { ...task, tags: remaining.length > 0 ? remaining : undefined };
       }
-      return t;
+      return task;
     });
 
     sound.playClick(450);
@@ -229,7 +228,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
   const handleDeleteTask = (taskId: string) => {
     sound.playClick(400);
-    const updatedTasks = project.tasks.filter((t) => t.id !== taskId);
+    const updatedTasks = project.tasks.filter((task) => task.id !== taskId);
     onUpdateProject({ ...project, tasks: updatedTasks, updatedAt: Date.now() });
   };
 
@@ -237,8 +236,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
     const text = newSubtaskInputs[taskId]?.trim();
     if (!text) return;
 
-    const updatedTasks = project.tasks.map((t) => {
-      if (t.id === taskId) {
+    const updatedTasks = project.tasks.map((task) => {
+      if (task.id === taskId) {
         const newSub: SubTask = {
           id: `sub-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
           text,
@@ -246,12 +245,12 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           createdAt: Date.now(),
         };
         return {
-          ...t,
+          ...task,
           done: false, // If adding a subtask, task is not 100% complete
-          subtasks: [...t.subtasks, newSub],
+          subtasks: [...task.subtasks, newSub],
         };
       }
-      return t;
+      return task;
     });
 
     sound.playClick(750);
@@ -262,34 +261,34 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
   const handleDeleteSubtask = (taskId: string, subtaskId: string) => {
     sound.playClick(450);
-    const updatedTasks = project.tasks.map((t) => {
-      if (t.id === taskId) {
+    const updatedTasks = project.tasks.map((task) => {
+      if (task.id === taskId) {
         return {
-          ...t,
-          subtasks: t.subtasks.filter((s) => s.id !== subtaskId),
+          ...task,
+          subtasks: task.subtasks.filter((s) => s.id !== subtaskId),
         };
       }
-      return t;
+      return task;
     });
     onUpdateProject({ ...project, tasks: updatedTasks, updatedAt: Date.now() });
   };
 
   const handleUpdateTaskText = (taskId: string, newText: string) => {
-    const updatedTasks = project.tasks.map((t) =>
-      t.id === taskId ? { ...t, text: newText } : t
+    const updatedTasks = project.tasks.map((task) =>
+      task.id === taskId ? { ...task, text: newText } : task
     );
     onUpdateProject({ ...project, tasks: updatedTasks, updatedAt: Date.now() });
   };
 
   const handleUpdateSubtaskText = (taskId: string, subId: string, newText: string) => {
-    const updatedTasks = project.tasks.map((t) => {
-      if (t.id === taskId) {
+    const updatedTasks = project.tasks.map((task) => {
+      if (task.id === taskId) {
         return {
-          ...t,
-          subtasks: t.subtasks.map((s) => (s.id === subId ? { ...s, text: newText } : s)),
+          ...task,
+          subtasks: task.subtasks.map((s) => (s.id === subId ? { ...s, text: newText } : s)),
         };
       }
-      return t;
+      return task;
     });
     onUpdateProject({ ...project, tasks: updatedTasks, updatedAt: Date.now() });
   };
@@ -298,9 +297,9 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   const handleAddObservation = () => {
     const newObs: Observation = {
       id: `obs-${Date.now()}`,
-      title: 'Nova Observação Técnica',
-      content: 'Descreva aqui anotações, decisões tomadas, URLs de documentação ou logs de execução...',
-      tag: 'NOTAS',
+      title: t.workspace.newNoteTitle,
+      content: t.workspace.newNoteContent,
+      tag: t.workspace.notesTag,
       updatedAt: Date.now(),
     };
     sound.playClick(750);
@@ -331,7 +330,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       id: `snip-${Date.now()}`,
       title: 'script-util.sh',
       language: 'bash',
-      code: '#!/usr/bin/env bash\n# Script de automacao\necho "Running operator job..."\n',
+      code: t.workspace.newSnippetCode,
       updatedAt: Date.now(),
     };
     sound.playClick(750);
@@ -364,14 +363,14 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
 
   // Collect all distinct tags in the active project
   const allProjectTags = Array.from(
-    new Set(project.tasks.flatMap((t) => t.tags || []))
+    new Set(project.tasks.flatMap((task) => task.tags || []))
   ).sort();
 
   // Filter tasks based on status and selected tag
-  const visibleTasks = project.tasks.filter((t) => {
-    if (taskFilter === 'pending' && t.done) return false;
-    if (taskFilter === 'done' && !t.done) return false;
-    if (selectedTagFilter && (!t.tags || !t.tags.includes(selectedTagFilter))) return false;
+  const visibleTasks = project.tasks.filter((task) => {
+    if (taskFilter === 'pending' && task.done) return false;
+    if (taskFilter === 'done' && !task.done) return false;
+    if (selectedTagFilter && (!task.tags || !task.tags.includes(selectedTagFilter))) return false;
     return true;
   });
 
@@ -437,7 +436,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       if (e.key === 'j' || e.key === 'ArrowDown') {
         e.preventDefault();
         if (visibleTasks.length === 0) return;
-        const currentIndex = visibleTasks.findIndex((t) => t.id === selectedTaskId);
+        const currentIndex = visibleTasks.findIndex((task) => task.id === selectedTaskId);
         const nextIndex = currentIndex < visibleTasks.length - 1 ? currentIndex + 1 : 0;
         setSelectedTaskId(visibleTasks[nextIndex].id);
         sound.playClick(500);
@@ -447,7 +446,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
       if (e.key === 'k' || e.key === 'ArrowUp') {
         e.preventDefault();
         if (visibleTasks.length === 0) return;
-        const currentIndex = visibleTasks.findIndex((t) => t.id === selectedTaskId);
+        const currentIndex = visibleTasks.findIndex((task) => task.id === selectedTaskId);
         const prevIndex = currentIndex > 0 ? currentIndex - 1 : visibleTasks.length - 1;
         setSelectedTaskId(visibleTasks[prevIndex].id);
         sound.playClick(500);
@@ -487,7 +486,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           <div className="flex items-center gap-1.5 text-xs font-mono text-[color:var(--t-166534)] truncate">
             <span>OPERATOR</span>
             <span>&gt;</span>
-            <span>PROJETOS</span>
+            <span>{t.workspace.breadcrumbProjects}</span>
             <span>&gt;</span>
             <span className="text-[color:var(--t-22c55e)] font-semibold truncate">{project.title}</span>
           </div>
@@ -508,10 +507,10 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             }`}
             title={
               !user
-                ? 'Conectar com Supabase'
+                ? t.workspace.connectTitle
                 : syncStatus === 'error'
-                  ? `Falha ao sincronizar; ${pendingSyncCount} alteração(ões) salvas localmente aguardando nova tentativa (${user.email})`
-                  : `Sincronização em nuvem ativa (${user.email})`
+                  ? t.workspace.syncErrorTitle(pendingSyncCount, user.email || '')
+                  : t.workspace.syncActiveTitle(user.email || '')
             }
           >
             <Cloud
@@ -524,7 +523,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                     : 'text-[color:var(--t-15803d)]'
               }
             />
-            <span className="hidden md:inline">{SYNC_LABELS[syncStatus](pendingSyncCount)}</span>
+            <span className="hidden md:inline">{syncLabel(syncStatus, pendingSyncCount)}</span>
           </button>
 
           <PWAInstallButton variant="header" />
@@ -535,7 +534,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               sound.playClick(750);
             }}
             className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono bg-[color:var(--t-07170a)] hover:bg-[color:var(--t-0e2c14)] border border-[color:var(--t-14351a)] hover:border-[color:var(--t-22c55e)] text-[color:var(--t-86efac)] transition-colors"
-            title="Baixar ou Subir arquivo de Backup JSON para sincronizar com outro aparelho"
+            title={t.workspace.backupTitle}
           >
             <Database size={12} className="text-[color:var(--t-22c55e)]" />
             <span className="hidden sm:inline">Backup JSON</span>
@@ -547,7 +546,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               sound.playClick(750);
             }}
             className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono bg-[color:var(--t-07170a)] hover:bg-[color:var(--t-0e2c14)] border border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] transition-colors"
-            title="Abrir Manual de Comandos e Teclas de Atalho [?]"
+            title={t.workspace.manualTitle}
           >
             <BookOpen size={12} />
             <span className="hidden sm:inline">Manual [?]</span>
@@ -559,10 +558,10 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               sound.playClick(850);
             }}
             className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono bg-[color:var(--t-07170a)] hover:bg-[color:var(--t-0e2c14)] border border-[color:var(--t-14351a)] text-[color:var(--t-86efac)] transition-colors"
-            title="Copiar todo o projeto formatado em Markdown"
+            title={t.workspace.exportTitle}
           >
             <Copy size={12} className="text-[color:var(--t-22c55e)]" />
-            <span className="hidden sm:inline">Exportar MD</span>
+            <span className="hidden sm:inline">{t.workspace.exportMd}</span>
           </button>
 
           <select
@@ -576,10 +575,10 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             }
             className="bg-[color:var(--t-030704)] border border-[color:var(--t-14351a)] text-[11px] font-mono text-[color:var(--t-22c55e)] px-2 py-1 focus:outline-hidden cursor-pointer"
           >
-            <option value="active">ATIVO</option>
-            <option value="in_progress">EM PROGRESSO</option>
-            <option value="standby">STANDBY</option>
-            <option value="completed">CONCLUÍDO</option>
+            <option value="active">{t.workspace.status.active}</option>
+            <option value="in_progress">{t.workspace.status.in_progress}</option>
+            <option value="standby">{t.workspace.status.standby}</option>
+            <option value="completed">{t.workspace.status.completed}</option>
           </select>
         </div>
       </header>
@@ -600,13 +599,13 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                       onUpdateProject({ ...project, category: e.target.value.toUpperCase() })
                     }
                     className="text-[10px] font-mono tracking-widest text-[color:var(--t-15803d)] uppercase bg-transparent border-b border-transparent hover:border-[color:var(--t-14351a)] focus:border-[color:var(--t-22c55e)] focus:outline-hidden w-36"
-                    placeholder="CATEGORIA"
+                    placeholder={t.workspace.categoryPlaceholder}
                   />
                   <span className="terminal-underscore-cursor"></span>
                 </div>
                 <span className="text-[10px] text-[color:var(--t-15803d)]">·</span>
                 <span className="text-[10px] font-mono text-[color:var(--t-15803d)]">
-                  ÚLTIMA ATUALIZAÇÃO: {new Date(project.updatedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {t.workspace.lastUpdate} {new Date(project.updatedAt).toLocaleTimeString(localeOf(lang), { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
 
@@ -646,7 +645,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   <button
                     onClick={() => setEditingTitle(true)}
                     className="opacity-0 group-hover:opacity-100 text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] transition-opacity"
-                    title="Editar título"
+                    title={t.workspace.editTitle}
                   >
                     <Edit3 size={13} />
                   </button>
@@ -672,9 +671,9 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                 <p
                   onClick={() => setEditingDesc(true)}
                   className="text-xs font-mono text-[color:var(--t-86efac)]/80 hover:text-white cursor-pointer transition-colors"
-                  title="Clique para editar descrição"
+                  title={t.workspace.editDesc}
                 >
-                  {project.description || 'Clique para adicionar uma descrição técnica a este projeto...'}
+                  {project.description || t.workspace.descPlaceholder}
                 </p>
               )}
             </div>
@@ -682,7 +681,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
             {/* ASCII / Segmented Progress Meter */}
             <div className="bg-[color:var(--t-030704)] border border-[color:var(--t-14351a)] p-3 shrink-0 md:w-60 font-mono text-xs">
               <div className="flex items-center justify-between text-[11px] text-[color:var(--t-166534)] mb-1">
-                <span>CONCLUÍDO</span>
+                <span>{t.workspace.progress}</span>
                 <span className="text-[color:var(--t-22c55e)] tabular-nums font-bold">
                   {doneTasks}/{totalTasks} ({progressPercent}%)
                 </span>
@@ -694,7 +693,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                 />
               </div>
               <div className="mt-1 text-[10px] text-[color:var(--t-15803d)] text-right">
-                {totalTasks - doneTasks} tarefas pendentes
+                {t.workspace.pendingTasks(totalTasks - doneTasks)}
               </div>
             </div>
           </div>
@@ -709,7 +708,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   : 'text-[color:var(--t-166534)] hover:text-[color:var(--t-86efac)] border border-transparent'
               }`}
             >
-              [ TODOS OS BLOCOS ]
+              {t.workspace.tabs.all}
             </button>
             <button
               onClick={() => setActiveTab('tasks')}
@@ -720,7 +719,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               }`}
             >
               <ListTodo size={12} />
-              <span>TAREFAS ({project.tasks.length})</span>
+              <span>{t.workspace.tabs.tasks} ({project.tasks.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('notes')}
@@ -731,7 +730,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               }`}
             >
               <FileText size={12} />
-              <span>OBSERVAÇÕES ({project.observations.length})</span>
+              <span>{t.workspace.tabs.notes} ({project.observations.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('code')}
@@ -742,7 +741,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               }`}
             >
               <Code size={12} />
-              <span>SNIPPETS ({project.codeSnippets.length})</span>
+              <span>{t.workspace.tabs.code} ({project.codeSnippets.length})</span>
             </button>
             <button
               onClick={() => setActiveTab('files')}
@@ -753,7 +752,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               }`}
             >
               <HardDrive size={12} />
-              <span>ARQUIVOS ({(project.attachments || []).length})</span>
+              <span>{t.workspace.tabs.files} ({(project.attachments || []).length})</span>
             </button>
           </div>
         </section>
@@ -765,7 +764,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               <div className="flex items-center gap-2">
                 <span className="text-[color:var(--t-22c55e)] font-mono text-sm">#01</span>
                 <h2 className="text-sm font-mono font-bold tracking-wider text-[color:var(--t-22c55e)]">
-                  TAREFAS E SUBTAREFAS
+                  {t.workspace.tasksHeading}
                 </h2>
               </div>
 
@@ -781,7 +780,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                         : 'text-[color:var(--t-15803d)] hover:text-[color:var(--t-4ade80)]'
                     }`}
                   >
-                    {filter === 'all' ? 'Todas' : filter === 'pending' ? 'Pendentes' : 'Concluídas'}
+                    {t.workspace.taskFilter[filter]}
                   </button>
                 ))}
               </div>
@@ -797,7 +796,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                 {allProjectTags.map((tag) => {
                   const isSelected = selectedTagFilter === tag;
                   const style = getTerminalTagStyle(tag);
-                  const count = project.tasks.filter((t) => t.tags?.includes(tag)).length;
+                  const count = project.tasks.filter((task) => task.tags?.includes(tag)).length;
                   return (
                     <button
                       key={tag}
@@ -828,7 +827,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                     className="text-[10px] font-mono text-red-400 hover:text-red-300 underline flex items-center gap-0.5 ml-1"
                   >
                     <X size={10} />
-                    <span>Limpar filtro</span>
+                    <span>{t.workspace.clearFilter}</span>
                   </button>
                 )}
               </div>
@@ -843,7 +842,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   type="text"
                   value={newTaskText}
                   onChange={(e) => setNewTaskText(e.target.value)}
-                  placeholder="Adicionar nova tarefa... (Pressione 'T' para focar, use #tags)"
+                  placeholder={t.workspace.newTaskPlaceholder}
                   className="w-full bg-transparent text-xs font-mono text-[color:var(--t-86efac)] placeholder-[color:var(--t-15803d)] focus:outline-hidden"
                 />
                 <span className="terminal-block-cursor"></span>
@@ -856,7 +855,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                     type="text"
                     value={newTaskTagsInput}
                     onChange={(e) => setNewTaskTagsInput(e.target.value)}
-                    placeholder="tags (ex: api, db)"
+                    placeholder={t.workspace.tagsPlaceholder}
                     className="w-full bg-transparent text-xs font-mono text-[color:var(--t-22c55e)] placeholder-[color:var(--t-15803d)] focus:outline-hidden"
                   />
                   <span className="terminal-underscore-cursor"></span>
@@ -867,9 +866,9 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   onChange={(e) => setNewTaskPriority(e.target.value as 'low' | 'med' | 'high')}
                   className="bg-[color:var(--t-050f07)] border border-[color:var(--t-14351a)] text-xs font-mono text-[color:var(--t-22c55e)] px-2 py-2 focus:outline-hidden"
                 >
-                  <option value="low">PRIORIDADE BAIXA</option>
-                  <option value="med">PRIORIDADE NORMAL</option>
-                  <option value="high">ALTA PRIORIDADE [CRIT]</option>
+                  <option value="low">{t.workspace.priority.low}</option>
+                  <option value="med">{t.workspace.priority.med}</option>
+                  <option value="high">{t.workspace.priority.high}</option>
                 </select>
 
                 <button
@@ -877,7 +876,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   className="px-3 py-2 bg-[color:var(--t-0e2c14)] hover:bg-[color:var(--t-14421d)] border border-[color:var(--t-22c55e)] text-xs font-mono text-[color:var(--t-22c55e)] flex items-center gap-1 transition-colors shrink-0"
                 >
                   <Plus size={13} />
-                  <span className="hidden sm:inline">ADICIONAR</span>
+                  <span className="hidden sm:inline">{t.workspace.add}</span>
                 </button>
               </div>
             </form>
@@ -887,10 +886,10 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               {visibleTasks.length === 0 ? (
                 <div className="p-4 text-center font-mono text-xs text-[color:var(--t-15803d)] border border-dashed border-[color:var(--t-102a15)] bg-[color:var(--t-030804)]">
                   {selectedTagFilter
-                    ? `Nenhuma tarefa com a tag #${selectedTagFilter}.`
+                    ? t.workspace.emptyTag(selectedTagFilter)
                     : taskFilter === 'done'
-                    ? 'Nenhuma tarefa marcada como concluída ainda.'
-                    : 'Nenhuma tarefa pendente neste filtro.'}
+                    ? t.workspace.emptyDone
+                    : t.workspace.emptyPending}
                 </div>
               ) : (
                 visibleTasks.map((task) => {
@@ -925,7 +924,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                               ? 'bg-[color:var(--t-22c55e)] border-[color:var(--t-22c55e)] text-black shadow-[0_0_8px_var(--t-22c55e)]'
                               : 'bg-[color:var(--t-030704)] border-[color:var(--t-166534)] hover:border-[color:var(--t-22c55e)]'
                           }`}
-                          title={task.done ? 'Desmarcar' : 'Marcar como concluída'}
+                          title={task.done ? t.workspace.uncheck : t.workspace.check}
                         >
                           {task.done && <Check size={11} strokeWidth={3} />}
                         </button>
@@ -975,7 +974,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                                   className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] font-mono border ${style.border} ${style.text} ${style.bg} cursor-pointer transition-all ${
                                     isFiltered ? 'ring-1 ring-[color:var(--t-22c55e)] font-bold shadow-[0_0_6px_color-mix(in_srgb,var(--t-22c55e)_30%,transparent)]' : ''
                                   }`}
-                                  title={`Filtrar tarefas por #${tag}`}
+                                  title={t.workspace.filterByTag(tag)}
                                 >
                                   <span>#{tag}</span>
                                   <button
@@ -985,7 +984,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                                       handleRemoveTag(task.id, tag);
                                     }}
                                     className="hover:text-red-400 text-[10px] leading-none opacity-60 hover:opacity-100"
-                                    title="Remover tag"
+                                    title={t.workspace.removeTag}
                                   >
                                     ×
                                   </button>
@@ -1043,7 +1042,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                                   setNewTagInputVal('');
                                 }}
                                 className="inline-flex items-center gap-0.5 text-[10px] font-mono text-[color:var(--t-15803d)] hover:text-[color:var(--t-4ade80)] px-1.5 py-0.5 border border-dashed border-[color:var(--t-14351a)] hover:border-[color:var(--t-22c55e)] transition-colors"
-                                title="Adicionar tag a esta tarefa"
+                                title={t.workspace.addTag}
                               >
                                 <Plus size={9} />
                                 <span>tag</span>
@@ -1065,7 +1064,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                               >
                                 {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                                 <span>
-                                  {doneSubs}/{totalSubs} subtarefas
+                                  {doneSubs}/{totalSubs} {t.workspace.subtasks}
                                 </span>
                               </button>
                             </div>
@@ -1082,14 +1081,14 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                               }))
                             }
                             className="p-1 text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] transition-colors"
-                            title="Expandir/recolher subtarefas"
+                            title={t.workspace.toggleSubtasks}
                           >
                             {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                           </button>
                           <button
                             onClick={() => handleDeleteTask(task.id)}
                             className="p-1 text-[color:var(--t-15803d)] hover:text-red-400 transition-colors"
-                            title="Excluir tarefa"
+                            title={t.workspace.deleteTask}
                           >
                             <Trash2 size={13} />
                           </button>
@@ -1136,7 +1135,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                               <button
                                 onClick={() => handleDeleteSubtask(task.id, sub.id)}
                                 className="opacity-0 group-hover/sub:opacity-100 text-[color:var(--t-15803d)] hover:text-red-400 p-0.5 transition-opacity"
-                                title="Excluir subtarefa"
+                                title={t.workspace.deleteSubtask}
                               >
                                 <Trash2 size={11} />
                               </button>
@@ -1162,7 +1161,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                                     handleAddSubtask(task.id);
                                   }
                                 }}
-                                placeholder="+ Adicionar subtarefa... (Pressione Enter)"
+                                placeholder={t.workspace.subtaskPlaceholder}
                                 className="w-full bg-transparent text-[11px] font-mono text-[color:var(--t-22c55e)] placeholder-[color:var(--t-15803d)] focus:outline-hidden"
                               />
                               <span className="terminal-block-cursor" style={{ width: '0.45em', height: '0.9em' }}></span>
@@ -1192,7 +1191,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               <div className="flex items-center gap-2">
                 <span className="text-[color:var(--t-22c55e)] font-mono text-sm">#02</span>
                 <h2 className="text-sm font-mono font-bold tracking-wider text-[color:var(--t-22c55e)]">
-                  OBSERVAÇÕES E NOTAS TÉCNICAS
+                  {t.workspace.notesHeading}
                 </h2>
               </div>
 
@@ -1201,13 +1200,13 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                 className="px-2.5 py-1 bg-[color:var(--t-08180b)] hover:bg-[color:var(--t-0e2c14)] border border-[color:var(--t-22c55e)] text-xs font-mono text-[color:var(--t-22c55e)] flex items-center gap-1 transition-colors"
               >
                 <Plus size={12} />
-                <span>NOVA OBSERVAÇÃO</span>
+                <span>{t.workspace.newNote}</span>
               </button>
             </div>
 
             {project.observations.length === 0 ? (
               <div className="p-4 text-center font-mono text-xs text-[color:var(--t-15803d)] border border-dashed border-[color:var(--t-102a15)] bg-[color:var(--t-030804)]">
-                Nenhuma observação técnica registrada ainda. Clique em "+ Nova Observação" para anotar decisões, links ou logs.
+                {t.workspace.notesEmpty}
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-3">
@@ -1223,7 +1222,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                         <div className="flex items-center gap-2 flex-1">
                           <input
                             type="text"
-                            value={obs.tag || 'NOTAS'}
+                            value={obs.tag || t.workspace.notesTag}
                             onChange={(e) =>
                               handleUpdateObservation(obs.id, { tag: e.target.value.toUpperCase() })
                             }
@@ -1248,7 +1247,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                             onClick={() => setEditingNoteId(isEditing ? null : obs.id)}
                             className="text-[10px] text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] px-1.5 py-0.5 border border-[color:var(--t-14351a)]"
                           >
-                            {isEditing ? 'VISUALIZAR' : 'EDITAR'}
+                            {isEditing ? t.workspace.view : t.workspace.edit}
                           </button>
                           <button
                             onClick={() => {
@@ -1256,14 +1255,14 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                               sound.playClick(900);
                             }}
                             className="text-[color:var(--t-15803d)] hover:text-[color:var(--t-22c55e)] p-1"
-                            title="Copiar texto da observação"
+                            title={t.workspace.copyNote}
                           >
                             <Copy size={12} />
                           </button>
                           <button
                             onClick={() => handleDeleteObservation(obs.id)}
                             className="text-[color:var(--t-15803d)] hover:text-red-400 p-1"
-                            title="Excluir observação"
+                            title={t.workspace.deleteNote}
                           >
                             <Trash2 size={12} />
                           </button>
@@ -1280,7 +1279,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                             }
                             rows={6}
                             className="w-full bg-[color:var(--t-020502)] border border-[color:var(--t-14351a)] p-2 text-xs font-mono text-[color:var(--t-86efac)] focus:outline-hidden focus:border-[color:var(--t-22c55e)] resize-y"
-                            placeholder="Digite suas observações ou copie logs aqui..."
+                            placeholder={t.workspace.notePlaceholder}
                           />
                         ) : (
                           <div className="text-xs text-[color:var(--t-86efac)]/90 whitespace-pre-wrap leading-relaxed">
@@ -1290,7 +1289,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                       </div>
 
                       <div className="mt-2 text-[10px] text-[color:var(--t-15803d)] text-right">
-                        ATUALIZADO EM: {new Date(obs.updatedAt).toLocaleString()}
+                        {t.workspace.updatedAt} {new Date(obs.updatedAt).toLocaleString(localeOf(lang))}
                       </div>
                     </div>
                   );
@@ -1307,7 +1306,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               <div className="flex items-center gap-2">
                 <span className="text-[color:var(--t-22c55e)] font-mono text-sm">#03</span>
                 <h2 className="text-sm font-mono font-bold tracking-wider text-[color:var(--t-22c55e)]">
-                  SNIPPETS & SCRIPTS DO PROJETO
+                  {t.workspace.snippetsHeading}
                 </h2>
               </div>
 
@@ -1316,13 +1315,13 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                 className="px-2.5 py-1 bg-[color:var(--t-08180b)] hover:bg-[color:var(--t-0e2c14)] border border-[color:var(--t-22c55e)] text-xs font-mono text-[color:var(--t-22c55e)] flex items-center gap-1 transition-colors"
               >
                 <Plus size={12} />
-                <span>NOVO SNIPPET</span>
+                <span>{t.workspace.newSnippet}</span>
               </button>
             </div>
 
             {project.codeSnippets.length === 0 ? (
               <div className="p-4 text-center font-mono text-xs text-[color:var(--t-15803d)] border border-dashed border-[color:var(--t-102a15)] bg-[color:var(--t-030804)]">
-                Nenhum snippet ou arquivo de configuração registrado para este projeto.
+                {t.workspace.snippetsEmpty}
               </div>
             ) : (
               <div className="space-y-3">
@@ -1373,12 +1372,12 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                           {copiedCodeId === snip.id ? (
                             <>
                               <Check size={11} />
-                              <span>COPIADO</span>
+                              <span>{t.workspace.copied}</span>
                             </>
                           ) : (
                             <>
                               <Copy size={11} />
-                              <span>COPIAR</span>
+                              <span>{t.workspace.copy}</span>
                             </>
                           )}
                         </button>
@@ -1386,7 +1385,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                         <button
                           onClick={() => handleDeleteSnippet(snip.id)}
                           className="text-[color:var(--t-15803d)] hover:text-red-400 p-0.5"
-                          title="Excluir snippet"
+                          title={t.workspace.deleteSnippet}
                         >
                           <Trash2 size={12} />
                         </button>
@@ -1419,11 +1418,11 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
               <div className="flex items-center gap-2">
                 <span className="text-[color:var(--t-22c55e)] font-mono text-sm">#04</span>
                 <h2 className="text-sm font-mono font-bold tracking-wider text-[color:var(--t-22c55e)]">
-                  ARQUIVOS, MÍDIAS E ANEXOS (STORAGE)
+                  {t.workspace.filesHeading}
                 </h2>
               </div>
               <span className="text-[10px] text-[color:var(--t-15803d)] font-mono">
-                {(project.attachments || []).length} ARQUIVO(S) VINCULADO(S)
+                {t.workspace.linkedFiles((project.attachments || []).length)}
               </span>
             </div>
 
@@ -1443,30 +1442,30 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
           <button
             onClick={onOpenManual}
             className="text-[color:var(--t-22c55e)] hover:underline flex items-center gap-1 font-semibold"
-            title="Abrir Manual Completo (man operator)"
+            title={t.workspace.fullManualTitle}
           >
-            <span>[?] MANUAL COMPLETO</span>
+            <span>{t.workspace.fullManual}</span>
           </button>
           <span className="text-[color:var(--t-0d2212)]">|</span>
           <span className="hidden sm:inline">
-            <kbd className="text-[color:var(--t-86efac)]">T</kbd> nova tarefa
+            <kbd className="text-[color:var(--t-86efac)]">T</kbd> {t.workspace.footer.newTask}
           </span>
           <span className="hidden sm:inline">
-            <kbd className="text-[color:var(--t-86efac)]">J/K</kbd> navegar
+            <kbd className="text-[color:var(--t-86efac)]">J/K</kbd> {t.workspace.footer.navigate}
           </span>
           <span className="hidden sm:inline">
-            <kbd className="text-[color:var(--t-86efac)]">X</kbd> marcar/desmarcar
+            <kbd className="text-[color:var(--t-86efac)]">X</kbd> {t.workspace.footer.toggle}
           </span>
           <span className="hidden md:inline">
-            <kbd className="text-[color:var(--t-86efac)]">1-5</kbd> alternar abas
+            <kbd className="text-[color:var(--t-86efac)]">1-5</kbd> {t.workspace.footer.tabs}
           </span>
           <span className="hidden lg:inline">
-            <kbd className="text-[color:var(--t-86efac)]">Ctrl+K</kbd> terminal CLI
+            <kbd className="text-[color:var(--t-86efac)]">Ctrl+K</kbd> {t.workspace.footer.cli}
           </span>
         </div>
 
         <div className="text-[10px] text-[color:var(--t-166534)] tabular-nums hidden sm:flex items-center gap-2">
-          <span>{visibleTasks.length} TAREFAS VISÍVEIS</span>
+          <span>{t.workspace.visibleTasks(visibleTasks.length)}</span>
         </div>
       </footer>
     </main>

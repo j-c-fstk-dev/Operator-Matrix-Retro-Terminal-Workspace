@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { Download, Smartphone, Share2, PlusSquare, X, CheckCircle, Terminal } from 'lucide-react';
 import { sound } from '../utils/audio';
+import { useT } from '../i18n';
+import { Rich } from '../i18n/Rich';
 
 interface PWAInstallButtonProps {
   className?: string;
@@ -12,6 +14,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
   className = '',
   variant = 'header',
 }) => {
+  const t = useT();
   const { isInstallable, isInstalled, isIOS, browserKind, install } = usePWAInstall();
   const [showGuideModal, setShowGuideModal] = useState(false);
 
@@ -22,7 +25,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
         <div className="px-3 py-1.5 bg-[color:var(--t-030a05)] border border-[color:var(--t-14351a)] text-[10px] text-[color:var(--t-22c55e)] flex items-center justify-between font-mono">
           <span className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-[color:var(--t-22c55e)] shadow-[0_0_6px_var(--t-22c55e)]"></span>
-            <span>APP INSTALADO</span>
+            <span>{t.pwa.installed}</span>
           </span>
           <span className="text-[color:var(--t-15803d)]">STANDALONE</span>
         </div>
@@ -49,11 +52,12 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
         <button
           onClick={handleInstallClick}
           className={`w-full py-2 px-3 bg-[color:var(--t-041207)] hover:bg-[color:var(--t-09240e)] border border-[color:var(--t-1e6f36)] hover:border-[color:var(--t-22c55e)] text-[color:var(--t-86efac)] hover:text-white flex items-center justify-between text-xs font-mono transition-colors group cursor-pointer shadow-[0_0_12px_color-mix(in_srgb,var(--t-22c55e)_12%,transparent)] ${className}`}
-          title="Instalar o Operator como aplicativo no seu celular ou computador"
+          title={t.pwa.sidebarTitle}
+          data-pwa-install="sidebar"
         >
           <div className="flex items-center gap-2">
             <Download size={13} className="text-[color:var(--t-22c55e)] animate-bounce" />
-            <span className="font-bold">INSTALAR APLICATIVO</span>
+            <span className="font-bold">{t.pwa.sidebarLabel}</span>
           </div>
           <span className="text-[10px] text-[color:var(--t-22c55e)] font-mono group-hover:translate-x-0.5 transition-transform">
             [PWA]
@@ -63,10 +67,11 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
         <button
           onClick={handleInstallClick}
           className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono bg-[color:var(--t-041307)] hover:bg-[color:var(--t-0a2610)] border border-[color:var(--t-1b6b33)] hover:border-[color:var(--t-22c55e)] text-[color:var(--t-4ade80)] hover:text-white transition-all shadow-[0_0_10px_color-mix(in_srgb,var(--t-22c55e)_15%,transparent)] cursor-pointer ${className}`}
-          title="Instalar este sistema como aplicativo nativo no seu dispositivo"
+          title={t.pwa.headerTitle}
+          data-pwa-install="header"
         >
           <Download size={12} className="text-[color:var(--t-22c55e)]" />
-          <span className="hidden sm:inline font-bold">Instalar App</span>
+          <span className="hidden sm:inline font-bold">{t.pwa.headerLabel}</span>
         </button>
       )}
 
@@ -85,7 +90,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
               <div className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 bg-[color:var(--t-22c55e)] animate-pulse shadow-[0_0_8px_var(--t-22c55e)]"></span>
                 <span className="font-bold text-[color:var(--t-22c55e)] tracking-wider text-xs">
-                  OPERATOR // INSTALAÇÃO PWA
+                  {t.pwa.modalTitle}
                 </span>
               </div>
               <button
@@ -101,17 +106,16 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
               <div className="bg-[color:var(--t-051408)] border border-[color:var(--t-14351a)] p-3 text-xs leading-relaxed space-y-1.5">
                 <div className="text-[color:var(--t-22c55e)] font-bold flex items-center gap-1.5">
                   <Smartphone size={14} />
-                  <span>Transformar em App Instalável</span>
+                  <span>{t.pwa.introTitle}</span>
                 </div>
                 <p className="text-[11px] text-[color:var(--t-86efac)]/90">
-                  O Operator funciona como um aplicativo nativo completo (PWA): sem barra de endereços do navegador, com abertura instantânea na tela de início e acesso offline!
+                  {t.pwa.introBody}
                 </p>
               </div>
 
               {browserKind === 'in-app' && (
                 <div className="bg-[#120803] border border-amber-600/90 text-amber-400 p-3 text-[11px] leading-relaxed">
-                  <strong>Navegador interno detectado.</strong> Apps como Instagram, Facebook e TikTok abrem links num navegador próprio que não instala PWA.
-                  Toque no menu <strong>(⋮ ou ···)</strong> e escolha <strong>"Abrir no Chrome"</strong> ou <strong>"Abrir no navegador"</strong>{isIOS ? ' (no iPhone, abra no Safari)' : ''} e tente de novo.
+                  <Rich text={t.pwa.inApp} slots={{ ios: isIOS ? t.pwa.inAppIos : '' }} />
                 </div>
               )}
 
@@ -119,25 +123,25 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
                 /* iOS Safari instructions */
                 <div className="space-y-3 bg-[color:var(--t-020703)] border border-[color:var(--t-14351a)] p-3.5">
                   <div className="text-[color:var(--t-22c55e)] font-bold text-xs uppercase tracking-wider">
-                    Como instalar no iPhone / iPad{browserKind === 'ios-other' ? ' (Safari ou Chrome no iOS 16.4+)' : ' (Safari)'}:
+                    {browserKind === 'ios-other' ? t.pwa.iosTitleOther : t.pwa.iosTitleSafari}
                   </div>
                   <div className="space-y-2.5 text-[11px] text-[color:var(--t-86efac)]">
                     <div className="flex items-start gap-2.5">
                       <span className="px-1.5 py-0.5 bg-[color:var(--t-0b2712)] border border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] font-bold shrink-0">1</span>
                       <p>
-                        Toque no botão <strong className="text-white">Compartilhar</strong> (ícone <Share2 size={12} className="inline mx-1 text-[color:var(--t-22c55e)]" /> na barra do navegador).
+                        <Rich text={t.pwa.iosStep1} strongClassName="text-white" slots={{ share: <Share2 size={12} className="inline mx-1 text-[color:var(--t-22c55e)]" aria-hidden="true" /> }} />
                       </p>
                     </div>
                     <div className="flex items-start gap-2.5">
                       <span className="px-1.5 py-0.5 bg-[color:var(--t-0b2712)] border border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] font-bold shrink-0">2</span>
                       <p>
-                        Role a lista e selecione <strong className="text-white">Adicionar à Tela de Início</strong> (Add to Home Screen).
+                        <Rich text={t.pwa.iosStep2} strongClassName="text-white" />
                       </p>
                     </div>
                     <div className="flex items-start gap-2.5">
                       <span className="px-1.5 py-0.5 bg-[color:var(--t-0b2712)] border border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] font-bold shrink-0">3</span>
                       <p>
-                        Toque em <strong className="text-white">Adicionar</strong> no canto superior direito.
+                        <Rich text={t.pwa.iosStep3} strongClassName="text-white" />
                       </p>
                     </div>
                   </div>
@@ -146,27 +150,27 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
                 /* Android / Desktop Chrome / Edge instructions */
                 <div className="space-y-3 bg-[color:var(--t-020703)] border border-[color:var(--t-14351a)] p-3.5">
                   <div className="text-[color:var(--t-22c55e)] font-bold text-xs uppercase tracking-wider">
-                    {browserKind === 'samsung' ? 'No Samsung Internet:' : browserKind === 'firefox-android' ? 'No Firefox para Android:' : 'No Android, Chrome ou Edge:'}
+                    {browserKind === 'samsung' ? t.pwa.samsungTitle : browserKind === 'firefox-android' ? t.pwa.firefoxTitle : t.pwa.chromeTitle}
                   </div>
                   <div className="space-y-2 text-[11px] text-[color:var(--t-86efac)]">
                     {browserKind === 'samsung' ? (
                       <p>
-                        Toque no menu <strong className="text-white">(≡)</strong> e escolha <strong className="text-white">"Adicionar página a"</strong> &gt; <strong className="text-white">"Tela de início"</strong>.
+                        <Rich text={t.pwa.samsungStep} strongClassName="text-white" />
                       </p>
                     ) : browserKind === 'firefox-android' ? (
                       <p>
-                        Toque no menu <strong className="text-white">(⋮)</strong> e escolha <strong className="text-white">"Instalar"</strong>. Para a melhor experiência, prefira o Chrome.
+                        <Rich text={t.pwa.firefoxStep} strongClassName="text-white" />
                       </p>
                     ) : (
                       <>
                         <p>
-                          1. Toque no menu de três pontos <strong className="text-white">(⋮)</strong> e escolha <strong className="text-white">"Instalar app"</strong>.
+                          <Rich text={t.pwa.chromeStep1} strongClassName="text-white" />
                         </p>
                         <p>
-                          2. Se só aparecer <strong className="text-white">"Adicionar à tela inicial"</strong>, escolha essa opção e depois <strong className="text-white">"Instalar"</strong> (não "Criar atalho"). O atalho abre no navegador e não vira app.
+                          <Rich text={t.pwa.chromeStep2} strongClassName="text-white" />
                         </p>
                         <p>
-                          3. No computador, use o ícone de instalar na barra de endereço.
+                          {t.pwa.chromeStep3}
                         </p>
                       </>
                     )}
@@ -181,7 +185,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
                       className="w-full mt-2 py-2 px-3 bg-[color:var(--t-0c2e15)] hover:bg-[color:var(--t-12421e)] border border-[color:var(--t-22c55e)] text-[color:var(--t-22c55e)] hover:text-white font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
                     >
                       <Download size={13} />
-                      <span>DISPARAR INSTALAÇÃO AUTOMÁTICA</span>
+                      <span>{t.pwa.autoInstall}</span>
                     </button>
                   )}
                 </div>
@@ -191,10 +195,10 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
               <div className="border border-[color:var(--t-166534)] bg-[color:var(--t-020703)] p-3 text-[11px] text-[color:var(--t-4ade80)] space-y-1">
                 <div className="font-bold flex items-center gap-1.5">
                   <CheckCircle size={13} className="text-[color:var(--t-22c55e)]" />
-                  <span>Segurança dos seus Dados:</span>
+                  <span>{t.pwa.safetyTitle}</span>
                 </div>
                 <p className="text-[10px] text-[color:var(--t-15803d)] leading-relaxed">
-                  O aplicativo instalado compartilha o mesmo banco de dados local (<code className="text-[color:var(--t-86efac)]">localStorage</code>) e a sincronização na nuvem com o Supabase. Atualizar o repositório ou seu site no Netlify nunca apagará seus projetos!
+                  <Rich text={t.pwa.safetyBody} slots={{ ls: <code className="text-[color:var(--t-86efac)]">localStorage</code> }} />
                 </p>
               </div>
             </div>
@@ -206,7 +210,7 @@ export const PWAInstallButton: React.FC<PWAInstallButtonProps> = ({
                 onClick={() => setShowGuideModal(false)}
                 className="text-[color:var(--t-22c55e)] hover:underline"
               >
-                [FECHAR]
+                {t.common.closeTag}
               </button>
             </div>
           </div>

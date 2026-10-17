@@ -3,6 +3,7 @@ import { Project, ProjectAttachment, AttachmentType } from '../types';
 import { storageService, formatBytes, getLastCloudError } from '../services/storageService';
 import { useAttachmentUrls, createSignedUrlNow, storageErrorHint } from '../services/attachmentUrls';
 import { sound } from '../utils/audio';
+import { useT, useLang, localeOf } from '../i18n';
 import { User } from '@supabase/supabase-js';
 import {
   UploadCloud,
@@ -37,6 +38,8 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
   user,
   onShowToast,
 }) => {
+  const t = useT();
+  const lang = useLang();
   const [filterType, setFilterType] = useState<string>('all');
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -65,7 +68,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       a.rel = 'noopener';
       a.click();
     } catch (err: any) {
-      onShowToast(`[ARQUIVO] ${err?.message || 'Falha ao baixar.'}`);
+      onShowToast(`[ARQUIVO] ${err?.message || t.attachments.downloadFailed}`);
     }
   };
   const localAttachmentsCount = attachments.filter((a) => !a.url.startsWith('http')).length;
@@ -84,7 +87,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
 
   const handleSyncLocalFilesToCloud = async () => {
     if (!user) {
-      onShowToast('Faça login primeiro para sincronizar com o Supabase.');
+      onShowToast(t.attachments.loginToSync);
       return;
     }
     setSyncingLocal(true);
@@ -111,10 +114,10 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
         updatedAt: Date.now(),
       });
       sound.playClick(900);
-      onShowToast(`[SUCESSO] ${updatedCount} anexo(s) enviado(s) para o Supabase!`);
+      onShowToast(t.attachments.syncedCount(updatedCount));
     } else {
       const reason = getLastCloudError();
-      onShowToast(`[ARQUIVO] Nenhum anexo enviado. ${reason ? storageErrorHint(reason) : 'Verifique a conexão e o Supabase Storage.'}`);
+      onShowToast(t.attachments.noneSynced(reason ? storageErrorHint(reason) : t.attachments.checkConnection));
     }
     setSyncingLocal(false);
   };
@@ -132,7 +135,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      setUploadProgress(`UPLOADING ${i + 1}/${files.length}: ${file.name} (${formatBytes(file.size)})`);
+      setUploadProgress(`${t.attachments.uploading} ${i + 1}/${files.length}: ${file.name} (${formatBytes(file.size)})`);
 
       try {
         const attachment = await storageService.uploadFile(file, project.id, user?.id);
@@ -144,7 +147,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
         }
       } catch (err: any) {
         console.error('Erro no upload de', file.name, err);
-        onShowToast(`Erro ao carregar ${file.name}: ${err?.message || 'falha desconhecida'}`);
+        onShowToast(t.attachments.uploadError(file.name, err?.message || t.attachments.unknownError));
       }
     }
 
@@ -157,11 +160,11 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       onUpdateProject(updated);
       sound.playClick(900);
       if (cloudCount > 0 && localCount === 0) {
-        onShowToast(`[NUVEM] ${cloudCount} arquivo(s) salvos no Supabase (sincronizados com o celular)!`);
+        onShowToast(t.attachments.savedCloud(cloudCount));
       } else if (localCount > 0) {
         const reason = user ? getLastCloudError() : null;
         onShowToast(
-          `[LOCAL] ${localCount} arquivo(s) salvos só neste aparelho.${reason ? ' ' + storageErrorHint(reason) : user ? '' : ' Faça login para enviar à nuvem.'}`
+          t.attachments.savedLocal(localCount) + (reason ? ' ' + storageErrorHint(reason) : user ? '' : ' ' + t.attachments.loginToUpload)
         );
       }
     }
@@ -193,7 +196,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       updatedAt: Date.now(),
     });
     setDeleteConfirmId(null);
-    onShowToast(`Arquivo "${att.name}" excluído.`);
+    onShowToast(t.attachments.deleted(att.name));
   };
 
   const handleCopyCode = (text?: string, id?: string) => {
@@ -204,7 +207,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       setTimeout(() => setCopiedId(null), 1500);
     }
     sound.playClick(800);
-    onShowToast('Conteúdo copiado para a área de transferência!');
+    onShowToast(t.attachments.copied);
   };
 
   const renderIcon = (type: AttachmentType) => {
@@ -231,21 +234,21 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
         <div className="flex items-center gap-2">
           <HardDrive size={15} className="text-[color:var(--t-22c55e)]" />
           <span className="font-bold text-xs text-[color:var(--t-22c55e)] tracking-wider">
-            ANEXOS & MÍDIAS DO PROJETO
+            {t.attachments.header}
           </span>
           <span className="text-[10px] text-[color:var(--t-16a34a)] bg-[color:var(--t-071f0d)] border border-[color:var(--t-166534)] px-1.5 py-0.5">
-            {attachments.length} ARQUIVO(S) · {formatBytes(totalBytes)}
+            {t.attachments.count(attachments.length)} · {formatBytes(totalBytes)}
           </span>
         </div>
 
         {/* Filter chips */}
         <div className="flex items-center gap-1 text-[11px]">
           {[
-            { id: 'all', label: 'TODOS' },
-            { id: 'images', label: 'IMAGENS' },
-            { id: 'videos', label: 'VÍDEOS' },
-            { id: 'docs', label: 'PDFs' },
-            { id: 'code', label: 'CÓDIGO/TEXTO' },
+            { id: 'all', label: t.attachments.filters.all },
+            { id: 'images', label: t.attachments.filters.images },
+            { id: 'videos', label: t.attachments.filters.videos },
+            { id: 'docs', label: t.attachments.filters.docs },
+            { id: 'code', label: t.attachments.filters.code },
           ].map((f) => (
             <button
               key={f.id}
@@ -268,7 +271,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       {/* Falha ao gerar links dos arquivos na nuvem */}
       {signError && (
         <div className="mb-3 p-3 bg-[#120803] border border-amber-600/90 text-amber-400 text-[11px] leading-relaxed" role="alert">
-          <strong>Não foi possível abrir os arquivos da nuvem.</strong> {signError}
+          <strong>{t.attachments.signError}</strong> {signError}
         </div>
       )}
 
@@ -277,12 +280,12 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
         <div className="p-3 bg-[#130b03] border border-amber-600/70 text-xs font-mono flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shadow-[0_0_12px_rgba(217,119,6,0.15)]">
           <div className="space-y-0.5">
             <div className="text-amber-400 font-bold flex items-center gap-1.5">
-              <span>AVISO // {localAttachmentsCount} ANEXO(S) SALVO(S) APENAS NESTE APARELHO</span>
+              <span>{t.attachments.localWarning(localAttachmentsCount)}</span>
             </div>
             <p className="text-[11px] text-amber-200/80">
               {user
-                ? 'Estes arquivos foram salvos localmente no desktop (offline ou bucket pendente). Clique no botão para sincronizar com o Supabase e vê-los no celular!'
-                : 'Você está navegando sem login. Os arquivos salvos só aparecem neste navegador. Faça login no topo para sincronizar entre celular e PC!'}
+                ? t.attachments.localHintUser
+                : t.attachments.localHintGuest}
             </p>
           </div>
           {user && (
@@ -292,7 +295,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
               className="px-3 py-1.5 bg-[#251304] hover:bg-[#3a1d06] border border-amber-500 text-amber-300 font-bold text-xs flex items-center gap-1.5 cursor-pointer shrink-0 transition-colors"
             >
               <UploadCloud size={13} />
-              <span>{syncingLocal ? 'ENVIANDO...' : 'SINCRONIZAR COM A NUVEM'}</span>
+              <span>{syncingLocal ? t.attachments.sending : t.attachments.syncToCloud}</span>
             </button>
           )}
         </div>
@@ -331,16 +334,16 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
         <div>
           <div className="text-xs font-bold text-[color:var(--t-86efac)]">
             {uploading
-              ? uploadProgress || 'Processando arquivos...'
-              : 'Clique ou arraste imagens, vídeos, PDFs ou códigos aqui'}
+              ? uploadProgress || t.attachments.processing
+              : t.attachments.dropHint}
           </div>
           <div className="text-[10px] text-[color:var(--t-15803d)] mt-1">
-            Formatos suportados: PNG, JPG, GIF, WebP, MP4, WebM, PDF, TXT, JS, TS, PY, JSON, etc.
+            {t.attachments.formats} PNG, JPG, GIF, WebP, MP4, WebM, PDF, TXT, JS, TS, PY, JSON, etc.
           </div>
         </div>
 
         <span className="text-[10px] text-[color:var(--t-22c55e)] border border-[color:var(--t-166534)] px-2 py-0.5 bg-[color:var(--t-020502)]">
-          [ + SELECIONAR ARQUIVOS ]
+          {t.attachments.select}
         </span>
       </div>
 
@@ -348,10 +351,10 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       {filteredAttachments.length === 0 ? (
         <div className="p-8 text-center border border-[color:var(--t-14351a)] bg-[color:var(--t-020603)] text-[color:var(--t-15803d)] space-y-1">
           <p className="font-mono text-xs text-[color:var(--t-166534)]">
-            [ NENHUM ARQUIVO ENCONTRADO NESTE FILTRO ]
+            {t.attachments.emptyTitle}
           </p>
           <p className="text-[10px]">
-            Arraste arquivos na caixa acima para anexar mídias a este projeto.
+            {t.attachments.emptyHint}
           </p>
         </div>
       ) : (
@@ -377,7 +380,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity">
                       <span className="px-2 py-1 bg-black/80 border border-[color:var(--t-22c55e)] text-[10px] text-[color:var(--t-22c55e)] flex items-center gap-1">
-                        <Maximize2 size={11} /> AMPLIAR
+                        <Maximize2 size={11} /> {t.attachments.zoom}
                       </span>
                     </div>
                   </div>
@@ -400,7 +403,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                         <FileText size={20} />
                       </div>
                       <div>
-                        <span className="text-[10px] text-red-400 font-bold">DOCUMENTO PDF</span>
+                        <span className="text-[10px] text-red-400 font-bold">{t.attachments.pdf}</span>
                         <p className="text-[10px] text-zinc-400">{formatBytes(att.size)}</p>
                       </div>
                     </div>
@@ -410,7 +413,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                       rel="noopener noreferrer"
                       className="px-2 py-1 bg-[#1a0808] hover:bg-[#2e0e0e] border border-red-700 text-red-300 text-[10px] flex items-center gap-1"
                     >
-                      <Eye size={11} /> ABRIR
+                      <Eye size={11} /> {t.attachments.open}
                     </a>
                   </div>
                 )}
@@ -419,19 +422,19 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                   <div className="p-3 bg-[color:var(--t-030604)] border-b border-[color:var(--t-14351a)] font-mono">
                     <div className="flex items-center justify-between pb-1.5 text-[10px] text-[color:var(--t-15803d)]">
                       <span className="flex items-center gap-1 font-bold text-[#facc15]">
-                        <FileCode size={12} /> CÓDIGO FONTE
+                        <FileCode size={12} /> {t.attachments.sourceCode}
                       </span>
                       <button
                         onClick={() => setViewingCode(att)}
                         className="text-[color:var(--t-22c55e)] hover:underline"
                       >
-                        [INSPECIONAR]
+                        {t.attachments.inspect}
                       </button>
                     </div>
                     <div className="p-2 bg-[color:var(--t-010402)] border border-[color:var(--t-0d2212)] text-[10px] text-[color:var(--t-86efac)]/80 max-h-20 overflow-hidden font-mono leading-tight whitespace-pre-wrap">
                       {att.textContent
                         ? att.textContent.slice(0, 180) + (att.textContent.length > 180 ? '...' : '')
-                        : '// Arquivo anexado'}
+                        : t.attachments.attachedFile}
                     </div>
                   </div>
                 )}
@@ -442,7 +445,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                       <FileSpreadsheet size={20} />
                     </div>
                     <div>
-                      <span className="text-[10px] text-sky-400 font-bold">ARQUIVO COMPACTADO</span>
+                      <span className="text-[10px] text-sky-400 font-bold">{t.attachments.archive}</span>
                       <p className="text-[10px] text-zinc-400">{formatBytes(att.size)}</p>
                     </div>
                   </div>
@@ -467,17 +470,17 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
 
                   <div className="flex items-center justify-between text-[10px] text-[color:var(--t-15803d)]">
                     <div className="flex items-center gap-1.5">
-                      <span>{new Date(att.createdAt).toLocaleDateString()}</span>
+                      <span>{new Date(att.createdAt).toLocaleDateString(localeOf(lang))}</span>
                       <span>·</span>
                       <span>{att.type.toUpperCase()}</span>
                     </div>
                     {att.storagePath || att.url.startsWith('http') ? (
-                      <span className="text-[color:var(--t-22c55e)] font-bold" title="Armazenado na nuvem (Supabase Storage)">
-                        [● NUVEM]
+                      <span className="text-[color:var(--t-22c55e)] font-bold" title={t.attachments.cloudTitle}>
+                        {t.attachments.cloudBadge}
                       </span>
                     ) : (
-                      <span className="text-amber-400 font-bold" title="Salvo apenas na memória local deste aparelho">
-                        [○ LOCAL]
+                      <span className="text-amber-400 font-bold" title={t.attachments.localTitle}>
+                        {t.attachments.localBadge}
                       </span>
                     )}
                   </div>
@@ -494,20 +497,20 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 text-[color:var(--t-22c55e)] hover:text-white transition-colors"
-                    title="Baixar arquivo"
+                    title={t.attachments.downloadTitle}
                   >
                     <Download size={11} />
-                    <span>BAIXAR</span>
+                    <span>{t.attachments.download}</span>
                   </a>
 
                   {att.textContent && (
                     <button
                       onClick={() => handleCopyCode(att.textContent, att.id)}
                       className="flex items-center gap-1 text-[color:var(--t-86efac)] hover:text-white transition-colors"
-                      title="Copiar texto"
+                      title={t.attachments.copyTitle}
                     >
                       {copiedId === att.id ? <Check size={11} className="text-[color:var(--t-22c55e)]" /> : <Copy size={11} />}
-                      <span>{copiedId === att.id ? 'COPIADO' : 'COPIAR'}</span>
+                      <span>{copiedId === att.id ? t.attachments.copiedShort : t.attachments.copy}</span>
                     </button>
                   )}
                 </div>
@@ -518,13 +521,13 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                       onClick={() => handleDelete(att)}
                       className="text-red-400 hover:text-red-300 font-bold"
                     >
-                      [SIM, EXCLUIR]
+                      {t.attachments.confirmDelete}
                     </button>
                     <button
                       onClick={() => setDeleteConfirmId(null)}
                       className="text-[color:var(--t-15803d)] hover:text-white"
                     >
-                      [CANCELAR]
+                      {t.attachments.cancel}
                     </button>
                   </div>
                 ) : (
@@ -534,7 +537,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                       sound.playClick(400);
                     }}
                     className="text-[color:var(--t-15803d)] hover:text-red-400 transition-colors"
-                    title="Excluir anexo"
+                    title={t.attachments.deleteTitle}
                   >
                     <Trash2 size={12} />
                   </button>
@@ -557,7 +560,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
           >
             <div className="flex items-center justify-between px-4 py-2.5 bg-[color:var(--t-08180c)] border-b border-[color:var(--t-14351a)]">
               <span className="text-xs font-bold text-[color:var(--t-22c55e)] truncate font-mono">
-                IMAGEM: {viewingImage.name} ({formatBytes(viewingImage.size)})
+                {t.attachments.image} {viewingImage.name} ({formatBytes(viewingImage.size)})
               </span>
               <div className="flex items-center gap-3">
                 <a
@@ -567,7 +570,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                   rel="noopener noreferrer"
                   className="text-xs text-[color:var(--t-22c55e)] hover:underline font-mono flex items-center gap-1"
                 >
-                  <Download size={12} /> BAIXAR
+                  <Download size={12} /> {t.attachments.download}
                 </a>
                 <button
                   onClick={() => setViewingImage(null)}
@@ -609,7 +612,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                   onClick={() => handleCopyCode(viewingCode.textContent, viewingCode.id)}
                   className="text-xs text-[color:var(--t-22c55e)] hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                  <Copy size={12} /> COPIAR CÓDIGO
+                  <Copy size={12} /> {t.attachments.copyCode}
                 </button>
                 <button
                   onClick={() => setViewingCode(null)}
@@ -620,7 +623,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
               </div>
             </div>
             <div className="p-4 overflow-y-auto bg-[color:var(--t-010402)] text-[color:var(--t-86efac)] text-xs font-mono leading-relaxed whitespace-pre-wrap select-text">
-              {viewingCode.textContent || '// Conteúdo indisponível para pré-visualização direta'}
+              {viewingCode.textContent || t.attachments.noPreview}
             </div>
             <div className="px-4 py-2 bg-[color:var(--t-020502)] border-t border-[color:var(--t-14351a)] flex items-center justify-between text-[10px] text-[color:var(--t-15803d)]">
               <span>TERMINAL CODE INSPECTOR</span>
@@ -628,7 +631,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
                 onClick={() => setViewingCode(null)}
                 className="text-[color:var(--t-22c55e)] hover:underline"
               >
-                [FECHAR]
+                {t.attachments.close}
               </button>
             </div>
           </div>
