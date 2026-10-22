@@ -90,6 +90,18 @@ function mapProjectToRow(userId: string, project: Project, includeAttachmentsCol
   return row;
 }
 
+// O id do projeto só é único por usuário (os projetos de exemplo têm o mesmo id para todos),
+// então a chave é (user_id, id). Bancos criados antes de supabase/schema.sql migrar a chave
+// ainda só aceitam onConflict 'id' (erro 42P10); nesse caso tenta do jeito antigo.
+async function upsertRows(rows: any[]) {
+  const first = await supabase!.from('projects').upsert(rows, { onConflict: 'user_id,id' });
+  if ((first.error as any)?.code !== '42P10') return first;
+  return supabase!.from('projects').upsert(rows, { onConflict: 'id' });
+}
+
+const isMissingAttachmentsColumn = (error: any) =>
+  Boolean(error && (String(error.message).includes('attachments') || error.code === '42703'));
+
 export const supabaseService = {
   async fetchUserProjects(userId: string): Promise<Project[]> {
     if (!supabase || !isSupabaseConfigured) return [];
@@ -113,15 +125,12 @@ export const supabaseService = {
     if (!supabase || !isSupabaseConfigured) return;
 
     // First attempt: try with attachments column
-    let row = mapProjectToRow(userId, project, true);
-    let { error } = await supabase.from('projects').upsert(row, { onConflict: 'id' });
+    let { error } = await upsertRows([mapProjectToRow(userId, project, true)]);
 
     // If Postgres failed because the column "attachments" doesn't exist yet, retry without that column!
-    if (error && (error.message.includes('attachments') || (error as any).code === '42703')) {
+    if (isMissingAttachmentsColumn(error)) {
       console.warn('[Supabase] Coluna attachments ausente na tabela projects. Sincronizando via observations...');
-      const fallbackRow = mapProjectToRow(userId, project, false);
-      const retry = await supabase.from('projects').upsert(fallbackRow, { onConflict: 'id' });
-      error = retry.error;
+      ({ error } = await upsertRows([mapProjectToRow(userId, project, false)]));
     }
 
     if (error) {
@@ -133,14 +142,11 @@ export const supabaseService = {
   async upsertAllProjects(userId: string, projects: Project[]): Promise<void> {
     if (!supabase || !isSupabaseConfigured || projects.length === 0) return;
 
-    let rows = projects.map((p) => mapProjectToRow(userId, p, true));
-    let { error } = await supabase.from('projects').upsert(rows, { onConflict: 'id' });
+    let { error } = await upsertRows(projects.map((p) => mapProjectToRow(userId, p, true)));
 
-    if (error && (error.message.includes('attachments') || (error as any).code === '42703')) {
+    if (isMissingAttachmentsColumn(error)) {
       console.warn('[Supabase] Coluna attachments ausente. Sincronizando via observations...');
-      const fallbackRows = projects.map((p) => mapProjectToRow(userId, p, false));
-      const retry = await supabase.from('projects').upsert(fallbackRows, { onConflict: 'id' });
-      error = retry.error;
+      ({ error } = await upsertRows(projects.map((p) => mapProjectToRow(userId, p, false))));
     }
 
     if (error) {

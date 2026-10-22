@@ -57,6 +57,7 @@ export function useCloudSync({ user, projects, setProjects, showToast }: UseClou
     flushing: false,
     flushAgain: false,
     errorNotified: false,
+    lastError: '',
     lastPullAt: 0,
   });
 
@@ -110,10 +111,12 @@ export function useCloudSync({ user, projects, setProjects, showToast }: UseClou
       if (t.errorNotified) showToastRef.current(getT().sync.reconnected);
       t.retryDelay = 0;
       t.errorNotified = false;
+      t.lastError = '';
       setPhase('idle');
       return true;
     } catch (err: any) {
       console.error('[Sync] Falha ao enviar alterações:', err);
+      t.lastError = err?.message || '';
       setPhase('error');
       if (!t.errorNotified) {
         showToastRef.current(getT().sync.pushFailed(err?.message || getT().sync.error));
@@ -223,7 +226,8 @@ export function useCloudSync({ user, projects, setProjects, showToast }: UseClou
     if (!navigator.onLine) throw new Error(getT().sync.offline);
     queueUpserts(projectsRef.current.map((p) => p.id));
     const ok = await flush();
-    if (!ok) throw new Error(getT().sync.uploadFailed);
+    // Mostra o motivo real (ex.: erro do Supabase) em vez de uma mensagem genérica.
+    if (!ok) throw new Error(timers.current.lastError || getT().sync.uploadFailed);
   }, [flush, queueUpserts]);
 
   // Login, troca de conta ou sessão restaurada.
