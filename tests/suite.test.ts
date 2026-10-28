@@ -7,6 +7,7 @@ import { pt } from '../src/i18n/pt';
 import { en } from '../src/i18n/en';
 import { detectLang, resolveLang, setCurrentLang, getT } from '../src/i18n';
 import { buildCommandCatalog, suggestCommands, resolveThemeName } from '../src/commands/suggest';
+import { mergeProjectEdits, mergeList } from '../src/teams/mergeEdits';
 import { mergeProjects } from '../src/sync/merge';
 import { enqueue, acknowledge, Outbox } from '../src/sync/syncState';
 import { getTerminalTagStyle } from '../src/utils/tagColors';
@@ -703,6 +704,99 @@ test('Comando theme aceita id ou nome em qualquer idioma', () => {
   assert.strictEqual(resolveThemeName('deep blue'), 'blue');
   assert.strictEqual(resolveThemeName('ambar'), 'amber');
   assert.strictEqual(resolveThemeName('neon'), null);
+});
+
+// --------------------------------------------------------------------------
+// Times: juntar edições de duas pessoas (merge de 3 vias)
+// --------------------------------------------------------------------------
+const teamBase = (): Project => ({
+  id: 'tp', title: 'Lançamento', slug: 'lancamento', category: 'DEV', description: 'v1', status: 'active',
+  createdAt: 1, updatedAt: 10, ownerId: 'ana', teamId: 'team', version: 3, updatedBy: 'ana',
+  tasks: [
+    { id: 't1', text: 'Escrever post', done: false, createdAt: 1, tags: ['blog'], subtasks: [
+      { id: 's1', text: 'Rascunho', done: false, createdAt: 1 },
+      { id: 's2', text: 'Revisão', done: false, createdAt: 2 },
+    ] },
+    { id: 't2', text: 'Gravar vídeo', done: false, createdAt: 2, subtasks: [] },
+  ],
+  observations: [{ id: 'o1', title: 'Nota', content: 'texto', updatedAt: 1 }],
+  codeSnippets: [],
+  attachments: [],
+});
+const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x));
+
+test('Times/merge: eu marco uma tarefa e a colega cria outra, as duas mudanças ficam', () => {
+  const base = teamBase();
+  const mine = clone(base); mine.tasks[0].done = true;
+  const theirs = clone(base); theirs.version = 4; theirs.updatedBy = 'bia';
+  theirs.tasks.unshift({ id: 't3', text: 'Criado pela Bia', done: false, createdAt: 3, subtasks: [] });
+  const r = mergeProjectEdits(base, mine, theirs);
+  assert.deepStrictEqual(r.tasks.map((t) => t.id), ['t3', 't1', 't2']);
+  assert.strictEqual(r.tasks.find((t) => t.id === 't1')!.done, true);
+  assert.strictEqual(r.version, 4, 'versão vem do servidor');
+  assert.strictEqual(r.updatedBy, 'bia');
+});
+
+test('Times/merge: campos diferentes da mesma tarefa e subtarefas diferentes se juntam', () => {
+  const base = teamBase();
+  const mine = clone(base); mine.tasks[0].text = 'Escrever post (editado)'; mine.tasks[0].subtasks[0].done = true;
+  const theirs = clone(base); theirs.tasks[0].priority = 'high'; theirs.tasks[0].subtasks[1].done = true;
+  const t1 = mergeProjectEdits(base, mine, theirs).tasks[0];
+  assert.strictEqual(t1.text, 'Escrever post (editado)');
+  assert.strictEqual(t1.priority, 'high');
+  assert.deepStrictEqual(t1.subtasks.map((s) => s.done), [true, true]);
+});
+
+test('Times/merge: mesmo campo editado pelas duas, vale o meu (último a salvar)', () => {
+  const base = teamBase();
+  const mine = clone(base); mine.title = 'Meu título';
+  const theirs = clone(base); theirs.title = 'Título da Bia'; theirs.description = 'v2 da Bia';
+  const r = mergeProjectEdits(base, mine, theirs);
+  assert.strictEqual(r.title, 'Meu título');
+  assert.strictEqual(r.description, 'v2 da Bia', 'campo que só ela mudou fica');
+});
+
+test('Times/merge: exclusões', () => {
+  const base = teamBase();
+  // Eu apago t2, a colega não mexeu nela: some.
+  let mine = clone(base); mine.tasks = mine.tasks.filter((t) => t.id !== 't2');
+  let theirs = clone(base);
+  assert.deepStrictEqual(mergeProjectEdits(base, mine, theirs).tasks.map((t) => t.id), ['t1']);
+  // Ela apaga t2 e eu não mexi: some.
+  mine = clone(base); theirs = clone(base); theirs.tasks = theirs.tasks.filter((t) => t.id !== 't2');
+  assert.deepStrictEqual(mergeProjectEdits(base, mine, theirs).tasks.map((t) => t.id), ['t1']);
+  // Eu apago t2 mas ela editou: o trabalho dela fica.
+  mine = clone(base); mine.tasks = mine.tasks.filter((t) => t.id !== 't2');
+  theirs = clone(base); theirs.tasks[1].done = true;
+  assert.deepStrictEqual(mergeProjectEdits(base, mine, theirs).tasks.map((t) => t.id), ['t1', 't2']);
+  // Ela apaga t1 mas eu editei: meu trabalho fica.
+  mine = clone(base); mine.tasks[0].done = true;
+  theirs = clone(base); theirs.tasks = theirs.tasks.filter((t) => t.id !== 't1');
+  const r = mergeProjectEdits(base, mine, theirs);
+  assert(r.tasks.some((t) => t.id === 't1' && t.done));
+});
+
+test('Times/merge: itens novos dos dois lados e posição dos meus', () => {
+  const base = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+  const mine = [{ id: 'a' }, { id: 'x' }, { id: 'b' }, { id: 'c' }];
+  const theirs = [{ id: 'y' }, { id: 'a' }, { id: 'b' }, { id: 'c' }];
+  assert.deepStrictEqual(mergeList(base, mine, theirs).map((i) => i.id), ['y', 'a', 'x', 'b', 'c']);
+  // Sem edições de nenhum lado, nada muda.
+  const p = teamBase();
+  assert.deepStrictEqual(mergeProjectEdits(p, clone(p), clone(p)), p);
+});
+
+test('Times/merge: notas, tags e anexos', () => {
+  const base = teamBase();
+  const mine = clone(base); mine.observations.push({ id: 'o2', title: 'Minha nota', content: '', updatedAt: 2 });
+  mine.tasks[0].tags = ['blog', 'urgente'];
+  const theirs = clone(base); theirs.observations[0].content = 'texto revisado';
+  theirs.attachments = [{ id: 'f1', name: 'capa.png', type: 'image', mimeType: 'image/png', size: 1, url: 'x', createdAt: 1 }];
+  const r = mergeProjectEdits(base, mine, theirs);
+  assert.deepStrictEqual(r.observations.map((o) => o.id), ['o1', 'o2']);
+  assert.strictEqual(r.observations[0].content, 'texto revisado');
+  assert.deepStrictEqual(r.tasks[0].tags, ['blog', 'urgente']);
+  assert.strictEqual(r.attachments!.length, 1);
 });
 
 console.log(`\n========================================`);

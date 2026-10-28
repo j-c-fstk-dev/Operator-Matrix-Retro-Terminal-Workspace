@@ -97,7 +97,7 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
     const nextAttachments = await Promise.all(
       attachments.map(async (att) => {
         if (att.url.startsWith('data:')) {
-          const synced = await storageService.syncLocalAttachmentToCloud(att, project.id, user.id);
+          const synced = await storageService.syncLocalAttachmentToCloud(att, project.id, project.ownerId || user.id);
           if (synced.url.startsWith('http')) {
             updatedCount++;
           }
@@ -138,7 +138,8 @@ export const ProjectAttachments: React.FC<ProjectAttachmentsProps> = ({
       setUploadProgress(`${t.attachments.uploading} ${i + 1}/${files.length}: ${file.name} (${formatBytes(file.size)})`);
 
       try {
-        const attachment = await storageService.uploadFile(file, project.id, user?.id);
+        // Em projeto de time, o arquivo vai para a pasta de quem criou o projeto (o banco libera para o time).
+        const attachment = await storageService.uploadFile(file, project.id, user ? project.ownerId || user.id : undefined);
         uploadedList.push(attachment);
         if (attachment.url.startsWith('http')) {
           cloudCount++;

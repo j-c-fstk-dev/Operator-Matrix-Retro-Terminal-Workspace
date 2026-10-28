@@ -284,5 +284,8 @@ export function useCloudSync({ user, projects, setProjects, showToast }: UseClou
           ? 'pending'
           : 'synced';
 
-  return { status, pendingCount, queueUpsert, queueDelete, queueUpserts, queueDeletes, syncAllNow };
+  /** Busca a nuvem agora (ex.: um projeto voltou a ser pessoal depois de sair de um time). */
+  const refreshNow = useCallback(() => pull('focus'), [pull]);
+
+  return { status, pendingCount, queueUpsert, queueDelete, queueUpserts, queueDeletes, syncAllNow, refreshNow };
 }

@@ -30,6 +30,9 @@ interface CommandPaletteProps {
   onOpenManual: () => void;
   onOpenAuth?: () => void;
   onShowToast: (msg: string) => void;
+  /** Times ficam escondidos: o comando "team" funciona sempre, mas só é sugerido para quem já está em um time. */
+  hasTeams?: boolean;
+  onOpenTeams?: () => void;
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -49,6 +52,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onOpenManual,
   onOpenAuth,
   onShowToast,
+  hasTeams = false,
+  onOpenTeams,
 }) => {
   const t = useT();
   const lang = useLang();
@@ -90,6 +95,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     const isHelpCommand = lower === 'man' || lower === 'help' || lower === ':help' || lower === '?';
     const isAuthCommand = ['login', 'auth', 'supabase', 'nuvem', 'entrar', 'sair', 'signin', 'cloud', 'logout'].includes(lower);
     const isPwaCommand = lower === 'pwa' || lower === 'instalar' || lower === 'install';
+    const isTeamCommand = ['team', 'teams', 'time', 'times', 'equipe'].includes(lower);
     const isGitCommit = lower === 'git commit' || lower === 'export' || lower === 'md';
     const isGitStatus = lower === 'git status' || lower === 'status';
     const isGitCheckout = lower.startsWith('git checkout ') || lower.startsWith('switch ');
@@ -140,15 +146,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         p.description.toLowerCase().includes(lower)
     );
 
-    return { trimmed, lower, isHelpCommand, isAuthCommand, isPwaCommand, isGitCommit, isGitStatus, isGitCheckout, isGitInit, langMatch, langTarget, themeMatch, themeTarget, isAddTaskCommand, taskText, matchingTasks, filteredProjects };
+    return { trimmed, lower, isHelpCommand, isAuthCommand, isPwaCommand, isTeamCommand, isGitCommit, isGitStatus, isGitCheckout, isGitInit, langMatch, langTarget, themeMatch, themeTarget, isAddTaskCommand, taskText, matchingTasks, filteredProjects };
   };
 
-  const { trimmed, lower, isHelpCommand, isAuthCommand, isPwaCommand, isGitCommit, isGitStatus, isGitCheckout, isGitInit, langMatch, langTarget, themeMatch, themeTarget, isAddTaskCommand, taskText, matchingTasks, filteredProjects } = analyze(query);
+  const { trimmed, lower, isHelpCommand, isAuthCommand, isPwaCommand, isTeamCommand, isGitCommit, isGitStatus, isGitCheckout, isGitInit, langMatch, langTarget, themeMatch, themeTarget, isAddTaskCommand, taskText, matchingTasks, filteredProjects } = analyze(query);
 
   // Autocomplete estilo terminal: a 1ª sugestão aparece apagada depois do texto digitado.
   const suggestions = suggestCommands(
     query,
-    buildCommandCatalog({ t, lang, projects, accentTheme: settings.accentTheme })
+    buildCommandCatalog({ t, lang, projects, accentTheme: settings.accentTheme, hasTeams })
   );
   const ghost = suggestions[0] ? suggestions[0].completion.slice(query.length) : '';
 
@@ -193,6 +199,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       isHelpCommand,
       isAuthCommand,
       isPwaCommand,
+      isTeamCommand,
       isGitCommit,
       isGitStatus,
       isGitCheckout,
@@ -240,6 +247,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     if (isAuthCommand && onOpenAuth) {
       onClose();
       onOpenAuth();
+      return;
+    }
+
+    if (isTeamCommand && onOpenTeams) {
+      onClose();
+      onOpenTeams();
       return;
     }
 
@@ -306,7 +319,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     }
 
     // Nada encontrado, mas o texto é o começo de um comando: completa (e executa, se já estiver completo).
-    const [first] = suggestCommands(text, buildCommandCatalog({ t, lang, projects, accentTheme: settings.accentTheme }));
+    const [first] = suggestCommands(text, buildCommandCatalog({ t, lang, projects, accentTheme: settings.accentTheme, hasTeams }));
     if (first) {
       if (first.needsArg) acceptSuggestion(first);
       else handleCommandSubmit(first.completion);

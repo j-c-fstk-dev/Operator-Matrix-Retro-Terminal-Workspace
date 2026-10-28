@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Project, WorkspaceSettings } from '../types';
-import { Plus, Search, Folder, CheckSquare, Terminal, Eye, Volume2, VolumeX, Trash2, SlidersHorizontal, BookOpen, Database, Cloud, User as UserIcon } from 'lucide-react';
+import { Project, Team, WorkspaceSettings } from '../types';
+import { Plus, Search, Folder, CheckSquare, Terminal, Eye, Volume2, VolumeX, Trash2, SlidersHorizontal, BookOpen, Database, Cloud, User as UserIcon, Users } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { User } from '@supabase/supabase-js';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -8,6 +8,11 @@ import { useT } from '../i18n';
 
 interface SidebarProps {
   projects: Project[];
+  /** Times do usuário e projetos compartilhados com eles (só aparecem para quem está em um time). */
+  teams?: Team[];
+  teamProjects?: Project[];
+  userId?: string;
+  onOpenTeams?: () => void;
   activeProjectId: string;
   onSelectProject: (id: string) => void;
   onNewProject: () => void;
@@ -27,6 +32,10 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
   projects,
+  teams = [],
+  teamProjects = [],
+  userId,
+  onOpenTeams,
   activeProjectId,
   onSelectProject,
   onNewProject,
@@ -47,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [filterQuery, setFilterQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
 
-  const filteredProjects = projects.filter((p) => {
+  const matchesFilters = (p: Project) => {
     const matchesQuery =
       p.title.toLowerCase().includes(filterQuery.toLowerCase()) ||
       p.category.toLowerCase().includes(filterQuery.toLowerCase());
@@ -57,13 +66,94 @@ export const Sidebar: React.FC<SidebarProps> = ({
     if (statusFilter === 'active') return matchesQuery && !isComplete;
     if (statusFilter === 'completed') return matchesQuery && isComplete;
     return matchesQuery;
-  });
+  };
+  const filteredProjects = projects.filter(matchesFilters);
+  const teamGroups = teams
+    .map((team) => ({ team, projects: teamProjects.filter((p) => p.teamId === team.id && matchesFilters(p)) }))
+    .filter((group) => group.projects.length > 0 || !filterQuery);
 
-  const totalTasks = projects.reduce((acc, p) => acc + p.tasks.length, 0);
-  const doneTasks = projects.reduce(
+  const everyProject = [...projects, ...teamProjects];
+  const totalTasks = everyProject.reduce((acc, p) => acc + p.tasks.length, 0);
+  const doneTasks = everyProject.reduce(
     (acc, p) => acc + p.tasks.filter((task) => task.done).length,
     0
   );
+
+  const renderProject = (p: Project, canDelete: boolean) => {
+    const isSelected = p.id === activeProjectId;
+    const total = p.tasks.length;
+    const done = p.tasks.filter((task) => task.done).length;
+    const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    return (
+      <div
+        key={p.id}
+        onClick={() => {
+          onSelectProject(p.id);
+          sound.playClick(650);
+          onCloseMobile();
+        }}
+        className={`group relative p-2.5 cursor-pointer font-mono border transition-all ${
+          isSelected
+            ? 'bg-[color:var(--t-091a0c)] border-[color:var(--t-22c55e)] shadow-[0_0_12px_color-mix(in_srgb,var(--t-22c55e)_12%,transparent)]'
+            : 'bg-[color:var(--t-030704)] border-[color:var(--t-102914)] hover:border-[color:var(--t-1b4b23)] hover:bg-[color:var(--t-061208)]'
+        }`}
+      >
+        <div className="flex items-start justify-between gap-1">
+          <div className="flex items-center gap-1.5 overflow-hidden">
+            <span
+              className={`text-xs ${
+                isSelected ? 'text-[color:var(--t-22c55e)]' : 'text-[color:var(--t-21a04d)] group-hover:text-[color:var(--t-4ade80)]'
+              }`}
+            >
+              {isSelected ? '▶' : '▷'}
+            </span>
+            <h4
+              className={`text-xs font-medium truncate ${
+                isSelected ? 'text-[color:var(--t-22c55e)] font-semibold' : 'text-[color:var(--t-86efac)]'
+              }`}
+            >
+              {p.title}
+            </h4>
+          </div>
+
+          {canDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(t.sidebar.confirmDelete(p.title))) {
+                  onDeleteProject(p.id);
+                  sound.playClick(400);
+                }
+              }}
+              className="opacity-0 group-hover:opacity-100 text-[color:var(--t-21a04d)] hover:text-red-400 p-0.5 transition-opacity"
+              title={t.sidebar.deleteProject}
+            >
+              <Trash2 size={11} />
+            </button>
+          )}
+        </div>
+
+        {/* Metadata and Mini Progress */}
+        <div className="mt-2 flex items-center justify-between text-[10px] text-[color:var(--t-21a04d)]">
+          <span className="truncate max-w-[120px]">{p.category}</span>
+          <span className="tabular-nums">
+            {t.sidebar.doneCount(done, total, percent)}
+          </span>
+        </div>
+
+        {/* Mini Progress Bar */}
+        <div className="mt-1.5 w-full bg-[color:var(--t-051107)] h-1 overflow-hidden">
+          <div
+            className={`h-full transition-all duration-300 ${
+              percent === 100 ? 'bg-[color:var(--t-22c55e)]' : 'bg-[color:var(--t-21a04d)]'
+            }`}
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -200,82 +290,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {t.sidebar.noProjects}
             </div>
           ) : (
-            filteredProjects.map((p) => {
-              const isSelected = p.id === activeProjectId;
-              const total = p.tasks.length;
-              const done = p.tasks.filter((task) => task.done).length;
-              const percent = total > 0 ? Math.round((done / total) * 100) : 0;
-
-              return (
-                <div
-                  key={p.id}
-                  onClick={() => {
-                    onSelectProject(p.id);
-                    sound.playClick(650);
-                    onCloseMobile();
-                  }}
-                  className={`group relative p-2.5 cursor-pointer font-mono border transition-all ${
-                    isSelected
-                      ? 'bg-[color:var(--t-091a0c)] border-[color:var(--t-22c55e)] shadow-[0_0_12px_color-mix(in_srgb,var(--t-22c55e)_12%,transparent)]'
-                      : 'bg-[color:var(--t-030704)] border-[color:var(--t-102914)] hover:border-[color:var(--t-1b4b23)] hover:bg-[color:var(--t-061208)]'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-1">
-                    <div className="flex items-center gap-1.5 overflow-hidden">
-                      <span
-                        className={`text-xs ${
-                          isSelected ? 'text-[color:var(--t-22c55e)]' : 'text-[color:var(--t-21a04d)] group-hover:text-[color:var(--t-4ade80)]'
-                        }`}
-                      >
-                        {isSelected ? '▶' : '▷'}
-                      </span>
-                      <h4
-                        className={`text-xs font-medium truncate ${
-                          isSelected ? 'text-[color:var(--t-22c55e)] font-semibold' : 'text-[color:var(--t-86efac)]'
-                        }`}
-                      >
-                        {p.title}
-                      </h4>
-                    </div>
-
-                    {projects.length > 1 && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (window.confirm(t.sidebar.confirmDelete(p.title))) {
-                            onDeleteProject(p.id);
-                            sound.playClick(400);
-                          }
-                        }}
-                        className="opacity-0 group-hover:opacity-100 text-[color:var(--t-21a04d)] hover:text-red-400 p-0.5 transition-opacity"
-                        title={t.sidebar.deleteProject}
-                      >
-                        <Trash2 size={11} />
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Metadata and Mini Progress */}
-                  <div className="mt-2 flex items-center justify-between text-[10px] text-[color:var(--t-21a04d)]">
-                    <span className="truncate max-w-[120px]">{p.category}</span>
-                    <span className="tabular-nums">
-                      {t.sidebar.doneCount(done, total, percent)}
-                    </span>
-                  </div>
-
-                  {/* Mini Progress Bar */}
-                  <div className="mt-1.5 w-full bg-[color:var(--t-051107)] h-1 overflow-hidden">
-                    <div
-                      className={`h-full transition-all duration-300 ${
-                        percent === 100 ? 'bg-[color:var(--t-22c55e)]' : 'bg-[color:var(--t-21a04d)]'
-                      }`}
-                      style={{ width: `${percent}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })
+            filteredProjects.map((p) => renderProject(p, projects.length > 1))
           )}
+
+          {teamGroups.map(({ team, projects: list }) => (
+            <div key={team.id} className="pt-3 space-y-1">
+              <div className="flex items-center justify-between px-2 py-1 text-[10px] font-mono text-[color:var(--t-21a04d)] uppercase tracking-wider">
+                <span className="flex items-center gap-1 truncate">
+                  <Users size={10} className="shrink-0 text-[color:var(--t-22c55e)]" />
+                  <span className="truncate">{t.teams.sectionTitle(team.name)}</span>
+                </span>
+                {onOpenTeams && (
+                  <button onClick={onOpenTeams} className="text-[color:var(--t-22c55e)] hover:text-[color:var(--t-86efac)] shrink-0">
+                    {t.teams.sidebarManage}
+                  </button>
+                )}
+              </div>
+              {list.map((p) => renderProject(p, p.ownerId === userId))}
+            </div>
+          ))}
         </div>
 
         {/* Global System Stats */}

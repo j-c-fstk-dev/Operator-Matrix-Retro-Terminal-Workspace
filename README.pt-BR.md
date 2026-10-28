@@ -242,6 +242,10 @@ Opcional e ainda não anunciado no app. Um time tem uma dona e membros; a dona a
 
 1. No **SQL Editor**, rode `supabase/teams.sql` (depois de `schema.sql` e `storage.sql`). Pode rodar de novo sem problema.
 2. O script também liga o Realtime da tabela `projects`, para as edições do time aparecerem para todos em poucos segundos.
+3. No app, digite `team` (ou `time`) no prompt Ctrl+K para criar um time e adicionar membros pelo e-mail. O comando só é sugerido para quem já está em um time.
+4. Abra um projeto e use **Compartilhar com time…** no cabeçalho. Ele passa para uma seção `TIME // <nome>` na barra lateral de todo mundo do time.
+
+Como funciona: projetos de time são só online e salvos direto no servidor cerca de um segundo depois que você para de digitar. Se duas pessoas salvam ao mesmo tempo, o app junta as mudanças item por item (tarefas, subtarefas, notas, snippets, anexos), então editar tarefas diferentes nunca perde trabalho; só quando as duas mexem no mesmo campo do mesmo item vale o último salvamento. Sem conexão, os projetos de time ficam só para leitura. Os projetos pessoais continuam funcionando offline como antes.
 
 As regras de acesso são testadas num Postgres de verdade no CI (`tests/sql/teams.test.sql`, rodado por `scripts/test-db.sh`).
 

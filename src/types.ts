@@ -61,6 +61,30 @@ export interface Project {
   createdAt: number;
   updatedAt: number;
   archived?: boolean;
+  // Projetos de time (vêm só do servidor; projetos pessoais não usam estes campos).
+  /** Time com quem o projeto está compartilhado. */
+  teamId?: string | null;
+  /** Conta dona do projeto (a pasta dos anexos é a dela). */
+  ownerId?: string;
+  /** Versão no servidor, para detectar edições simultâneas. */
+  version?: number;
+  /** Quem fez a última alteração. */
+  updatedBy?: string | null;
+}
+
+export type TeamRole = 'owner' | 'member';
+
+export interface Team {
+  id: string;
+  name: string;
+  /** Meu papel neste time. */
+  role: TeamRole;
+}
+
+export interface TeamMember {
+  userId: string;
+  email: string;
+  role: TeamRole;
 }
 
 export interface WorkspaceSettings {

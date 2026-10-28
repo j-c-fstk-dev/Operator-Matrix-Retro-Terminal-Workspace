@@ -20,10 +20,17 @@ import { sound } from './utils/audio';
 import { applyAccentTheme, resolveAccentTheme } from './theme/themes';
 import { supabase, isSupabaseConfigured, openedFromRecoveryLink, authLinkError } from './lib/supabase';
 import { useCloudSync } from './sync/useCloudSync';
+import { useTeamSync } from './teams/useTeamSync';
+import { teamService } from './teams/teamService';
+import { supabaseService } from './services/supabaseService';
+import { TeamsModal } from './components/TeamsModal';
+import type { ProjectTeamInfo } from './components/ProjectWorkspace';
 import { User } from '@supabase/supabase-js';
 
 const STORAGE_PROJECTS_KEY = 'operator_matrix_projects_v1';
 const STORAGE_SETTINGS_KEY = 'operator_matrix_settings_v1';
+// Ids dos projetos de exemplo: iguais na conta de todo mundo (ver handleShareProject).
+const SEED_IDS = new Set(getInitialProjects('pt').map((p) => p.id));
 
 export default function App() {
   // Load initial state
@@ -75,6 +82,7 @@ export default function App() {
   const [isManualOpen, setIsManualOpen] = useState(false);
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isTeamsOpen, setIsTeamsOpen] = useState(false);
   const [highlightedTaskId, setHighlightedTaskId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -90,6 +98,8 @@ export default function App() {
 
   // Sincronização com a nuvem: fila offline, envio agrupado e merge sem sobrescrever.
   const cloudSync = useCloudSync({ user, projects, setProjects, showToast });
+  // Projetos compartilhados com times: só online, salvos direto no servidor.
+  const teamSync = useTeamSync({ user, showToast });
 
   // Exemplos nunca editados acompanham o idioma escolhido.
   useEffect(() => {
@@ -248,10 +258,15 @@ export default function App() {
   }, [projects, settings]);
 
   // Active Project resolution
+  const allProjects = [...projects, ...teamSync.teamProjects];
   const activeProject =
-    projects.find((p) => p.id === activeProjectId) || projects[0] || getInitialProjects(lang)[0];
+    allProjects.find((p) => p.id === activeProjectId) || allProjects[0] || getInitialProjects(lang)[0];
 
   const handleUpdateProject = (updated: Project) => {
+    if (updated.teamId) {
+      teamSync.updateProject(updated);
+      return;
+    }
     setProjects((prev) =>
       prev.map((p) => (p.id === updated.id ? updated : p))
     );
@@ -294,6 +309,22 @@ export default function App() {
   };
 
   const handleDeleteProject = (id: string) => {
+    const teamProject = teamSync.teamProjects.find((p) => p.id === id);
+    if (teamProject) {
+      if (teamProject.ownerId !== user?.id) {
+        showToast(t.teams.onlyOwnerDeletes);
+        return;
+      }
+      teamService
+        .deleteTeamProject(teamProject.ownerId!, teamProject.id)
+        .then(() => {
+          teamSync.forget(teamProject);
+          if (activeProjectId === id) setActiveProjectId(projects[0]?.id || '');
+          showToast(t.app.projectDeleted);
+        })
+        .catch((err) => showToast(t.teams.error(err?.message || t.sync.error)));
+      return;
+    }
     if (projects.length <= 1) {
       showToast(t.app.needOneProject);
       return;
@@ -305,6 +336,72 @@ export default function App() {
     }
     cloudSync.queueDelete(id);
     showToast(t.app.projectDeleted);
+  };
+
+  // Compartilha um projeto pessoal com um time: ele sai da lista pessoal (local-first)
+  // e passa a ser salvo direto no servidor pelo sync dos times.
+  const handleShareProject = async (project: Project, teamId: string) => {
+    if (!user) return;
+    if (!navigator.onLine) {
+      showToast(t.teams.offline);
+      return;
+    }
+    const team = teamSync.teams.find((tm) => tm.id === teamId);
+    try {
+      // Os exemplos têm o mesmo id na conta de todo mundo; no time, o projeto ganha um id só dele.
+      const source = SEED_IDS.has(project.id)
+        ? { ...project, id: `proj-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, updatedAt: Date.now() }
+        : project;
+      await supabaseService.upsertProject(user.id, source);
+      const shared = await teamService.setProjectTeam(user.id, source.id, teamId);
+      if (!shared) throw new Error(t.sync.error);
+      teamSync.adopt(shared);
+      setProjects((prev) => prev.filter((p) => p.id !== project.id));
+      if (source.id !== project.id) cloudSync.queueDelete(project.id);
+      setActiveProjectId(shared.id);
+      sound.playCommand();
+      showToast(t.teams.shared(team?.name || ''));
+    } catch (err: any) {
+      showToast(t.teams.shareFailed(err?.message || t.sync.error));
+    }
+  };
+
+  const handleUnshareProject = async (project: Project) => {
+    if (!user || project.ownerId !== user.id) return;
+    try {
+      const row = await teamService.setProjectTeam(user.id, project.id, null);
+      teamSync.forget(project);
+      const { teamId: _team, ownerId: _owner, version: _version, updatedBy: _by, ...personal } = row || project;
+      setProjects((prev) => [personal, ...prev.filter((p) => p.id !== personal.id)]);
+      cloudSync.queueUpsert(personal.id);
+      setActiveProjectId(personal.id);
+      showToast(t.teams.unshared);
+    } catch (err: any) {
+      showToast(t.teams.error(err?.message || t.sync.error));
+    }
+  };
+
+  const activeTeam = activeProject.teamId ? teamSync.teams.find((tm) => tm.id === activeProject.teamId) : undefined;
+  const teamInfo: ProjectTeamInfo | undefined =
+    user && (teamSync.teams.length > 0 || activeProject.teamId)
+      ? {
+          teams: teamSync.teams,
+          teamName: activeTeam?.name,
+          isShared: Boolean(activeProject.teamId),
+          isOwner: !activeProject.teamId || activeProject.ownerId === user.id,
+          ownerEmail: teamSync.emailOf(activeProject.ownerId),
+          updatedByEmail: teamSync.emailOf(activeProject.updatedBy),
+          onShare: (teamId) => handleShareProject(activeProject, teamId),
+          onUnshare: () => {
+            if (window.confirm(t.teams.confirmUnshare(activeTeam?.name || ''))) handleUnshareProject(activeProject);
+          },
+        }
+      : undefined;
+
+  const handleTeamsChanged = async () => {
+    await teamSync.refresh();
+    // Projetos que voltaram a ser pessoais (time apagado, saída do time) reaparecem na lista.
+    cloudSync.refreshNow();
   };
 
   const handleQuickAddTask = (text: string) => {
@@ -574,6 +671,10 @@ export default function App() {
           {/* Left Sidebar */}
           <Sidebar
             projects={projects}
+            teams={teamSync.teams}
+            teamProjects={teamSync.teamProjects}
+            userId={user?.id}
+            onOpenTeams={() => setIsTeamsOpen(true)}
             activeProjectId={activeProject.id}
             onSelectProject={(id) => setActiveProjectId(id)}
             onNewProject={() => handleCreateNewProject()}
@@ -609,6 +710,7 @@ export default function App() {
             highlightedTaskId={highlightedTaskId}
             syncStatus={cloudSync.status}
             pendingSyncCount={cloudSync.pendingCount}
+            team={teamInfo}
           />
         </div>
 
@@ -625,10 +727,12 @@ export default function App() {
         <CommandPalette
           isOpen={isCommandPaletteOpen}
           onClose={() => setIsCommandPaletteOpen(false)}
-          projects={projects}
+          projects={allProjects}
           activeProjectId={activeProject.id}
           onSelectProject={(id) => setActiveProjectId(id)}
           onSelectTask={handleSelectTaskFromQuickFind}
+          hasTeams={teamSync.teams.length > 0}
+          onOpenTeams={() => setIsTeamsOpen(true)}
           onNewProject={handleCreateNewProject}
           onQuickAddTask={handleQuickAddTask}
           settings={settings}
@@ -683,6 +787,17 @@ export default function App() {
           isPasswordRecovery={isPasswordRecovery}
           linkError={authLinkErrorMsg ? t.app.authLinkError(authLinkErrorMsg) : null}
           onPasswordRecoveryDone={() => setIsPasswordRecovery(false)}
+        />
+
+        {/* Times (aberto pelo comando "team" no Ctrl+K) */}
+        <TeamsModal
+          isOpen={isTeamsOpen}
+          onClose={() => setIsTeamsOpen(false)}
+          user={user}
+          teams={teamSync.teams}
+          members={teamSync.members}
+          onChanged={handleTeamsChanged}
+          onShowToast={showToast}
         />
 
         {/* Offline Connectivity Indicator */}

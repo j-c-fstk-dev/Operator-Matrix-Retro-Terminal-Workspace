@@ -24,15 +24,31 @@ import {
   BookOpen,
   Database,
   Cloud,
-  HardDrive
+  HardDrive,
+  Users
 } from 'lucide-react';
 import { sound } from '../utils/audio';
 import { getTerminalTagStyle } from '../utils/tagColors';
 import { User } from '@supabase/supabase-js';
 import { PWAInstallButton } from './PWAInstallButton';
 import { SyncStatus } from '../sync/useCloudSync';
+import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { Team } from '../types';
 import { useT, useLang, localeOf } from '../i18n';
 import { ProjectAttachments } from './ProjectAttachments';
+
+/** Times do usuário e situação do projeto aberto (só existe para quem está em algum time). */
+export interface ProjectTeamInfo {
+  teams: Team[];
+  teamName?: string;
+  isShared: boolean;
+  /** Sou a dona do projeto (pessoal ou compartilhado por mim). */
+  isOwner: boolean;
+  ownerEmail?: string;
+  updatedByEmail?: string;
+  onShare: (teamId: string) => void;
+  onUnshare: () => void;
+}
 
 interface ProjectWorkspaceProps {
   project: Project;
@@ -47,6 +63,7 @@ interface ProjectWorkspaceProps {
   highlightedTaskId?: string | null;
   syncStatus?: SyncStatus;
   pendingSyncCount?: number;
+  team?: ProjectTeamInfo;
 }
 
 export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
@@ -62,7 +79,9 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
   highlightedTaskId,
   syncStatus = 'local',
   pendingSyncCount = 0,
+  team,
 }) => {
+  const isOnline = useOnlineStatus();
   const t = useT();
   const lang = useLang();
   const syncLabel = (status: SyncStatus, n: number) => {
@@ -608,6 +627,40 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   {t.workspace.lastUpdate} {new Date(project.updatedAt).toLocaleTimeString(localeOf(lang), { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
+
+              {/* Time: compartilhar ou situação do projeto compartilhado */}
+              {team && (team.isShared || team.teams.length > 0) && (
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-mono text-[color:var(--t-21a04d)]">
+                  <Users size={11} className="text-[color:var(--t-22c55e)]" />
+                  {team.isShared ? (
+                    <>
+                      <span className="text-[color:var(--t-22c55e)] font-bold">{t.teams.badge(team.teamName || '…')}</span>
+                      {!team.isOwner && team.ownerEmail && <span>· {t.teams.ownerIs(team.ownerEmail)}</span>}
+                      {team.updatedByEmail && <span>· {t.teams.editedBy(team.updatedByEmail)}</span>}
+                      {!isOnline && <span className="text-amber-400">· {t.teams.offlineReadOnly}</span>}
+                      {team.isOwner && (
+                        <button onClick={team.onUnshare} className="text-[color:var(--t-21a04d)] hover:text-red-400 underline underline-offset-2">
+                          {t.teams.unshare}
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <select
+                      value=""
+                      onChange={(e) => e.target.value && team.onShare(e.target.value)}
+                      aria-label={t.teams.shareLabel}
+                      className="bg-[color:var(--t-030704)] border border-[color:var(--t-14351a)] text-[10px] font-mono text-[color:var(--t-86efac)] px-1.5 py-0.5 focus:outline-hidden cursor-pointer"
+                    >
+                      <option value="">{t.teams.shareLabel}</option>
+                      {team.teams.map((tm) => (
+                        <option key={tm.id} value={tm.id}>
+                          {tm.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              )}
 
               {/* Title */}
               {editingTitle ? (

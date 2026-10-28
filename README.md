@@ -243,6 +243,10 @@ Optional, and not announced in the app yet. A team has one owner and members; th
 
 1. In the **SQL Editor**, run `supabase/teams.sql` (after `schema.sql` and `storage.sql`). It is safe to run again.
 2. The script also adds `projects` to Realtime, so team edits show up for everyone within seconds.
+3. In the app, type `team` in the Ctrl+K prompt to create a team and add members by email. The command is not suggested until you are on a team.
+4. Open a project and use **Share with team…** in its header. It moves to a `TEAM // <name>` section in the sidebar for everyone on the team.
+
+How it works: team projects are online-only and saved straight to the server about a second after you stop typing. If two people save at the same time, the app merges their changes item by item (tasks, subtasks, notes, snippets, attachments), so editing different tasks never loses work; only the same field of the same item edited by both keeps the last save. Without a connection, team projects are read-only. Personal projects keep working offline as before.
 
 The access rules are tested against a real Postgres in CI (`tests/sql/teams.test.sql`, run with `scripts/test-db.sh`).
 
