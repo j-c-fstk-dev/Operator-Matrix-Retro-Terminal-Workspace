@@ -17,7 +17,7 @@ interface DbProjectRow {
   updated_at: number;
 }
 
-function mapRowToProject(row: any): Project {
+export function mapRowToProject(row: any): Project {
   // Check attachments from column, or unpack from backup metadata in observations
   let attachments: any[] = Array.isArray(row.attachments) ? row.attachments : [];
   const rawObservations = Array.isArray(row.observations) ? row.observations : [];
@@ -49,10 +49,14 @@ function mapRowToProject(row: any): Project {
     attachments,
     createdAt: Number(row.created_at) || Date.now(),
     updatedAt: Number(row.updated_at) || Date.now(),
+    // Campos de time só nos projetos compartilhados.
+    ...(row.team_id
+      ? { teamId: row.team_id, ownerId: row.user_id, version: Number(row.version) || 0, updatedBy: row.updated_by ?? null }
+      : {}),
   };
 }
 
-function mapProjectToRow(userId: string, project: Project, includeAttachmentsCol: boolean = true): any {
+export function mapProjectToRow(userId: string, project: Project, includeAttachmentsCol: boolean = true): any {
   const cleanObservations = (project.observations || []).filter((o) => o.tag !== '__ATTACHMENTS_META__');
   const observationsWithBackup = [...cleanObservations];
 
@@ -118,7 +122,8 @@ export const supabaseService = {
     }
 
     if (!data) return [];
-    return data.map((row: any) => mapRowToProject(row));
+    // Projetos compartilhados com um time são cuidados pelo sync dos times (src/teams).
+    return data.filter((row: any) => !row.team_id).map((row: any) => mapRowToProject(row));
   },
 
   async upsertProject(userId: string, project: Project): Promise<void> {

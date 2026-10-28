@@ -236,6 +236,19 @@ O suporte ao [Supabase](https://supabase.com) é opcional. Se as variáveis não
 
 Os arquivos são organizados no bucket como `<user_id>/<project_id>/<timestamp>_<nome-do-arquivo>`.
 
+### 4. Times (projetos compartilhados, beta interno)
+
+Opcional e ainda não anunciado no app. Um time tem uma dona e membros; a dona adiciona membros pelo e-mail de quem já tem conta e compartilha projetos com o time. Os membros leem e editam os projetos compartilhados (inclusive anexos); só a dona do projeto pode compartilhar, descompartilhar ou apagar.
+
+1. No **SQL Editor**, rode `supabase/teams.sql` (depois de `schema.sql` e `storage.sql`). Pode rodar de novo sem problema.
+2. O script também liga o Realtime da tabela `projects`, para as edições do time aparecerem para todos em poucos segundos.
+3. No app, digite `team` (ou `time`) no prompt Ctrl+K para criar um time e adicionar membros pelo e-mail. O comando só é sugerido para quem já está em um time.
+4. Abra um projeto e use **Compartilhar com time…** no cabeçalho. Ele passa para uma seção `TIME // <nome>` na barra lateral de todo mundo do time.
+
+Como funciona: projetos de time são só online e salvos direto no servidor cerca de um segundo depois que você para de digitar. Se duas pessoas salvam ao mesmo tempo, o app junta as mudanças item por item (tarefas, subtarefas, notas, snippets, anexos), então editar tarefas diferentes nunca perde trabalho; só quando as duas mexem no mesmo campo do mesmo item vale o último salvamento. Sem conexão, os projetos de time ficam só para leitura. Os projetos pessoais continuam funcionando offline como antes.
+
+As regras de acesso são testadas num Postgres de verdade no CI (`tests/sql/teams.test.sql`, rodado por `scripts/test-db.sh`).
+
 ---
 
 ## 🛰️ Landing Page (`landing/`)

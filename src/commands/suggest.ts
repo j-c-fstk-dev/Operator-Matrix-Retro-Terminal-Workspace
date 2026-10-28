@@ -16,6 +16,8 @@ interface CatalogContext {
   lang: Lang;
   projects: { title: string; tasks: { tags?: string[] }[] }[];
   accentTheme?: string;
+  /** O comando "team" só é sugerido para quem já está em um time. */
+  hasTeams?: boolean;
 }
 
 const entry = (completion: string, hint: string): CommandSuggestion => ({
@@ -25,7 +27,7 @@ const entry = (completion: string, hint: string): CommandSuggestion => ({
 });
 
 /** Todos os comandos que o prompt entende, na ordem em que devem ser sugeridos. */
-export function buildCommandCatalog({ t, lang, projects, accentTheme }: CatalogContext): CommandSuggestion[] {
+export function buildCommandCatalog({ t, lang, projects, accentTheme, hasTeams }: CatalogContext): CommandSuggestion[] {
   const c = t.manual.commands;
   // O idioma que a pessoa ainda não está usando vem primeiro: é o que ela quer ao digitar "lang".
   const langs = [...LANGS].sort((a, b) => Number(a.id === lang) - Number(b.id === lang));
@@ -47,6 +49,7 @@ export function buildCommandCatalog({ t, lang, projects, accentTheme }: CatalogC
     entry('login', c.auth),
     entry('logout', c.auth),
     entry('install', c.pwa),
+    ...(hasTeams ? [entry('team', t.teams.cmdHint)] : []),
     entry('task: ', c.task),
     ...tags.map((tag) => entry(`#${tag}`, t.palette.tagHint)),
   ];
