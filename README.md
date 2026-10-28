@@ -237,6 +237,15 @@ Operator is a **static SPA (single page application)**, so any static host works
 
 Files are stored in the bucket as `<user_id>/<project_id>/<timestamp>_<file-name>`.
 
+### 4. Teams (shared projects, internal beta)
+
+Optional, and not announced in the app yet. A team has one owner and members; the owner adds members by the email of an existing account, and shares projects with the team. Members read and edit shared projects (including attachments); only the project's owner can share, unshare or delete it.
+
+1. In the **SQL Editor**, run `supabase/teams.sql` (after `schema.sql` and `storage.sql`). It is safe to run again.
+2. The script also adds `projects` to Realtime, so team edits show up for everyone within seconds.
+
+The access rules are tested against a real Postgres in CI (`tests/sql/teams.test.sql`, run with `scripts/test-db.sh`).
+
 ---
 
 ## 🛰️ Landing page (`landing/`)
