@@ -8,6 +8,7 @@ import { en } from '../src/i18n/en';
 import { detectLang, resolveLang, setCurrentLang, getT } from '../src/i18n';
 import { buildCommandCatalog, suggestCommands, resolveThemeName } from '../src/commands/suggest';
 import { mergeProjectEdits, mergeList } from '../src/teams/mergeEdits';
+import { parseMarkdownTasks, looksLikeTaskList } from '../src/tasks/parseMarkdownTasks';
 import { mergeProjects } from '../src/sync/merge';
 import { enqueue, acknowledge, Outbox } from '../src/sync/syncState';
 import { getTerminalTagStyle } from '../src/utils/tagColors';
@@ -797,6 +798,76 @@ test('Times/merge: notas, tags e anexos', () => {
   assert.strictEqual(r.observations[0].content, 'texto revisado');
   assert.deepStrictEqual(r.tasks[0].tags, ['blog', 'urgente']);
   assert.strictEqual(r.attachments!.length, 1);
+});
+
+// --------------------------------------------------------------------------
+// Colar lista de tarefas em Markdown
+// --------------------------------------------------------------------------
+const WONDRIX_LIST = `## Tasks
+
+- [ ] **Review + merge PR into LuminaEnvision/Wondrix main** [CRIT]
+  Fork main (j-c-fstk-dev/Wondrix) → her main. No conflicts. Text: docs/PR_DESCRIPTION.md
+
+- [ ] **Enable GitHub Actions CI on the repo**
+  Actions tab → enable workflows. Runs lint, typecheck, tests, build, e2e on every push/PR (.github/workflows/ci.yml)
+
+- [ ] **Deck + 3-minute video** [CRIT]
+  Show the January proof: quiet gap found by radar → Extra topic grown with live diagram + voice → parent summary`;
+
+test('Colar Markdown: lista escrita à mão vira tarefas com nota e prioridade', () => {
+  assert(looksLikeTaskList(WONDRIX_LIST));
+  const tasks = parseMarkdownTasks(WONDRIX_LIST, { now: 1 });
+  assert.deepStrictEqual(tasks.map((t) => t.text), [
+    'Review + merge PR into LuminaEnvision/Wondrix main',
+    'Enable GitHub Actions CI on the repo',
+    'Deck + 3-minute video',
+  ]);
+  assert.deepStrictEqual(tasks.map((t) => t.priority), ['high', 'med', 'high']);
+  assert.strictEqual(tasks[0].notes, 'Fork main (j-c-fstk-dev/Wondrix) → her main. No conflicts. Text: docs/PR_DESCRIPTION.md');
+  assert(tasks.every((t) => !t.done && t.subtasks.length === 0 && !t.tags));
+  assert.strictEqual(new Set(tasks.map((t) => t.id)).size, 3, 'ids únicos');
+});
+
+test('Colar Markdown: formato do "Exportar MD" do app (tags, nota, subtarefas, feitas)', () => {
+  const md = `# Projeto
+
+> descrição
+
+**Status:** ACTIVE | **Category:** DEV
+
+## Tasks
+
+- [x] **Implement handshake** [CRIT] [#websocket #network]
+  - *Note:* Protocol validated.
+  - [x] Validate token
+  - [ ] Ping/pong every 15s
+- [ ] **Write stress tests**
+
+## Notes
+
+### Something [GENERAL]
+
+text`;
+  const tasks = parseMarkdownTasks(md, { now: 1 });
+  assert.strictEqual(tasks.length, 2);
+  assert.strictEqual(tasks[0].text, 'Implement handshake');
+  assert.strictEqual(tasks[0].done, true);
+  assert.strictEqual(tasks[0].priority, 'high');
+  assert.deepStrictEqual(tasks[0].tags, ['websocket', 'network']);
+  assert.strictEqual(tasks[0].notes, 'Protocol validated.');
+  assert.deepStrictEqual(tasks[0].subtasks.map((s) => [s.text, s.done]), [['Validate token', true], ['Ping/pong every 15s', false]]);
+  assert.strictEqual(tasks[1].text, 'Write stress tests');
+  assert.strictEqual(tasks[1].notes, undefined);
+});
+
+test('Colar Markdown: tags soltas, [LOW], listas com * e texto comum', () => {
+  const tasks = parseMarkdownTasks('* [ ] Buy coffee #home [LOW]\n\t* [X] decaf');
+  assert.strictEqual(tasks[0].text, 'Buy coffee #home');
+  assert.deepStrictEqual(tasks[0].tags, ['home']);
+  assert.strictEqual(tasks[0].priority, 'low');
+  assert.deepStrictEqual(tasks[0].subtasks.map((s) => s.done), [true]);
+  assert(!looksLikeTaskList('só um texto colado\ncom duas linhas'));
+  assert.deepStrictEqual(parseMarkdownTasks('- item sem caixa'), []);
 });
 
 console.log(`\n========================================`);

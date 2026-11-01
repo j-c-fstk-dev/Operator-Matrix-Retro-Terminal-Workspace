@@ -235,6 +235,7 @@ export const en: Dict = {
     keyXSpace: 'X or Space',
     name: '**operator**: a minimal workspace for projects, nested tasks, tags and technical notes, with a keyboard-first flow for developers.',
     shortcuts: {
+      pasteList: 'In the new task field, paste a Markdown list (- [ ] …) to create every task at once',
       confirm: 'Confirms the task or subtask',
       escape: 'Closes dialogs and leaves the text field',
       exportMd: 'Copies the whole project as Markdown',
@@ -460,6 +461,7 @@ export const en: Dict = {
     red: 'Red',
   },
   workspace: {
+    pastedTasks: (n: number) => `${n} task(s) added from the pasted list.`,
     add: 'ADD',
     addTag: 'Add a tag to this task',
     backupTitle: 'Download or upload a JSON backup to move your data to another device',

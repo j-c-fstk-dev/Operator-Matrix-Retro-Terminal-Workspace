@@ -23,6 +23,7 @@ const SHORTCUTS: { id: ShortcutId; key: string | ((t: Dict) => string); analogy:
   { id: 'newTask', key: 'T', analogy: 'touch task.md' },
   { id: 'toggleTask', key: (t) => t.manual.keyXSpace, analogy: 'git commit -m "done"' },
   { id: 'tags', key: '#tag', analogy: 'git tag -a' },
+  { id: 'pasteList', key: 'Ctrl + V', analogy: 'cat tasks.md >> project' },
   { id: 'confirm', key: 'Enter', analogy: 'shell execute <CR>' },
   { id: 'subtask', key: '+ sub', analogy: 'sub-process branching' },
   { id: 'newProject', key: 'N', analogy: 'git init <project>' },
