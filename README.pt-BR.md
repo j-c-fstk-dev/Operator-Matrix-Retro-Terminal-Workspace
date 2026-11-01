@@ -29,6 +29,7 @@ Quando você quiser usar o mesmo workspace no PC e no celular, basta **entrar co
 ### 2. 📁 Gestão Completa de Projetos & Tarefas
 - **Hierarquia de Tarefas & Subtarefas**: adicione tarefas com checklist encadeado, notas técnicas e níveis de prioridade (`CRIT`, `MED`, `LOW`).
 - **Sistema de `#tags` Coloridas Determinísticas**: tags como `#api`, `#docker`, `#security`, `#infra` e `#db` recebem automaticamente paletas de cores de terminal baseadas em hash.
+- **Colar uma lista de tarefas**: cole uma lista em Markdown (`- [ ] **Tarefa** [CRIT]`, uma linha recuada como nota, itens `- [ ]` recuados como subtarefas) no campo de nova tarefa e todas as tarefas são criadas de uma vez, no topo do projeto. Lê também o Markdown exportado pelo próprio app e funciona em projetos de time.
 - **Filtros Rápidos**: visualize tarefas por status (*Todas*, *Pendentes*, *Concluídas*) ou clique em qualquer tag para filtrar em tempo real.
 - **Notas Técnicas & Snippets de Código**: armazene observações de arquitetura e comandos de terminal/código com cópia rápida para o clipboard em 1 clique.
 - **Abas por Bloco**: *Todos os Blocos*, *Tarefas*, *Observações*, *Snippets* e *Arquivos*.

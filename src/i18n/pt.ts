@@ -233,6 +233,7 @@ export const pt = {
     keyXSpace: 'X ou Espaço',
     name: '**operator**: espaço minimalista para organizar projetos, tarefas hierárquicas, tags e notas técnicas, com fluxo orientado a teclado para desenvolvedores.',
     shortcuts: {
+      pasteList: 'No campo de nova tarefa, cola uma lista Markdown (- [ ] …) e cria todas as tarefas',
       confirm: 'Confirma a tarefa ou subtarefa',
       escape: 'Fecha modais e sai do campo de texto',
       exportMd: 'Copia o projeto inteiro em Markdown',
@@ -458,6 +459,7 @@ export const pt = {
     red: 'Vermelho',
   },
   workspace: {
+    pastedTasks: (n: number) => `${n} tarefa(s) adicionada(s) da lista colada.`,
     add: 'ADICIONAR',
     addTag: 'Adicionar tag a esta tarefa',
     backupTitle: 'Baixar ou Subir arquivo de Backup JSON para sincronizar com outro aparelho',

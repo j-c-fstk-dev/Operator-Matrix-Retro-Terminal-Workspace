@@ -29,6 +29,7 @@ When you want the same workspace on your computer and your phone, **sign in with
 ### 2. 📁 Projects & tasks
 - **Tasks and subtasks**: add tasks with nested checklists, technical notes and priority levels (`CRIT`, `MED`, `LOW`).
 - **Color-coded `#tags`**: tags like `#api`, `#docker`, `#security`, `#infra` and `#db` get a terminal color picked from a hash, so the same tag always has the same color.
+- **Paste a task list**: paste a Markdown checklist (`- [ ] **Task** [CRIT]`, an indented line as its note, indented `- [ ]` items as subtasks) into the new task field and every task is created at once, at the top of the project. It reads the app's own Markdown export too, and works in team projects.
 - **Quick filters**: show *All*, *Pending* or *Done* tasks, or click any tag to filter instantly.
 - **Technical notes & code snippets**: keep architecture notes and terminal commands or code, copied to the clipboard in one click.
 - **Block tabs**: *All Blocks*, *Tasks*, *Notes*, *Snippets* and *Files*.

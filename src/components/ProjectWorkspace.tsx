@@ -33,6 +33,7 @@ import { User } from '@supabase/supabase-js';
 import { PWAInstallButton } from './PWAInstallButton';
 import { SyncStatus } from '../sync/useCloudSync';
 import { useOnlineStatus } from '../hooks/useOnlineStatus';
+import { looksLikeTaskList, parseMarkdownTasks } from '../tasks/parseMarkdownTasks';
 import { Team } from '../types';
 import { useT, useLang, localeOf } from '../i18n';
 import { ProjectAttachments } from './ProjectAttachments';
@@ -895,6 +896,17 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({
                   type="text"
                   value={newTaskText}
                   onChange={(e) => setNewTaskText(e.target.value)}
+                  onPaste={(e) => {
+                    // Lista em Markdown (- [ ] …): cria todas as tarefas de uma vez, no topo e na ordem colada.
+                    const text = e.clipboardData.getData('text');
+                    if (!looksLikeTaskList(text)) return;
+                    const pasted = parseMarkdownTasks(text);
+                    if (pasted.length === 0) return;
+                    e.preventDefault();
+                    onUpdateProject({ ...project, tasks: [...pasted, ...project.tasks], updatedAt: Date.now() });
+                    sound.playCommand();
+                    onShowToast?.(t.workspace.pastedTasks(pasted.length));
+                  }}
                   placeholder={t.workspace.newTaskPlaceholder}
                   className="w-full bg-transparent text-xs font-mono text-[color:var(--t-86efac)] placeholder-[color:var(--t-21a04d)] focus:outline-hidden"
                 />
